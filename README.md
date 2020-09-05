@@ -1,4 +1,4 @@
-# Drawer navigation example
+# Gordon360 App
 
 <p>
   <!-- iOS -->
@@ -9,12 +9,10 @@
   <img alt="Supports Expo Web" longdesc="Supports Expo Web" src="https://img.shields.io/badge/web-4630EB.svg?style=flat-square&logo=GOOGLE-CHROME&labelColor=4285F4&logoColor=fff" />
 </p>
 
-## 🚀 How to use
+## Problem Statement
 
-- Install with `yarn` or `npm install`.
-- Run `expo start` to try it out.
+- https://docs.google.com/presentation/d/1KAvq2Z2kaWoHd6xHDp5utLFS6qgmR5O2uCL2YME8aqc/edit?usp=sharing`.
 
-## 📝 Notes
+## Notes
 
 - This is a very basic example from the [react navigation](https://reactnavigation.org/) docs.
-- [Drawer navigation documentation](https://reactnavigation.org/docs/drawer-based-navigation).

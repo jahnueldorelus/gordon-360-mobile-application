@@ -19,38 +19,40 @@ export const renderAvatar = (props) => (
 
 export const renderBubble = (props) => {
   /****** Just Seeing what's passed into props */
-  delete props.forwardRef; // Deletes a lot of data so that the whole props object can be console logged
-  console.log("Props:\n\n", props);
+  let { previousMessage, currentMessage, nextMessage } = props;
+  console.log(previousMessage, currentMessage, nextMessage);
   /****** Just Seeing what's passed into props */
 
   return (
-    <Bubble
-      {...props}
-      // renderTime={() => <Text>Time</Text>}
-      // renderTicks={() => <Text>Ticks</Text>}
-      containerStyle={{
-        left: {},
-        right: { borderColor: "white", borderWidth: 4 },
-      }}
-      // wrapperStyle={{
-      //   left: { borderColor: "#31342B", borderWidth: 2 },
-      //   right: {},
-      // }}
-      // bottomContainerStyle={{
-      //   left: { borderColor: "black", borderWidth: 4 },
-      //   right: {},
-      // }}
-      // tickStyle={{}}
-      // usernameStyle={{ color: "black", fontWeight: "100" }}
-      // containerToNextStyle={{
-      //   left: { borderColor: "#31342B", borderWidth: 4 },
-      //   right: {},
-      // }}
-      // containerToPreviousStyle={{
-      //   left: { borderColor: "mediumorchid", borderWidth: 4 },
-      //   right: {},
-      // }}
-    />
+    <View>
+      <Bubble
+        {...props}
+        // renderTime={() => <Text>Time</Text>}
+        // renderTicks={() => <Text>Ticks</Text>}
+        containerStyle={{
+          left: {},
+          right: { borderColor: "white", borderWidth: 4 },
+        }}
+        // wrapperStyle={{
+        //   left: { borderColor: "#31342B", borderWidth: 2 },
+        //   right: {},
+        // }}
+        // bottomContainerStyle={{
+        //   left: { borderColor: "black", borderWidth: 4 },
+        //   right: {},
+        // }}
+        // tickStyle={{}}
+        // usernameStyle={{ color: "black", fontWeight: "100" }}
+        // containerToNextStyle={{
+        //   left: { borderColor: "#31342B", borderWidth: 4 },
+        //   right: {},
+        // }}
+        // containerToPreviousStyle={{
+        //   left: { borderColor: "mediumorchid", borderWidth: 4 },
+        //   right: {},
+        // }}
+      />
+    </View>
   );
 };
 

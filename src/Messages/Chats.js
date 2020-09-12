@@ -30,7 +30,7 @@ const Chats = () => {
 
   return (
     <GiftedChat
-      messages={messages}
+      messages={messages.sort((a, b) => a.createdAt + b.createdAt)}
       text={text}
       onInputTextChanged={setText}
       onSend={onSend}

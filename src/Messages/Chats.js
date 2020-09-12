@@ -21,7 +21,7 @@ const Chats = () => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    setMessages(messages.sort((a, b) => a.createdAt < b.createdAt));
+    setMessages(initialMessages.sort((a, b) => a.createdAt < b.createdAt));
   }, []);
 
   const onSend = (newMessages = []) => {

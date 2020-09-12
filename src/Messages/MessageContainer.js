@@ -20,7 +20,7 @@ export const renderAvatar = (props) => (
 export const renderBubble = (props) => {
   /****** Just Seeing what's passed into props */
   let { previousMessage, currentMessage, nextMessage } = props;
-  console.log(previousMessage, currentMessage, nextMessage);
+  // console.log(previousMessage, currentMessage, nextMessage);
   /****** Just Seeing what's passed into props */
 
   return (
@@ -52,6 +52,11 @@ export const renderBubble = (props) => {
         //   right: {},
         // }}
       />
+      {/* {previousMessage.user.name === currentMessage.user.name ? (
+        <Text>{currentMessage.user.name}</Text>
+      ) : (
+        <></>
+      )} */}
     </View>
   );
 };

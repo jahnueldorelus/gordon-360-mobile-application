@@ -21,7 +21,7 @@ const Chats = () => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    setMessages(initialMessages.reverse());
+    setMessages(messages.sort((a, b) => a.createdAt < b.createdAt));
   }, []);
 
   const onSend = (newMessages = []) => {
@@ -30,7 +30,7 @@ const Chats = () => {
 
   return (
     <GiftedChat
-      messages={messages.sort((a, b) => a.createdAt + b.createdAt)}
+      messages={messages}
       text={text}
       onInputTextChanged={setText}
       onSend={onSend}
@@ -42,7 +42,7 @@ const Chats = () => {
       alignTop
       alwaysShowSend
       scrollToBottom
-      showUserAvatar
+      // showUserAvatar
       renderAvatarOnTop
       // renderUsernameOnMessage
       bottomOffset={26}

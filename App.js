@@ -31,11 +31,12 @@
 //   }
 // }
 
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button, View, StyleSheet, Dimensions } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { NavigationContainer } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
+import Chat from "./src/Messages/Chats";
 
 const deviceHeight = Dimensions.get("window").height;
 const deviceWidth = Dimensions.get("window").width;
@@ -69,6 +70,10 @@ function NotificationsScreen({ navigation }) {
   );
 }
 
+function Messages({ navigation }) {
+  return <Chat />;
+}
+
 const Drawer = createDrawerNavigator();
 
 export default function App() {
@@ -77,6 +82,7 @@ export default function App() {
       <Drawer.Navigator initialRouteName="Home">
         <Drawer.Screen name="Home" component={HomeScreen} />
         <Drawer.Screen name="Notifications" component={NotificationsScreen} />
+        <Drawer.Screen name="Messages" component={Messages} />
       </Drawer.Navigator>
     </NavigationContainer>
   );

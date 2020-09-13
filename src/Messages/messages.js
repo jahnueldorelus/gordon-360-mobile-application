@@ -11,7 +11,7 @@ const messages = [
     createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
     user: {
       _id: 2,
-      name: "User Two",
+      name: "User One",
       avatar: "https://placeimg.com/140/140/any",
     },
   },
@@ -21,7 +21,7 @@ const messages = [
     createdAt: new Date(Date.UTC(2016, 5, 13, 17, 20, 0)),
     user: {
       _id: 0,
-      name: "OG User",
+      name: "Aaron",
       avatar: "https://placeimg.com/140/140/any",
     },
     image: "https://placeimg.com/960/540/any",
@@ -131,7 +131,7 @@ const messages = [
     createdAt: new Date(Date.UTC(2016, 5, 13, 17, 20, 4)),
     user: {
       _id: 0,
-      name: "OG User",
+      name: "Aaron",
       avatar: "https://placeimg.com/140/140/any",
     },
   },

@@ -27,10 +27,10 @@ export const renderBubble = (props) => {
   // )
   // console.log("\n\n", previousMessage, currentMessage, nextMessage, "\n\n");
   /****** Just Seeing what's passed into props */
-
+  console.log(props.user);
   return (
     <View>
-      {nameAtTopOfGroupedUserTexts(previousMessage, currentMessage)}
+      {nameAtTopOfGroupedUserTexts(previousMessage, currentMessage, props.user)}
       <Bubble
         {...props}
         // renderTime={() => <Text>Time</Text>}
@@ -58,11 +58,6 @@ export const renderBubble = (props) => {
         //   right: {},
         // }}
       />
-      {/* {nameAtBottomOfGroupedUserTexts(
-        previousMessage,
-        currentMessage,
-        nextMessage
-      )} */}
     </View>
   );
 };
@@ -115,93 +110,57 @@ export const renderCustomView = ({ user }) => (
 /**
  * Creates the name of the user in a group of texts.
  * If a user texts multiple consecutive texts, their username will
- * appear at the bottom of their last text. This checks to see if the
- * current text message is the user's last in a group of texts. If so,
- * their name will appear below the current text message. If not, no name will appear
- * @param {Object} previousMessage The previous text message
- * @param {Object} currentMessage The current text message. This is the main message that will
- *                                be shown. The othermessages are used for comparison
- * @param {Object} nextMessage The next text message
- */
-function nameAtBottomOfGroupedUserTexts(
-  previousMessage,
-  currentMessage,
-  nextMessage
-) {
-  // Checks to see if previousMessage is defined and not empty
-  if (previousMessage && previousMessage.user && previousMessage.user.name) {
-    // Checks to see if currentMessage is defined and not empty
-    if (currentMessage && currentMessage.user && currentMessage.user.name) {
-      // Checks to see if the previous and current message are from the same user
-      if (previousMessage.user.name === currentMessage.user.name) {
-        // Checks to see if nextMessage is defined and not empty
-        if (nextMessage && nextMessage.user && nextMessage.user.name) {
-          // Gets the date of the current and next message
-          let currentDate = new Date(currentMessage.createdAt);
-          let nextDate = new Date(nextMessage.createdAt);
-          /**
-           * Checks to see if the current message and the next message are two different
-           * users. Also checks to see if the date of the next message is not the same as the current.
-           * If true for any, then the current message is the last message of the user and the
-           * user's name is shown
-           */
-          if (
-            nextMessage.user.name !== currentMessage.user.name ||
-            !(
-              currentDate.getFullYear() === nextDate.getFullYear() &&
-              currentDate.getMonth() === nextDate.getMonth() &&
-              currentDate.getDate() === nextDate.getDate()
-            )
-          ) {
-            return <Text>{currentMessage.user.name}</Text>;
-          }
-        }
-        // Returns the user's name since there's no nextMessage. Therefore,
-        // currentMessage is the last text of the user.
-        else if (Object.keys(nextMessage).length === 0) {
-          return <Text>{currentMessage.user.name}</Text>;
-        }
-      }
-    }
-  }
-  // Nothing is returned if any nothing is returned from above
-  return <></>;
-}
-
-/**
- * Creates the name of the user in a group of texts.
- * If a user texts multiple consecutive texts, their username will
  * appear at the top of their first text. This checks to see if the
  * current text message is the user's first in a group of texts. If so,
- * their name will appear above the current text message. If not, no name will appear
+ * their name will appear above the current text message. If not, no name will appear. If the
+ * current text message belongs to the main user (the person receiving the texts), then their
+ * name will not appear
+ *
  * @param {Object} previousMessage The previous text message
  * @param {Object} currentMessage The current text message. This is the main message that will
  *                                be shown. The othermessages are used for comparison
+ * @param {Object} mainUser The main user (The person who's receiving the text messages)
  */
-function nameAtTopOfGroupedUserTexts(previousMessage, currentMessage) {
-  let textStyle = { padding: 1, color: "#014983" };
+function nameAtTopOfGroupedUserTexts(
+  previousMessage,
+  currentMessage,
+  mainUser
+) {
+  // Style of the user's name
+  let textStyle = { color: "#014983", paddingLeft: 5, paddingBottom: 5 };
+
   // Checks to see if previousMessage is defined and not empty
   if (currentMessage && currentMessage.user && currentMessage.user.name) {
-    if (previousMessage && previousMessage.user && previousMessage.user.name) {
-      // Gets the date of the current and next message
-      let prevDate = new Date(previousMessage.createdAt);
-      let currentDate = new Date(currentMessage.createdAt);
-      /**
-       * Checks to see if currentMessage is defined and not empty. If there's no previous
-       * messages, the user's name is shown. If there's a previous message and the user of the
-       * previous message is not the same with the current, the user's name is shown. If the user
-       * is the same, then their name will be shown only if the previous message has a different date
-       * than the current
-       */
+    // Checks to make sure that the current message doesn't belong to the main user
+    if (currentMessage.user.name !== mainUser.name) {
       if (
-        Object.keys(previousMessage).length === 0 ||
-        previousMessage.user.name !== currentMessage.user.name ||
-        !(
-          prevDate.getFullYear() === currentDate.getFullYear() &&
-          prevDate.getMonth() === currentDate.getMonth() &&
-          prevDate.getDate() === currentDate.getDate()
-        )
+        previousMessage &&
+        previousMessage.user &&
+        previousMessage.user.name
       ) {
+        // Gets the date of the current and next message
+        let prevDate = new Date(previousMessage.createdAt);
+        let currentDate = new Date(currentMessage.createdAt);
+        /**
+         * Checks to see if currentMessage is defined and not empty. If there's no previous
+         * messages, the user's name is shown. If there's a previous message and the user of the
+         * previous message is not the same with the current, the user's name is shown. If the user
+         * is the same, then their name will be shown only if the previous message has a different date
+         * than the current
+         */
+        if (
+          previousMessage.user.name !== currentMessage.user.name ||
+          !(
+            prevDate.getFullYear() === currentDate.getFullYear() &&
+            prevDate.getMonth() === currentDate.getMonth() &&
+            prevDate.getDate() === currentDate.getDate()
+          )
+        ) {
+          return <Text style={textStyle}>{currentMessage.user.name}</Text>;
+        }
+      }
+      // If the previousMessage is a system message, then the user of the currentMessage is shown
+      else if (previousMessage && previousMessage.system) {
         return <Text style={textStyle}>{currentMessage.user.name}</Text>;
       }
     }

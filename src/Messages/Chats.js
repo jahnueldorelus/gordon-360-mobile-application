@@ -35,7 +35,7 @@ const Chats = () => {
       onInputTextChanged={setText}
       onSend={onSend}
       user={{
-        _id: 1,
+        _id: 0,
         name: "Aaron",
         avatar: "https://placeimg.com/150/150/any",
       }}
@@ -43,7 +43,7 @@ const Chats = () => {
       alwaysShowSend
       scrollToBottom
       // showUserAvatar
-      renderAvatarOnTop
+      // renderAvatarOnTop
       // renderUsernameOnMessage
       bottomOffset={26}
       onPressAvatar={console.log}

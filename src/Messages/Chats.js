@@ -46,12 +46,12 @@ const Chats = () => {
       // renderAvatarOnTop
       // renderUsernameOnMessage
       bottomOffset={26}
-      onPressAvatar={console.log}
+      // onPressAvatar={console.log}
       // renderInputToolbar={renderInputToolbar}
-      // renderActions={renderActions}
-      // renderComposer={renderComposer}
-      // renderSend={renderSend}
-      renderAvatar={renderAvatar}
+      renderActions={renderActions}
+      renderComposer={renderComposer}
+      renderSend={renderSend}
+      // renderAvatar={renderAvatar}
       renderBubble={renderBubble}
       renderSystemMessage={renderSystemMessage}
       // renderMessage={renderMessage}

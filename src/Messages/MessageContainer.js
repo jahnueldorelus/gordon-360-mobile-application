@@ -27,7 +27,7 @@ export const renderBubble = (props) => {
   // )
   // console.log("\n\n", previousMessage, currentMessage, nextMessage, "\n\n");
   /****** Just Seeing what's passed into props */
-  console.log(props.user);
+  // console.log(props.user);
   return (
     <View>
       {nameAtTopOfGroupedUserTexts(previousMessage, currentMessage, props.user)}

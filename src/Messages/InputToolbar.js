@@ -6,14 +6,12 @@ import { InputToolbar, Actions, Send } from "react-native-gifted-chat";
 import Composer from "./Composer";
 
 export const renderInputToolbar = (props) => (
-  <InputToolbar
-    {...props}
-    containerStyle={{
-      paddingTop: 10,
-      paddingBottom: 10,
-    }}
-    primaryStyle={{ alignItems: "center" }}
-  />
+  /**
+   * Do not delete the vertical padding. This fills the gap between the Input
+   * Toolbar and the keyboard that appears on the screen. See documentation
+   * for bug "iOS_Text_Input"
+   */
+  <InputToolbar {...props} containerStyle={{ paddingVertical: 11 }} />
 );
 
 export const renderActions = (props) => (
@@ -69,18 +67,19 @@ export const renderSend = (props) => (
     {...props}
     disabled={!props.text}
     containerStyle={{
-      width: 44,
-      height: 44,
+      width: 36,
+      height: 36,
       alignItems: "center",
       justifyContent: "center",
-      marginHorizontal: 4,
+      marginLeft: 4,
+      borderRadius: 20,
+      backgroundColor: "#D0E7FF",
+      marginRight: 4,
     }}
   >
     <Image
       style={{ width: 32, height: 32 }}
-      source={{
-        uri: "https://placeimg.com/32/32/any",
-      }}
+      source={require("./send_button.png")}
     />
   </Send>
 );

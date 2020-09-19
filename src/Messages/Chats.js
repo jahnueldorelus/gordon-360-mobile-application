@@ -15,6 +15,7 @@ import {
   renderMessageText,
   renderCustomView,
 } from "./MessageContainer";
+import { getBottomSpace } from "react-native-iphone-x-helper";
 
 const Chats = () => {
   const [text, setText] = useState("");
@@ -45,9 +46,14 @@ const Chats = () => {
       // showUserAvatar
       // renderAvatarOnTop
       // renderUsernameOnMessage
-      bottomOffset={26}
+      bottomOffset={getBottomSpace()}
+      /**
+       * DO NOT DELETE THIS. THE MINIMUM INPUT TOOLBAR MUST BE SET. SEE DOCUMENTATION
+       * FOR BUG "iOS_Text_Input"
+       */
+      minInputToolbarHeight={66}
       // onPressAvatar={console.log}
-      // renderInputToolbar={renderInputToolbar}
+      renderInputToolbar={renderInputToolbar}
       renderActions={renderActions}
       renderComposer={renderComposer}
       renderSend={renderSend}

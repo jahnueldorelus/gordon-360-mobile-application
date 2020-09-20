@@ -1,33 +1,15 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from "react";
 import { View, Text } from "react-native";
-import {
-  Avatar,
-  Bubble,
-  SystemMessage,
-  Message,
-  MessageText,
-} from "react-native-gifted-chat";
-import messages from "./messages";
+import { Bubble } from "react-native-gifted-chat";
 
-export const renderAvatar = (props) => (
-  <Avatar
-    {...props}
-    // containerStyle={{ left: { borderWidth: 3, borderColor: "red" }, right: {} }}
-    // imageStyle={{ left: { borderWidth: 2, borderColor: "#014983" }, right: {} }}
-  />
-);
-
+/**
+ * Renders the text message Bubble in the MessageContainer
+ * @param {JSON} props Props passed from parent
+ */
 export const renderBubble = (props) => {
-  /****** Just Seeing what's passed into props */
-  let { previousMessage, currentMessage, nextMessage } = props;
-  // if (
-  //   Object.keys(nextMessage).length === 0 &&
-  //   previousMessage.user.name === currentMessage.user.name
-  // )
-  // console.log("\n\n", previousMessage, currentMessage, nextMessage, "\n\n");
-  /****** Just Seeing what's passed into props */
-  // console.log(props.user);
+  // Gets the previous and current message from props
+  let { previousMessage, currentMessage } = props;
+
   return (
     <View>
       {nameAtTopOfGroupedUserTexts(previousMessage, currentMessage, props.user)}
@@ -61,51 +43,6 @@ export const renderBubble = (props) => {
     </View>
   );
 };
-
-export const renderSystemMessage = (props) => (
-  <SystemMessage
-    {...props}
-    containerStyle={{ backgroundColor: "#313428" }}
-    wrapperStyle={{ borderWidth: 10, borderColor: "#313428" }}
-    textStyle={{ color: "white", fontWeight: "900" }}
-  />
-);
-
-export const renderMessage = (props) => (
-  <Message
-    {...props}
-    // renderDay={() => <Text>Date</Text>}
-    containerStyle={{
-      left: { backgroundColor: "white" },
-      right: { backgroundColor: "white" },
-    }}
-  />
-);
-
-export const renderMessageText = (props) => (
-  <MessageText
-    {...props}
-    containerStyle={{
-      left: { backgroundColor: "#31342B" },
-      right: { backgroundColor: "black" },
-    }}
-    textStyle={{
-      left: { color: "white" },
-      right: { color: "white" },
-    }}
-    linkStyle={{
-      left: { color: "#31342B" },
-      right: { color: "gray" },
-    }}
-    customTextStyle={{ fontSize: 24, lineHeight: 16 }}
-  />
-);
-
-export const renderCustomView = ({ user }) => (
-  <View style={{ minHeight: 20, alignItems: "center" }}>
-    <Text>{user.name}</Text>
-  </View>
-);
 
 /**
  * Creates the name of the user in a group of texts.

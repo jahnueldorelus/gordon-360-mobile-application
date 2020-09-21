@@ -9,10 +9,10 @@ import Chat from "./src/Views/Chat/Chat.js";
 const deviceHeight = Dimensions.get("window").height;
 const deviceWidth = Dimensions.get("window").width;
 
-function HomeScreen({ navigation }) {
+function Gordon360({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <AppBar navigation={navigation} />
+      <AppBar navigation={navigation} route="Gordon_360" />
       <WebView
         style={styles.webview}
         source={{ uri: "https://360.gordon.edu" }}
@@ -37,7 +37,7 @@ function NotificationsScreen({ navigation }) {
 function Messages({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
-      <AppBar navigation={navigation} />
+      <AppBar navigation={navigation} route="Messages" />
       <Chat />
     </View>
   );
@@ -46,24 +46,11 @@ function Messages({ navigation }) {
 const Drawer = createDrawerNavigator();
 
 export default function App() {
-  // A reference to the navigation container
-  const navigationRef = useRef();
-
   return (
     <View style={{ flex: 1 }}>
-      <NavigationContainer
-        ref={navigationRef}
-        onReady={() => {
-          // Sets the name of the current screen view
-          setPath(navigationRef.current.getCurrentRoute().name);
-        }}
-        onStateChange={() => {
-          // Sets the name of the current screen view
-          setPath(navigationRef.current.getCurrentRoute().name);
-        }}
-      >
+      <NavigationContainer>
         <Drawer.Navigator initialRouteName="Messages">
-          <Drawer.Screen name="Home" component={HomeScreen} />
+          <Drawer.Screen name="Gordon 360" component={Gordon360} />
           <Drawer.Screen name="Notifications" component={NotificationsScreen} />
           <Drawer.Screen name="Messages" component={Messages} />
         </Drawer.Navigator>

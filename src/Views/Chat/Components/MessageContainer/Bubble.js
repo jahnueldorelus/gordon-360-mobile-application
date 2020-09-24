@@ -66,10 +66,11 @@ function nameAtTopOfGroupedUserTexts(
   // Style of the user's name
   let textStyle = { color: "#014983", paddingLeft: 5, paddingBottom: 5 };
 
-  // Checks to see if previousMessage is defined and not empty
+  // Checks to see if currentMessage is defined and not empty
   if (currentMessage && currentMessage.user && currentMessage.user.name) {
     // Checks to make sure that the current message doesn't belong to the main user
-    if (currentMessage.user.name !== mainUser.name) {
+    if (currentMessage.user._id !== mainUser._id) {
+      // Checks to see if previousMessage is defined and not empty
       if (
         previousMessage &&
         previousMessage.user &&
@@ -86,7 +87,7 @@ function nameAtTopOfGroupedUserTexts(
          * than the current
          */
         if (
-          previousMessage.user.name !== currentMessage.user.name ||
+          previousMessage.user._id !== currentMessage.user._id ||
           !(
             prevDate.getFullYear() === currentDate.getFullYear() &&
             prevDate.getMonth() === currentDate.getMonth() &&

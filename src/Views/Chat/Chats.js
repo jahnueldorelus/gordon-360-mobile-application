@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
-import initialMessages from "./dummy_messages";
+import { getMessages } from "../../Services/Messages/MessageService";
+import { StyleSheet } from "react-native";
 import { renderActions } from "./Components/InputToolBar/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
@@ -12,12 +13,23 @@ import { renderMessageText } from "./Components/MessageContainer/MessageText";
 import { renderSend } from "./Components/InputToolBar/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 
-const Chats = () => {
+export const Chats = (props) => {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
 
+  /**
+   * Gets the messages based upon the room ID and sorts them in order by date
+   */
   useEffect(() => {
-    setMessages(initialMessages.sort((a, b) => a.createdAt < b.createdAt));
+    let chat = getMessages(props.route.params.room_id).sort(
+      (a, b) => a.createdAt < b.createdAt
+    );
+    if (chat.length > 0) setMessages(chat[0].messages);
+    else {
+      // This disables a chat room from being opened if the messages failed to load
+      props.navigation.pop();
+      props.navigation.navigate("Rooms", { error: "Failed to load messages" });
+    }
   }, []);
 
   const onSend = (newMessages = []) => {
@@ -31,7 +43,7 @@ const Chats = () => {
       bottomOffset={getBottomSpace()}
       isCustomViewBottom
       messages={messages}
-      messagesContainerStyle={{ backgroundColor: "white" }}
+      messagesContainerStyle={styles.messagesContainer}
       /**
        * DO NOT DELETE THIS. THE MINIMUM INPUT TOOLBAR MUST BE SET TO 66.
        * SEE DOCUMENTATION FOR BUG "iOS_Text_Input"
@@ -61,12 +73,16 @@ const Chats = () => {
       // showUserAvatar
       text={text}
       user={{
-        _id: 0,
+        _id: 5,
         name: "Aaron",
-        avatar: "https://placeimg.com/150/150/any",
+        avatar: "https://placeimg.com/140/140/any",
       }}
     />
   );
 };
 
-export default Chats;
+const styles = StyleSheet.create({
+  messagesContainer: {
+    backgroundColor: "white",
+  },
+});

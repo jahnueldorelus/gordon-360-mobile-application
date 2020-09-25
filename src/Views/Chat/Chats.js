@@ -3,14 +3,15 @@ import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
 import { getMessages } from "../../Services/Messages/MessageService";
 import { StyleSheet } from "react-native";
-import { renderActions } from "./Components/InputToolBar/Actions";
+import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
-import { renderComposer } from "./Components/InputToolBar/Composer";
+import { renderComposer } from "./Components/InputToolbar/Components/Composer";
 import { renderCustomView } from "./Components/MessageContainer/CustomView";
+import { renderInputToolbar } from "./Components/InputToolbar/InputToolbar";
 import { renderMessage } from "./Components/MessageContainer/Message";
 import { renderMessageText } from "./Components/MessageContainer/MessageText";
-import { renderSend } from "./Components/InputToolBar/Send";
+import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 
 export const Chats = (props) => {
@@ -64,6 +65,7 @@ export const Chats = (props) => {
       renderBubble={renderBubble}
       renderComposer={renderComposer}
       // renderCustomView={renderCustomView}
+      renderInputToolbar={renderInputToolbar}
       // renderMessage={renderMessage}
       // renderMessageImage
       // renderMessageText={renderMessageText}

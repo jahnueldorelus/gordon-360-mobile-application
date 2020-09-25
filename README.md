@@ -43,42 +43,42 @@
 
 1. First install Yarn or NPM with `yarn` or `npm install`.
 
-   - To install all dependencies in two commands, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation
+   - To install all dependencies in two commands, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
      - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat`
      - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat`
 
-   - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation
-     - Install Expo using any of the following commands
+   - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
+     - Install Expo using any of the following commands.
        - `npm i expo-cli`
        - `yarn add expo-cli`
-     - Install WebView using any of the following commands
+     - Install WebView using any of the following commands.
        - `npm i react-native-webview`
        - `yarn add react-native-webview`
-     - Install React Native Elements using any of the following commands
+     - Install React Native Elements using any of the following commands.
        - `npm i react-native-elements`
        - `yarn add react-native-elements`
-     - Install React Native Vector Icons using any of the following commands
+     - Install React Native Vector Icons using any of the following commands.
        - `npm i react-native-vector-icons`
        - `yarn add react-native-vector-icons`
-     - Install React Native Stack Navigation using any of the following commands
+     - Install React Native Stack Navigation using any of the following commands.
        - `npm i @react-navigation/stack`
        - `yarn add @react-navigation/stack`
-     - Install GiftedChat using any of the following commands
+     - Install GiftedChat using any of the following commands.
        - `npm i react-native-gifted-chat`
        - `yarn add react-native-gifted-chat`
 
-2. You can open your application using any of the following commands depending on your preference
+2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:
      - `expo start`
-   - Start the server and open application in Android simulator (Android Studio must be installed)
+   - Start the server and open application in Android simulator (Android Studio must be installed).
      - `expo start --android`
-   - Start the server and open application in iOS simulator (Only for Mac and Xcode must be installed)
+   - Start the server and open application in iOS simulator (Only for Mac and Xcode must be installed).
      - `expo start --ios`
 
 <br/><br/>
 
-## 🐛 ⚠️&nbsp;&nbsp;&nbsp;Known Bugs and Warnings
+## 🐛&nbsp;⚠️&nbsp;&nbsp;&nbsp;Known Bugs and Warnings
 
 <table>
 <!------------------------------------------------ Table Headers ------------------------------------------------>
@@ -156,7 +156,89 @@
       </ol>
     </td>
     <td style="color: #FFE266">
-      node_modules/react-native-lightbox/LightboxOverlay.js
+      <ol>
+      <li> node_modules/react-native-lightbox/LightboxOverlay.js </li>
+      </ol>
     </td>
   </tr>
 </table>
+
+## 🏭&nbsp;&nbsp;&nbsp;Data Structures
+
+1. Structure of the Room Object. All rooms are arranged together in a list.
+
+```javascript
+Room = {
+  _id: String | Number
+  name: String | null,
+  group: Boolean,
+  createdAt: Date,
+  lastUpdated: Date,
+  roomImage: 'Not Available - Image type to be determined',
+  users: [{
+    _id: Number,
+    name: String,
+    avatar: 'Not Available - Image type to be determined',
+  }]
+}
+```
+
+- <strong>\_id:</strong> The ID of the room. <br />
+- <strong>name:</strong> The name of the room. If the room is not a group, then no room name is available. <br/>
+- <strong>group:</strong> Determines if a room is group. A room is a group if the room has more than 1 user (apart from the main user). <br/>
+- <strong>createdAt:</strong> Determines the date the room was created. Format is in Coordinated Universal Time (UTC). <br/>
+- <strong>lastUpdated:</strong> Determines the date the room was last updated. In other words, the date and time of the last text made in the room. Format is in Coordinated Universal Time. <br/>
+- <strong>roomImage:</strong> The image of the room. <br/>
+- <strong>users:</strong> A list of all users in the chat. <br/>
+
+  <br/>
+
+2. Structure of the Message Object. All messages are arranged together in a list.
+
+```javascript
+    Message =  {
+      _id: String | Number
+      text: String
+      createdAt: Date | Number
+      user: {
+        _id: Number,
+        name: String,
+        avatar: 'Not Available - Image type to be determined',
+      }
+      image: 'Not Available - Image type to be determined'
+      video: 'Not Available - Video type to be determined'
+      audio: 'Not Available - Audio type to be determined'
+      system: Boolean
+      sent: Boolean
+      received: Boolean
+      pending: Boolean
+      quickReplies: {
+        type: 'radio' | 'checkbox'
+        values: [{
+          title: String,
+          value: String,
+          messageId: String | Number
+        }]
+        keepIt: Boolean
+      }
+    }
+```
+
+- <strong>\_id:</strong> The ID of the message. <br />
+- <strong>text:</strong> The text of the message. <br/>
+- <strong>createdAt:</strong> Determines the date the room was created. Format is in Coordinated Universal Time (UTC). <br/>
+- <strong>user:</strong> The user who sent the text message. <br/>
+- <strong>image:</strong> Source of an image file. <br/>
+- <strong>video:</strong> Source of a video file. <br/>
+- <strong>audio:</strong> Source of an audio file. <br/>
+- <strong>system:</strong> Determines if the message is from the system or a user. <br/>
+- <strong>sent:</strong> Determines if the message has been sent. In other words, received by the server. <br/>
+- <strong>received:</strong> Determines if the user received the message. Only available for non-group rooms. <br/>
+- <strong>pending:</strong> Determines if a message hasn't been received by the server from device submisssion. <br/>
+- <strong>quickReplies:</strong> A quick reply message. <br/>
+  - <strong>type:</strong> Either a radio or checkbox. In other words, a user can either choose one message (radio) or multiple messages which are combined together as one (checkbox) for their response. <br/>
+  - <strong>values:</strong> A list of quick replies messages available <br/>
+    - <strong>title:</strong> The text of the quick reply message <br/>
+    - <strong>value:</strong> The value of the quick reply message <br/>
+    - <strong>messageId:</strong> The ID of the quick reply message <br/>
+  - <strong>keepIt:</strong> Not known - To be determined. <br/>

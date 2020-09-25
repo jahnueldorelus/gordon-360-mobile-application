@@ -168,19 +168,21 @@
 1. Structure of the Room Object. All rooms are arranged together in a list.
 
 ```javascript
-Room = {
-  _id: String | Number
-  name: String | null,
-  group: Boolean,
-  createdAt: Date,
-  lastUpdated: Date,
-  roomImage: 'Not Available - Image type to be determined',
-  users: [{
-    _id: Number,
-    name: String,
-    avatar: 'Not Available - Image type to be determined',
-  }]
-}
+  Object {
+    _id: String | Number,
+    name: String | null,
+    group: Boolean,
+    createdAt: Date,
+    lastUpdated: Date,
+    roomImage: "Not Available - Image type to be determined",
+    users: [
+      {
+        _id: Number,
+        name: String,
+        avatar: "Not Available - Image type to be determined",
+      },
+    ],
+  };
 ```
 
 - <strong>\_id:</strong> The ID of the room. <br />
@@ -196,32 +198,34 @@ Room = {
 2. Structure of the Message Object. All messages are arranged together in a list.
 
 ```javascript
-    Message =  {
-      _id: String | Number
-      text: String
-      createdAt: Date | Number
-      user: {
-        _id: Number,
-        name: String,
-        avatar: 'Not Available - Image type to be determined',
-      }
-      image: 'Not Available - Image type to be determined'
-      video: 'Not Available - Video type to be determined'
-      audio: 'Not Available - Audio type to be determined'
-      system: Boolean
-      sent: Boolean
-      received: Boolean
-      pending: Boolean
-      quickReplies: {
-        type: 'radio' | 'checkbox'
-        values: [{
+  Object {
+    _id: String | Number,
+    text: String,
+    createdAt: Date | Number,
+    user: {
+      _id: Number,
+      name: String,
+      avatar: "Not Available - Image type to be determined",
+    },
+    image: "Not Available - Image type to be determined",
+    video: "Not Available - Video type to be determined",
+    audio: "Not Available - Audio type to be determined",
+    system: Boolean,
+    sent: Boolean,
+    received: Boolean,
+    pending: Boolean,
+    quickReplies: {
+      type: "radio" | "checkbox",
+      values: [
+        {
           title: String,
           value: String,
-          messageId: String | Number
-        }]
-        keepIt: Boolean
-      }
-    }
+          messageId: String | Number,
+        },
+      ],
+      keepIt: Boolean,
+    },
+  };
 ```
 
 - <strong>\_id:</strong> The ID of the message. <br />

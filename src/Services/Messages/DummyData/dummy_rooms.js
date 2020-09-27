@@ -13,6 +13,11 @@ const rooms = [
         name: "Ari DosPassos",
         avatar: "https://placeimg.com/140/140/any",
       },
+      {
+        _id: 5,
+        name: "Aaron",
+        avatar: "https://placeimg.com/140/140/any",
+      },
     ],
   },
   /******************************** ROOM #2 ***********************************/
@@ -24,6 +29,11 @@ const rooms = [
     roomImage: "https://placeimg.com/140/140/any",
     group: true,
     users: [
+      {
+        _id: 5,
+        name: "Aaron",
+        avatar: "https://placeimg.com/140/140/any",
+      },
       {
         _id: 2,
         name: "Jahnuel Dorelus",
@@ -45,7 +55,7 @@ const rooms = [
         avatar: "https://placeimg.com/140/140/any",
       },
       {
-        _id: 6,
+        _id: 7,
         name: "Dr. Crisman",
         avatar: "https://placeimg.com/140/140/any",
       },
@@ -64,6 +74,11 @@ const rooms = [
       {
         _id: 3,
         name: "Dr.Tuck",
+        avatar: "https://placeimg.com/140/140/any",
+      },
+      {
+        _id: 5,
+        name: "Aaron",
         avatar: "https://placeimg.com/140/140/any",
       },
     ],
@@ -87,6 +102,11 @@ const rooms = [
         name: "Harvard",
         avatar: "https://placeimg.com/140/140/any",
       },
+      {
+        _id: 5,
+        name: "Aaron",
+        avatar: "https://placeimg.com/140/140/any",
+      },
     ],
   },
   /******************************** ROOM #5 ***********************************/
@@ -99,8 +119,13 @@ const rooms = [
     group: false,
     users: [
       {
-        _id: 5,
+        _id: 8,
         name: "Steve Jobs",
+        avatar: "https://placeimg.com/140/140/any",
+      },
+      {
+        _id: 5,
+        name: "Aaron",
         avatar: "https://placeimg.com/140/140/any",
       },
     ],
@@ -117,6 +142,11 @@ const rooms = [
       {
         _id: 6,
         name: "Harvard",
+        avatar: "https://placeimg.com/140/140/any",
+      },
+      {
+        _id: 5,
+        name: "Aaron",
         avatar: "https://placeimg.com/140/140/any",
       },
     ],

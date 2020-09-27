@@ -15,7 +15,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
         user: {
           _id: 2,
-          name: "User One",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -36,7 +36,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 5, 14, 17, 20, 0)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -64,7 +64,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 5, 15, 17, 20, 0)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -91,7 +91,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 5, 15, 18, 20, 0)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -101,7 +101,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 7, 15, 18, 21, 0)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -111,7 +111,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 7, 15, 18, 22, 0)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -122,7 +122,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 7, 15, 18, 22, 2)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Ari DosPassos",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -144,8 +144,8 @@ const messages = [
         text: "This is another example of a grouped text from one user",
         createdAt: new Date(Date.UTC(2018, 7, 13, 17, 20, 2)),
         user: {
-          _id: 3,
-          name: "User Three",
+          _id: 5,
+          name: "Aaron",
           avatar: "https://placeimg.com/140/140/any",
         },
         image: "https://placeimg.com/960/540/any",
@@ -156,8 +156,8 @@ const messages = [
           "Everything should be working in order over here. You should see my name at the bottom or top of these consecutive texts",
         createdAt: new Date(Date.UTC(2018, 7, 13, 17, 20, 3)),
         user: {
-          _id: 3,
-          name: "User Three",
+          _id: 5,
+          name: "Aaron",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -187,7 +187,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
         user: {
           _id: 2,
-          name: "User One",
+          name: "Jahnuel Dorelus",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -218,8 +218,8 @@ const messages = [
         text: "Please tell me that you guys finished the homework 😔",
         createdAt: new Date(Date.UTC(2016, 5, 14, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 3,
+          name: "Dr.Tuck",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -246,8 +246,8 @@ const messages = [
         text: "This is a quick reply. Do you love Gifted Chat? (checkbox)",
         createdAt: new Date(Date.UTC(2016, 5, 15, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Harvard",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -273,8 +273,8 @@ const messages = [
         text: "Come on!",
         createdAt: new Date(Date.UTC(2016, 5, 15, 18, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Dr. Senning",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -283,8 +283,8 @@ const messages = [
         text: "Have you guys done the reading?",
         createdAt: new Date(Date.UTC(2016, 7, 15, 18, 21, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Dr. Senning",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -294,7 +294,7 @@ const messages = [
         createdAt: new Date(Date.UTC(2016, 7, 15, 18, 22, 0)),
         user: {
           _id: 2,
-          name: "User Two",
+          name: "Jahnuel Dorelus",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -304,8 +304,8 @@ const messages = [
           "You should see my name either at the bottom or the top of these consecutive texts!",
         createdAt: new Date(Date.UTC(2016, 7, 15, 18, 22, 2)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Dr. Crisman",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -327,8 +327,8 @@ const messages = [
         text: "This is another example of a grouped text from one user",
         createdAt: new Date(Date.UTC(2018, 7, 13, 17, 20, 2)),
         user: {
-          _id: 3,
-          name: "User Three",
+          _id: 6,
+          name: "Dr. Crisman",
           avatar: "https://placeimg.com/140/140/any",
         },
         image: "https://placeimg.com/960/540/any",
@@ -339,8 +339,8 @@ const messages = [
           "I always knew that this would work. People doubted that this wouldn't work but I did it!",
         createdAt: new Date(Date.UTC(2018, 7, 13, 17, 20, 3)),
         user: {
-          _id: 3,
-          name: "User Three",
+          _id: 2,
+          name: "Jahnuel Dorelus",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -356,8 +356,8 @@ const messages = [
         text: "Yessir",
         createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User One",
+          _id: 3,
+          name: "Dr.Tuck",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -389,8 +389,8 @@ const messages = [
         text: "It's okay though because I think this works! 💯",
         createdAt: new Date(Date.UTC(2016, 5, 14, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 3,
+          name: "Dr.Tuck",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -417,8 +417,8 @@ const messages = [
         text: "This is a quick reply. Do you love Gifted Chat? (checkbox)",
         createdAt: new Date(Date.UTC(2016, 5, 15, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 3,
+          name: "Dr.Tuck",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -444,8 +444,8 @@ const messages = [
         text: "Come on!",
         createdAt: new Date(Date.UTC(2016, 5, 15, 18, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 3,
+          name: "Dr.Tuck",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -461,8 +461,8 @@ const messages = [
         text: "Ice cream is the best!",
         createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User One",
+          _id: 4,
+          name: "Suzy Williams",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -493,8 +493,8 @@ const messages = [
         text: "We out to McDonald's later?",
         createdAt: new Date(Date.UTC(2017, 5, 14, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Harvard",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -521,8 +521,8 @@ const messages = [
         text: "This is a quick reply. Do you love Gifted Chat? (checkbox)",
         createdAt: new Date(Date.UTC(2016, 5, 15, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 4,
+          name: "Suzy Williams",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -548,8 +548,8 @@ const messages = [
         text: "I'm Starving!",
         createdAt: new Date(Date.UTC(2016, 5, 15, 18, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Harvard",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -564,8 +564,8 @@ const messages = [
         text: "Still though, it's an important story",
         createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User One",
+          _id: 8,
+          name: "Steve Jobs",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -586,8 +586,8 @@ const messages = [
           "Asking someone for their name is extremely practical and important!",
         createdAt: new Date(Date.UTC(2012, 3, 14, 9, 20, 0)),
         user: {
-          _id: 5,
-          name: "Aaron",
+          _id: 8,
+          name: "Steve Jobs",
           avatar: "https://placeimg.com/140/140/any",
         },
         image: "https://placeimg.com/960/540/any",
@@ -597,8 +597,8 @@ const messages = [
         text: "Taco Bell doesn't make my stomach well 😏",
         createdAt: new Date(Date.UTC(2017, 5, 14, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 5,
+          name: "Aaron",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -625,8 +625,8 @@ const messages = [
         text: "This is a quick reply. Do you love Gifted Chat? (checkbox)",
         createdAt: new Date(Date.UTC(2016, 6, 15, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 8,
+          name: "Steve Jobs",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -652,8 +652,8 @@ const messages = [
         text: "I'm gone 🏃🏾‍♂️💨",
         createdAt: new Date(Date.UTC(2016, 5, 15, 18, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 5,
+          name: "Aaron",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -668,8 +668,8 @@ const messages = [
         text: "For sure bro",
         createdAt: new Date(Date.UTC(2016, 5, 12, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User One",
+          _id: 6,
+          name: "Harvard",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -700,8 +700,8 @@ const messages = [
         text: "I'm about to get some Jordan retros 😍",
         createdAt: new Date(Date.UTC(2017, 5, 14, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Harvard",
           avatar: "https://placeimg.com/140/140/any",
         },
       },
@@ -710,8 +710,8 @@ const messages = [
         text: "This is a quick reply. Do you love Gifted Chat? (checkbox)",
         createdAt: new Date(Date.UTC(2016, 5, 15, 17, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 6,
+          name: "Harvard",
           avatar: "https://placeimg.com/140/140/any",
         },
         quickReplies: {
@@ -737,8 +737,8 @@ const messages = [
         text: "Straight facts!",
         createdAt: new Date(Date.UTC(2016, 5, 15, 18, 20, 0)),
         user: {
-          _id: 2,
-          name: "User Two",
+          _id: 5,
+          name: "Aaron",
           avatar: "https://placeimg.com/140/140/any",
         },
       },

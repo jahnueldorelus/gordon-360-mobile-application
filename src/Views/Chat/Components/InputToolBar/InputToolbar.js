@@ -7,11 +7,11 @@ import Actions from "./Components/Actions";
 const InputToolbar = (props) => {
   const [position, setPosition] = useState("absolute");
 
+  /**
+   * Event listeners for the keyboard is added so that the input toolbar will
+   * be pushed up instead of covered by a device's keyboard
+   */
   useEffect(() => {
-    /**
-     * An event listener for keyboard is added so that the input toolbar will
-     * be pushed up instead of covered by a device's keyboard
-     */
     Keyboard.addListener("keyboardWillShow", () => {
       if (position !== "relative") {
         setPosition("relative");
@@ -24,10 +24,9 @@ const InputToolbar = (props) => {
     });
 
     // The keyboard event listeners are removed after it's no longer needed
-    return () => {
-      Keyboard.removeListener("keyboardWillShow", () => {});
+    return Keyboard.removeListener("keyboardWillShow", () => {
       Keyboard.removeListener("keyboardWillHide", () => {});
-    };
+    });
   }, []);
 
   const renderActions = () => {

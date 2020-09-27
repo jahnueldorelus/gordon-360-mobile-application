@@ -43,10 +43,10 @@
 
 1. First install Yarn or NPM with `yarn` or `npm install`.
 
-   - To install all dependencies in two commands, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
+   - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -67,6 +67,11 @@
      - Install GiftedChat using any of the following commands.
        - `npm i react-native-gifted-chat`
        - `yarn add react-native-gifted-chat`
+     - Install Expo Linear Gradient using the following command.
+       - `expo install expo-linear-gradient`
+     - Install React Native AsyncStorage using any of the following commands.
+       - `npm i @react-native-community/async-storage`
+       - `yarn add @react-native-community/async-storage`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

@@ -5,6 +5,7 @@ import { StyleSheet } from "react-native";
 import { Avatar, Accessory } from "react-native-elements";
 import { getChatName } from "../../../Services/Messages/MessageService";
 import AsyncStorage from "@react-native-community/async-storage";
+import { Icon } from "react-native-elements";
 
 export const AppbarChat = (props) => {
   const [room, setRoom] = useState(null);
@@ -44,7 +45,7 @@ export const AppbarChat = (props) => {
             />
           </TouchableOpacity>
         </View>
-        <View style={styles.options}>
+        <View style={styles.chatName}>
           <Avatar
             size="small"
             rounded
@@ -63,13 +64,19 @@ export const AppbarChat = (props) => {
             {getChatName(room, user)}
           </Text>
         </View>
+        <View style={styles.options}>
+          <Icon
+            name="info"
+            type="material"
+            color="white"
+            size={30}
+            onPress={() => console.log("hello")}
+          />
+        </View>
       </View>
     );
   else return <></>;
 };
-
-// Gets the width of the device
-const deviceWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   appBarContainer: {
@@ -83,7 +90,7 @@ const styles = StyleSheet.create({
     height: 32,
     tintColor: "white",
   },
-  options: {
+  chatName: {
     flex: 1,
     marginLeft: 15,
     flexDirection: "row",
@@ -92,9 +99,12 @@ const styles = StyleSheet.create({
   avatar: { paddingLeft: 10 },
   text: {
     paddingLeft: 10,
-    maxWidth: Math.max(deviceWidth / 2, 300),
     color: "white",
     fontWeight: "bold",
     fontSize: 18,
+    flex: 1,
+  },
+  options: {
+    marginHorizontal: 10,
   },
 });

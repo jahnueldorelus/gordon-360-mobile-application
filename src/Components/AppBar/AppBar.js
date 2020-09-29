@@ -25,13 +25,6 @@ export const AppBar = (props) => {
       paddingBottom: paddingVertical,
       paddingHorizontal: 10,
     },
-    appBarContainer: { flexDirection: "row", alignItems: "center" },
-    navigationButton: { marginHorizontal: 10 },
-    navigationButtonImage: {
-      width: 32,
-      height: 32,
-      tintColor: "white",
-    },
   });
 
   return (

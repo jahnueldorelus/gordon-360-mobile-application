@@ -14,7 +14,7 @@ export const AppbarRoom = (props) => {
       >
         <Image
           style={styles.navigationButtonImage}
-          source={require("./Images/hamburger_menu.png")}
+          source={require("../Images/hamburger_menu.png")}
         />
         <Text style={styles.navigationButtonText}>Messages</Text>
       </TouchableOpacity>

@@ -3,7 +3,7 @@ import { View, Text, Image, Dimensions } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import { Avatar, Accessory } from "react-native-elements";
-import { getChatName } from "../../../Services/Messages/MessageService";
+import { getChatName } from "../../../../Services/Messages/MessageService";
 import AsyncStorage from "@react-native-community/async-storage";
 import { Icon } from "react-native-elements";
 
@@ -41,7 +41,7 @@ export const AppbarChat = (props) => {
           >
             <Image
               style={styles.navigationButtonImage}
-              source={require("./Images/back_button.png")}
+              source={require("../Images/back_button.png")}
             />
           </TouchableOpacity>
         </View>

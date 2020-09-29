@@ -23,7 +23,7 @@ export const renderSend = (props) => (
   >
     <Image
       style={{ width: 32, height: 32 }}
-      source={require("./Images/send_button.png")}
+      source={require("../Images/send_button.png")}
     />
   </Send>
 );

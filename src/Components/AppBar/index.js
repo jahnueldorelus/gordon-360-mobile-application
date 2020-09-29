@@ -1,12 +1,11 @@
 import React from "react";
-import { View, Text, Image, StatusBar } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { View, StatusBar } from "react-native";
 import { getStatusBarHeight, isIphoneX } from "react-native-iphone-x-helper";
 import { StyleSheet } from "react-native";
-import { AppbarChat } from "./Components/AppbarChat";
-import { AppbarRoom } from "./Components/AppbarRoom";
-import { AppbarLogin } from "./Components/AppbarLogin";
-import { Appbar360 } from "./Components/Appbar360";
+import { AppbarChat } from "./Components/Chat/index";
+import { AppbarRoom } from "./Components/Room/index";
+import { AppbarLogin } from "./Components/Login/index";
+import { Appbar360 } from "./Components/360/index";
 
 export const AppBar = (props) => {
   /**

@@ -92,17 +92,14 @@ const styles = StyleSheet.create({
   },
   chatName: {
     flex: 1,
-    marginLeft: 15,
-    flexDirection: "row",
     alignItems: "center",
   },
   avatar: { paddingLeft: 10 },
   text: {
-    paddingLeft: 10,
+    paddingTop: 10,
     color: "white",
     fontWeight: "bold",
     fontSize: 18,
-    flex: 1,
   },
   options: {
     marginHorizontal: 10,

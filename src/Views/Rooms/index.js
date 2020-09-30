@@ -52,7 +52,6 @@ export const RoomsList = (props) => {
                 roomProp.createdAt = new Date(room.item.createdAt).toJSON();
                 roomProp.lastUpdated = new Date(room.item.lastUpdated).toJSON();
                 // Navigates to the chat screen with a specified room id
-                console.log(roomProp);
                 props.navigation.navigate("Chat", {
                   roomProp,
                 });

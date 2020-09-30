@@ -6,10 +6,12 @@ import { Avatar, Accessory } from "react-native-elements";
 import { getChatName } from "../../../../Services/Messages/MessageService";
 import AsyncStorage from "@react-native-community/async-storage";
 import { Icon } from "react-native-elements";
+import { ChatInfo } from "../../../../Views/Chat/ChatInfo/index";
 
 export const AppbarChat = (props) => {
   const [room, setRoom] = useState(null);
   const [user, setUser] = useState(null);
+  const [modalInfoVisible, setModaInfoVisible] = useState(false);
 
   /**
    * Sets the room from the prop given
@@ -70,9 +72,10 @@ export const AppbarChat = (props) => {
             type="material"
             color="white"
             size={30}
-            onPress={() => console.log("hello")}
+            onPress={() => setModaInfoVisible(true)}
           />
         </View>
+        <ChatInfo visible={modalInfoVisible} setVisible={setModaInfoVisible} />
       </View>
     );
   else return <></>;
@@ -82,7 +85,6 @@ const styles = StyleSheet.create({
   appBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    // backgroundColor: "red",
   },
   navigationButton: { marginHorizontal: 10 },
   navigationButtonImage: {

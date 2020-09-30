@@ -72,7 +72,7 @@ export default function App() {
   return (
     <View style={styles.screenView}>
       <NavigationContainer>
-        <Drawer.Navigator initialRouteName="Login">
+        <Drawer.Navigator initialRouteName="Messages">
           <Drawer.Screen name="Gordon 360" component={Gordon360} />
           <Drawer.Screen name="Messages" component={Messages} />
           <Drawer.Screen

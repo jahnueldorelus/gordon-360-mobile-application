@@ -5,9 +5,9 @@ import {
   getRooms,
   getLastMessageFromRoom,
   getRoomName,
+  getMainUser,
 } from "../../Services/Messages/MessageService";
 import { ListItem, Avatar } from "react-native-elements";
-import AsyncStorage from "@react-native-community/async-storage";
 
 const deviceHeight = Dimensions.get("window").height;
 
@@ -27,7 +27,9 @@ export const RoomsList = (props) => {
    */
   useEffect(() => {
     async function getUser() {
-      setUser(JSON.parse(await AsyncStorage.getItem("user")));
+      await getMainUser().then((data) => {
+        setUser(data);
+      });
     }
 
     getUser();

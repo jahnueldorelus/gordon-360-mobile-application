@@ -5,7 +5,7 @@ import { Input } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-community/async-storage";
 
-export const Login = () => {
+export const Login = (props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,15 +54,12 @@ export const Login = () => {
     // Temporary: Just to show the Login button loading
     setTimeout(() => {
       setLoading(false);
-    }, 3000);
+      props.navigation.navigate("Messages");
+    }, 1000);
   }
 
   return (
-    <LinearGradient
-      // Button Linear Gradient
-      colors={["#014983", "#00AEEF"]}
-      style={styles.gradient}
-    >
+    <LinearGradient colors={["#014983", "#00AEEF"]} style={styles.gradient}>
       <View style={styles.login}>
         <Text style={styles.loginText}>Login</Text>
         <Input

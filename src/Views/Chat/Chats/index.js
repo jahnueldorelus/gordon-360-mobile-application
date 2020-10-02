@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
-import { getMessages } from "../../../Services/Messages/MessageService";
+import {
+  getMessages,
+  getMainUser,
+} from "../../../Services/Messages/MessageService";
 import { StyleSheet } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
@@ -13,7 +16,6 @@ import { renderMessage } from "./Components/MessageContainer/Message";
 import { renderMessageText } from "./Components/MessageContainer/MessageText";
 import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
-import AsyncStorage from "@react-native-community/async-storage";
 
 export const Chats = (props) => {
   const [text, setText] = useState("");
@@ -40,7 +42,9 @@ export const Chats = (props) => {
    */
   useEffect(() => {
     async function getUser() {
-      setUser(JSON.parse(await AsyncStorage.getItem("user")));
+      await getMainUser().then((data) => {
+        setUser(data);
+      });
     }
 
     getUser();

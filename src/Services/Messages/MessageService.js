@@ -1,5 +1,6 @@
 import messages from "./DummyData/dummy_messages";
 import rooms from "./DummyData/dummy_rooms";
+import AsyncStorage from "@react-native-community/async-storage";
 
 /**
  * Returns a list of rooms associated with the main user
@@ -10,7 +11,7 @@ export function getRooms() {
 
 /**
  * Returns a list of messages associated with a specified room id
- * @param {number} room_ID
+ * @param {number} room_ID The ID of a room
  */
 export function getMessages(room_ID) {
   return messages.filter((chat) => {
@@ -20,7 +21,7 @@ export function getMessages(room_ID) {
 
 /**
  * Returns the last message of a conversation from a specified room id
- * @param {number} room_ID
+ * @param {number} room_ID The ID of a room
  */
 export function getLastMessageFromRoom(room_ID) {
   let texts = getMessages(room_ID);
@@ -98,4 +99,22 @@ export function getChatName(room, mainUser) {
  */
 export function getNumOfUsers(room) {
   return room.users.length;
+}
+
+/**
+ * Returns the main user's info
+ */
+export async function getMainUser() {
+  return JSON.parse(await AsyncStorage.getItem("user"));
+}
+
+/**
+ * Returns all the images in a room
+ * @param {number} room_ID The ID of a room
+ */
+export async function getImages(room_ID) {
+  let messages = getMessages(room_ID).messages;
+  let images = messages.map((message) => {
+    console.log(message);
+  });
 }

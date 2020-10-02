@@ -3,8 +3,10 @@ import { View, Text, Image, Dimensions } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import { Avatar, Accessory } from "react-native-elements";
-import { getChatName } from "../../../../Services/Messages/MessageService";
-import AsyncStorage from "@react-native-community/async-storage";
+import {
+  getChatName,
+  getMainUser,
+} from "../../../../Services/Messages/MessageService";
 import { Icon } from "react-native-elements";
 import { ChatInfo } from "../../../../Views/Chat/ChatInfo/index";
 
@@ -25,7 +27,9 @@ export const AppbarChat = (props) => {
    */
   useEffect(() => {
     async function getUser() {
-      setUser(JSON.parse(await AsyncStorage.getItem("user")));
+      await getMainUser().then((data) => {
+        setUser(data);
+      });
     }
 
     getUser();
@@ -72,10 +76,17 @@ export const AppbarChat = (props) => {
             type="material"
             color="white"
             size={30}
-            onPress={() => setModaInfoVisible(true)}
+            onPress={() => {
+              if (modalInfoVisible) setModaInfoVisible(false);
+              setModaInfoVisible(true);
+            }}
           />
         </View>
-        <ChatInfo visible={modalInfoVisible} setVisible={setModaInfoVisible} />
+        <ChatInfo
+          {...props}
+          visible={modalInfoVisible}
+          setVisible={setModaInfoVisible}
+        />
       </View>
     );
   else return <></>;

@@ -63,7 +63,7 @@ function LoginPage({ navigation }) {
   return (
     <View style={styles.screenView}>
       <AppBar navigation={navigation} route="Login" />
-      <Login />
+      <Login navigation={navigation} />
     </View>
   );
 }
@@ -72,7 +72,7 @@ export default function App() {
   return (
     <View style={styles.screenView}>
       <NavigationContainer>
-        <Drawer.Navigator initialRouteName="Messages">
+        <Drawer.Navigator initialRouteName="Login">
           <Drawer.Screen name="Gordon 360" component={Gordon360} />
           <Drawer.Screen name="Messages" component={Messages} />
           <Drawer.Screen
@@ -82,7 +82,7 @@ export default function App() {
              * Uncomment later, but this will be used to prevent users on
              * iOS from accessing the drawer navigator using gestures
              */
-            // options={{ gestureEnabled: false }}
+            options={{ gestureEnabled: false }}
           />
         </Drawer.Navigator>
       </NavigationContainer>

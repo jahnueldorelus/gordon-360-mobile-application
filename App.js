@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { AppBar } from "./src/Components/AppBar/AppBar";
+import React, { useEffect } from "react";
+import { AppBar } from "./src/Components/AppBar";
 import { View, StyleSheet, Dimensions } from "react-native";
-import { AsyncStorage } from "@react-native-community/async-storage";
-import { axios } from "axios";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
-import { Chats } from "./src/Views/Chat/Chats.js";
-import { RoomsList } from "./src/Views/Rooms/Rooms";
-import { Login } from "./src/Views/Login/login";
+import { Chats } from "./src/Views/Chat/Chats/index.js";
+import { RoomsList } from "./src/Views/Rooms";
+import { Login } from "./src/Views/Login";
 
 // Navigators
 const Drawer = createDrawerNavigator();
@@ -65,7 +63,7 @@ function LoginPage({ navigation }) {
   return (
     <View style={styles.screenView}>
       <AppBar navigation={navigation} route="Login" />
-      <Login />
+      <Login navigation={navigation} />
     </View>
   );
 }
@@ -84,7 +82,7 @@ export default function App() {
              * Uncomment later, but this will be used to prevent users on
              * iOS from accessing the drawer navigator using gestures
              */
-            // options={{ gestureEnabled: false }}
+            options={{ gestureEnabled: false }}
           />
         </Drawer.Navigator>
       </NavigationContainer>

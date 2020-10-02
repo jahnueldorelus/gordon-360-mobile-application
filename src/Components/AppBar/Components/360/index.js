@@ -14,7 +14,7 @@ export const Appbar360 = (props) => {
       >
         <Image
           style={styles.navigationButtonImage}
-          source={require("./Images/hamburger_menu.png")}
+          source={require("../Images/hamburger_menu.png")}
         />
         <Text style={styles.navigationButtonText}>Gordon 360</Text>
       </TouchableOpacity>

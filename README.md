@@ -172,6 +172,27 @@
       </ol>
     </td>
   </tr>
+
+  <!-------------------------------------------------- # 3 -------------------------------------------------->
+  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
+    <td style="color: #FFE266"> 
+      2
+    </td>
+    <td style="color: #FFE266"> 
+      Modal_Closing_State_Unchanged
+    </td>
+    <td style="color: #FC9186"> 
+      This bug only occurs on iOS. After opening the modal, if the gesture of sliding the modal down is done to dismiss the modal, the onDismiss function doesn't fire. Due to this, this causes the modal to not be visible and leaves its parent component (the Appbar) in a frozen state where you cannot click on anything in the Appbar. 
+    </td>
+    <td style="color: #82C9FF"> 
+      Upon looking online, this is a known issue that many are having with React Native. They've created a patch for it but it requires manually installing another package to install the patch. Looking further, a person has found that by using a TouchableWithoutFeedback component and checking to see if the event's nativeEvent's <code>locationY < 0</code>. If this is true, then the modal has been dismissed successfully. This fix was found <a href="https://github.com/facebook/react-native/issues/26892#issuecomment-646196617">here</a> Also, the component Button shouldn't be used in the modal. While this solution might fix the issue with the modal itself, it doesn't work when the user click's on a Button and slides down to dismiss the modal. To solve this, use TouchableOpacity instead of a Button.
+    </td>
+    <td style="color: #FFE266">
+      <ol>
+      <li> src/Views/Chat/ChatInfo/index.js </li>
+      </ol>
+    </td>
+  </tr>
 </table>
 
 ## 🏭&nbsp;&nbsp;&nbsp;Data Structures

@@ -21,7 +21,7 @@ export const renderActions = (props) => (
     icon={() => (
       <Image
         style={{ width: 32, height: 32, tintColor: "#92C7FF" }}
-        source={require("./Images/add_button.png")}
+        source={require("../Images/add_button.png")}
       />
     )}
     options={{

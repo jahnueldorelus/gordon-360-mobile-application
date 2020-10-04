@@ -15,6 +15,12 @@
 
 <br/>
 
+## 📜&nbsp;&nbsp;&nbsp;Tools Proposal
+
+- https://docs.google.com/document/d/11XzF7SbY94uw0OCi_q1oCgfPXNCJib9uiFnjfBa6mM4/edit?usp=sharing
+
+<br/>
+
 ## 👥&nbsp;&nbsp;&nbsp;Lofi User Study
 
 - https://drive.google.com/file/d/12QNG491fKHFfJucT3vYGnumR7fiu1lyG/view?usp=sharing.

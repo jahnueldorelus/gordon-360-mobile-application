@@ -112,9 +112,9 @@ export async function getMainUser() {
  * Returns all the images in a room
  * @param {number} room_ID The ID of a room
  */
-export async function getImages(room_ID) {
-  let messages = getMessages(room_ID).messages;
-  let images = messages.map((message) => {
-    console.log(message);
-  });
+export function getImages(room_ID) {
+  let messages = getMessages(room_ID)[0].messages;
+  // Filters out all message objects that doesn't contain an image
+  let images = messages.filter((message) => message.createdAt && message.image);
+  return images;
 }

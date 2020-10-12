@@ -6,6 +6,7 @@ import { AppbarChat } from "./Components/Chat/index";
 import { AppbarRoom } from "./Components/Room/index";
 import { AppbarLogin } from "./Components/Login/index";
 import { Appbar360 } from "./Components/360/index";
+import { AppbarDemo } from "./Components/Demo/index";
 
 export const AppBar = (props) => {
   /**
@@ -32,6 +33,7 @@ export const AppBar = (props) => {
       {props.route.name === "Chat" && <AppbarChat {...props} />}
       {props.route.name === "Rooms" && <AppbarRoom {...props} />}
       {props.route === "Gordon_360" && <Appbar360 {...props} />}
+      {props.route === "Demo" && <AppbarDemo {...props} />}
       {props.route === "Login" && <AppbarLogin {...props} />}
     </View>
   );

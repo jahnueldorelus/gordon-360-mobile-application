@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { AppBar } from "./src/Components/AppBar";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, Dimensions, Text } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
@@ -9,6 +9,7 @@ import { Chats } from "./src/Views/Chat/Chats/index.js";
 import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import AsyncStorage from "@react-native-community/async-storage";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Navigators
 const Drawer = createDrawerNavigator();
@@ -86,12 +87,51 @@ function LoginPage({ navigation }) {
   );
 }
 
+function Demo({ navigation }) {
+  const [message, setMessage] = useState("");
+  /**
+   * Gets the message from the API for Hello World Demo
+   */
+  useEffect(() => {
+    async function getMessage() {
+      const axios = require("axios");
+
+      axios
+        .get("https://360apitrain.gordon.edu/api/dm", {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(
+              await AsyncStorage.getItem("token")
+            )}`,
+          },
+        })
+        .then(function (response) {
+          setMessage(response.data);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+
+    getMessage();
+  }, []);
+
+  return (
+    <View style={styles.screenView}>
+      <AppBar navigation={navigation} route="Demo" />
+      <SafeAreaView style={{ marginTop: 30 }}>
+        <Text style={{ fontSize: 20, textAlign: "center" }}>{message}</Text>
+      </SafeAreaView>
+    </View>
+  );
+}
+
 export default function App() {
   return (
     <View style={styles.screenView}>
       <NavigationContainer>
         <Drawer.Navigator initialRouteName="Login">
           <Drawer.Screen name="Gordon 360" component={Gordon360} />
+          <Drawer.Screen name="Demo" component={Demo} />
           <Drawer.Screen name="Messages" component={Messages} />
           <Drawer.Screen
             name="Login"

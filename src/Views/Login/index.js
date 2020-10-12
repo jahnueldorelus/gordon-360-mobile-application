@@ -125,7 +125,7 @@ export const Login = (props) => {
               "token",
               JSON.stringify(result.access_token)
             );
-            props.navigation.navigate("Messages");
+            props.navigation.navigate("Demo");
           }
           // If the token is not available
           else {

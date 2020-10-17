@@ -5,7 +5,7 @@ import {
   getMessages,
   getMainUser,
 } from "../../../Services/Messages/MessageService";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View, Image, Dimensions } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
@@ -13,6 +13,7 @@ import { renderComposer } from "./Components/InputToolbar/Components/Composer";
 import { renderCustomView } from "./Components/MessageContainer/CustomView";
 import { renderInputToolbar } from "./Components/InputToolbar";
 import { renderMessage } from "./Components/MessageContainer/Message";
+import { renderMessageImage } from "./Components/MessageContainer/MessageImage";
 import { renderMessageText } from "./Components/MessageContainer/MessageText";
 import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
@@ -85,7 +86,7 @@ export const Chats = (props) => {
         // renderCustomView={renderCustomView}
         renderInputToolbar={renderInputToolbar}
         // renderMessage={renderMessage}
-        // renderMessageImage
+        renderMessageImage={renderMessageImage}
         // renderMessageText={renderMessageText}
         renderSend={renderSend}
         renderSystemMessage={renderSystemMessage}

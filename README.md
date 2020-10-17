@@ -47,12 +47,12 @@
 
 ## 💻&nbsp;&nbsp;&nbsp;How to Use
 
-1. First install Yarn or NPM with `yarn` or `npm install`.
+1. First install Yarn or NPM with `yarn` or `npm install`. It's HIGHLY recommended to use Yarn rather than NPM due to NPM package dependencies that gives many warnings due to different version capability. The amount of warnings from installing with Yarn is substantially smaller than installing with NPM. Yarn links packages better than NPM.
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient react-native-image-zoom-viewer`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient react-native-image-zoom-viewer`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -78,9 +78,6 @@
      - Install React Native AsyncStorage using any of the following commands.
        - `npm i @react-native-community/async-storage`
        - `yarn add @react-native-community/async-storage`
-     - Install React Native Image Viewer using any of the following commands.
-       - `npm i react-native-image-zoom-viewer --save`
-       - `yarn add react-native-image-zoom-viewer-fix`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:
@@ -139,7 +136,7 @@
       This warning occurs on both iOS and Android. This warning is due to a component inside of GiftedChat that uses Lightbox (a component from node modules). Inside the code for Lightbox, there's a call made incorrectly with React Native's Animated component. Due to this, a warning appears every time a "Reload" (not refresh) of the application is done.
     </td>
     <td style="color: #82C9FF"> 
-      Unfortunately, since this error is in node modules, any time that an "npm install" occurs, you will have to manually change the same file again. More information can be found <a href="https://github.com/oblador/react-native-lightbox/issues/129">here</a>. To fix this warning, follow the steps below.
+      Unfortunately, since this error is in node modules, any time that an "npm install" occurs, you will have to patch the same file again. More information can be found <a href="https://github.com/oblador/react-native-lightbox/issues/129">here</a>. There are two ways to fix this. If you've installed all the dependencies above, you can automatically solve this issue with the command: <strong>"npx patch-package react-native-lightbox"</strong>. To fix this warning manually (must have installed dependencies using NPM and not Yarn), follow the steps below.
       <ol>
         <br/>
         <li> Open the file <span style="color: #AEDCFF"><i>node_modules/react-native-lightbox/LightboxOverlay.js</i></span></li>

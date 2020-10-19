@@ -78,6 +78,9 @@
      - Install React Native AsyncStorage using any of the following commands.
        - `npm i @react-native-community/async-storage`
        - `yarn add @react-native-community/async-storage`
+     - Install React Native Image-Viewer using any of the following commands.
+       - `npm i react-native-image-zoom-viewer`
+       - `yarn add react-native-image-zoom-viewer`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

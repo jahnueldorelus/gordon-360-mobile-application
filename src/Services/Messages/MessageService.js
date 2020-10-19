@@ -1,12 +1,40 @@
 import messages from "./DummyData/dummy_messages";
 import rooms from "./DummyData/dummy_rooms";
 import AsyncStorage from "@react-native-community/async-storage";
+import { get, put } from "./HTTP/index";
 
 /**
  * Returns a list of rooms associated with the main user
  */
-export function getRooms() {
-  return rooms;
+export async function getRooms() {
+  let roomList = get("rooms");
+  /**
+   * Checks to make sure that the object returned is a list and is not
+   * null or undefined
+   */
+  let result = roomList.then(async (data) => {
+    // If there's data available, it's saved to storage and returned
+    if (data) {
+      AsyncStorage.setItem("rooms", JSON.stringify(data));
+      console.log("DATA: ", data);
+
+      /**
+       * TEMP - UNTIL FULL ROOM OBJECT IS RETURNED FROM BACK-END,
+       * DUMMY DATA IS USED.
+       */
+      // return data;
+      return rooms;
+    } else {
+      /**
+       * If no data is present, then the fetch failed and data from
+       * storage is returned if available
+       */
+      let roomData = JSON.parse(await AsyncStorage.getItem("rooms"));
+      return roomData ? roomData : [];
+    }
+  });
+
+  return result;
 }
 
 /**

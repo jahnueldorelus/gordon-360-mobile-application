@@ -12,14 +12,17 @@ import { ListItem, Avatar } from "react-native-elements";
 const deviceHeight = Dimensions.get("window").height;
 
 export const RoomsList = (props) => {
-  const [rooms, setRooms] = useState([]);
+  const [rooms, setRooms] = useState(null);
   const [user, setUser] = useState(null);
 
   /**
    * Gets the rooms of the main user
    */
   useEffect(() => {
-    setRooms(getRooms());
+    async function getAllRooms() {
+      setRooms(await getRooms());
+    }
+    getAllRooms();
   }, []);
 
   /**

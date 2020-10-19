@@ -28,7 +28,7 @@ export const AppBar = (props) => {
 
   return (
     <View style={styles.appBar}>
-      <StatusBar barStyle="default" hidden={false} translucent={true} />
+      <StatusBar barStyle="light-content" hidden={false} translucent={true} />
       {props.route.name === "Chat" && <AppbarChat {...props} />}
       {props.route.name === "Rooms" && <AppbarRoom {...props} />}
       {props.route === "Gordon_360" && <Appbar360 {...props} />}

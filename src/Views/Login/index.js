@@ -9,6 +9,7 @@ export const Login = (props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginFailedText, setLoginFailedText] = useState(false);
 
   /**
    * TEMPORARY
@@ -32,30 +33,114 @@ export const Login = (props) => {
   }, []);
 
   /**
+   * Styles used for this component. This is created inside of the component and
+   * not outside because there's a style that required the value of the component's state
+   */
+  const styles = StyleSheet.create({
+    gradient: { flex: 1, paddingTop: 50 },
+    login: {
+      justifyContent: "center",
+      margin: 20,
+      alignContent: "center",
+      marginHorizontal: 30,
+    },
+    loginText: {
+      fontSize: 36,
+      fontWeight: "bold",
+      color: "white",
+      marginBottom: 40,
+    },
+    loginTextIcon: {
+      color: "#A9CEFF",
+    },
+    loginTextboxContainer: {
+      maxWidth: 600,
+      marginBottom: 10,
+    },
+    loginTextboxInputLabel: {
+      paddingLeft: 10,
+      paddingBottom: 10,
+      fontSize: 18,
+      color: "rgba(255, 255, 255, 0.5)",
+    },
+    loginTextboxInputContainer: {
+      borderRadius: 40,
+      backgroundColor: "rgba(160, 172, 186, 0.3)",
+      borderBottomWidth: 0,
+      paddingHorizontal: 15,
+      paddingVertical: 2,
+    },
+    loginTextboxInputText: {
+      color: "white",
+      marginLeft: 5,
+    },
+    loginTextboxInputTextPlaceholder: {
+      color: "rgba(255, 255, 255, 0.4)",
+    },
+    loginFailedText: {
+      display: loginFailedText ? "flex" : "none",
+      fontSize: 22,
+      textAlign: "center",
+      color: "#FF5E52",
+    },
+    loginButton: {
+      borderRadius: 30,
+      maxWidth: 300,
+      alignSelf: "center",
+      backgroundColor: "#014983",
+      marginTop: 30,
+    },
+    loginButtonTextStyle: {
+      flex: 1,
+      paddingTop: 10,
+      paddingBottom: 10,
+      fontWeight: "bold",
+      fontSize: 25,
+    },
+  });
+
+  /**
    * Gets the token from the back-end
    */
   async function getAuthorized() {
+    // Makes the login button show a loader
     setLoading(true);
-    // Fetch request made to get token
-    // const axios = require("axios");
-    // axios
-    //   .post("https://360apitrain.gordon.edu/api/token", {
-    //     username: username,
-    //     password: password,
-    //     grant_type: "password",
-    //   })
-    //   .then(function (response) {
-    //     console.log(response);
-    //   })
-    //   .catch(function (error) {
-    //     console.log(error);
-    //   });
 
-    // Temporary: Just to show the Login button loading
-    setTimeout(() => {
-      setLoading(false);
-      props.navigation.navigate("Messages");
-    }, 1000);
+    // A fetch request to get the user's token
+    await fetch("https://360apitrain.gordon.edu/token", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `username=${username}&password=${password}&grant_type=password`,
+    })
+      // If a response was returned
+      .then((response) => {
+        // Parses the response to access data
+        response.json().then(async (result) => {
+          // If the token is available
+          if (result.access_token) {
+            await AsyncStorage.setItem(
+              "token",
+              JSON.stringify(result.access_token)
+            );
+            props.navigation.navigate("Messages");
+          }
+          // If the token is not available
+          else {
+            // Sets the login as failed
+            setLoginFailedText("Invalid email or password");
+          }
+        });
+        // Stops the login button from showing a loader
+        setLoading(false);
+      })
+      // If the fetch failed, then the login failed
+      .catch((error) => {
+        // Stops the login button from showing a loader
+        setLoading(false);
+      });
   }
 
   return (
@@ -68,7 +153,7 @@ export const Login = (props) => {
             name: "email",
             color: styles.loginTextIcon.color,
           }}
-          placeholder="firstname.lastname@gordon.edu"
+          placeholder="firstname.lastname"
           placeholderTextColor={styles.loginTextboxInputTextPlaceholder.color}
           onChangeText={(text) => {
             setUsername(text);
@@ -115,6 +200,8 @@ export const Login = (props) => {
           inputStyle={styles.loginTextboxInputText}
         />
 
+        <Text style={styles.loginFailedText}>{loginFailedText}</Text>
+
         <Button
           title="Login"
           type="solid"
@@ -127,60 +214,3 @@ export const Login = (props) => {
     </LinearGradient>
   );
 };
-
-const styles = StyleSheet.create({
-  gradient: { flex: 1, paddingTop: 50 },
-  login: {
-    justifyContent: "center",
-    margin: 20,
-    alignContent: "center",
-    marginHorizontal: 30,
-  },
-  loginText: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 40,
-  },
-  loginTextIcon: {
-    color: "#A9CEFF",
-  },
-  loginTextboxContainer: {
-    maxWidth: 600,
-    marginBottom: 10,
-  },
-  loginTextboxInputLabel: {
-    paddingLeft: 10,
-    paddingBottom: 10,
-    fontSize: 18,
-    color: "rgba(255, 255, 255, 0.5)",
-  },
-  loginTextboxInputContainer: {
-    borderRadius: 40,
-    backgroundColor: "rgba(160, 172, 186, 0.3)",
-    borderBottomWidth: 0,
-    paddingHorizontal: 15,
-    paddingVertical: 2,
-  },
-  loginTextboxInputText: {
-    color: "white",
-    marginLeft: 5,
-  },
-  loginTextboxInputTextPlaceholder: {
-    color: "rgba(255, 255, 255, 0.4)",
-  },
-  loginButton: {
-    borderRadius: 30,
-    maxWidth: 300,
-    alignSelf: "center",
-    backgroundColor: "#014983",
-    marginTop: 30,
-  },
-  loginButtonTextStyle: {
-    flex: 1,
-    paddingTop: 10,
-    paddingBottom: 10,
-    fontWeight: "bold",
-    fontSize: 25,
-  },
-});

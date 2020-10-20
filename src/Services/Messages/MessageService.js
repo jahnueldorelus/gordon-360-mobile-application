@@ -16,7 +16,7 @@ export async function getRooms() {
     // If there's data available, it's saved to storage and returned
     if (data) {
       AsyncStorage.setItem("rooms", JSON.stringify(data));
-      console.log("DATA: ", data);
+      // console.log("DATA: ", data);
 
       /**
        * TEMP - UNTIL FULL ROOM OBJECT IS RETURNED FROM BACK-END,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, createRef, useEffect } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -10,8 +10,11 @@ import {
   Text,
   Animated,
 } from "react-native";
-import { PinchGestureHandler, State } from "react-native-gesture-handler";
-import ImageViewer from "react-native-image-zoom-viewer";
+import {
+  PinchGestureHandler,
+  PanGestureHandler,
+  State,
+} from "react-native-gesture-handler";
 
 /**
  * Just a function that calls the real component MessageImage
@@ -29,8 +32,24 @@ const MessageImage = (props) => {
   // Get's the dimensions of the devices's screen
   const deviceHeight = Dimensions.get("window").height;
   const deviceWidth = Dimensions.get("window").width;
+  // Gesture Handler References
+  const imagePinchHandler = createRef();
+  const imagePanHandler = createRef();
 
   const [previewVisible, setPreviewVisible] = useState(false);
+
+  useEffect(() => {
+    if (imagePanHandler.current && imagePinchHandler.current) {
+      console.log({
+        pan: imagePanHandler.current._config,
+        pinch: imagePinchHandler.current._config,
+      });
+      console.log({
+        pan: imagePanHandler.current._handlerTag,
+        pinch: imagePinchHandler.current._handlerTag,
+      });
+    }
+  }, [imagePanHandler, imagePinchHandler]);
 
   const styles = StyleSheet.create({
     container: {
@@ -46,7 +65,7 @@ const MessageImage = (props) => {
   });
 
   {
-    /* *************************************************************************** */
+    /* *********************** START PINCH FUNCTIONS ************************** */
   }
 
   /**
@@ -63,6 +82,12 @@ const MessageImage = (props) => {
   // This is used to measure the continously changing zoom scale recorded by the
   // PinchGestureHandler. This measurement creates the smooth scaling animation while zooming
   const pinchScale = new Animated.Value(1);
+
+  // This is used to measure the X value of the center of the image being zoomed
+  const imageX = new Animated.Value(0);
+
+  // This is used to measure the Y value of the center of the image being zoomed
+  const imageY = new Animated.Value(0);
 
   // This is incredibly important and must not be removed. While this will always
   // have the same value as baseScale, it's needed because you cannot access the
@@ -82,6 +107,8 @@ const MessageImage = (props) => {
       {
         nativeEvent: {
           scale: pinchScale,
+          focalX: imageX,
+          focalY: imageY,
         },
       },
     ],
@@ -94,6 +121,7 @@ const MessageImage = (props) => {
    */
   const onPinchStateChange = (event) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
+      // console.log(event.nativeEvent);
       // Calculates the image's new preview scale
       lastScale *= event.nativeEvent.scale;
 
@@ -121,11 +149,62 @@ const MessageImage = (props) => {
       }).start();
     }
 
-    console.log(lastScale);
+    /**
+     * Checks to see if the new zoom scale is more than . If it's more than 15, then
+     * the image has reached it's zoom limit. Therefore, an animation brings the image
+     * back to the maximum zoom scale size which is 15.
+     */
+    if (lastScale > 15) {
+      lastScale = 15; // Resets the lastScale back to the maximum scale of 15
+      Animated.spring(baseScale, {
+        toValue: 15,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+  {
+    /* *********************** END PINCH FUNCTIONS ************************** */
+  }
+
+  {
+    /* *********************** START PAN FUNCTIONS ************************** */
+  }
+
+  const viewX = new Animated.Value(0);
+  const viewY = new Animated.Value(0);
+  const lastOffset = { x: 0, y: 0 };
+
+  /**
+   * REPLACE TEMP COMMENTS
+   */
+  const onGestureEvent = Animated.event(
+    [
+      {
+        nativeEvent: {
+          translationX: viewX,
+          translationY: viewY,
+        },
+      },
+    ],
+    { useNativeDriver: true }
+  );
+
+  /**
+   * REPLACE TEMP COMMENTS
+   */
+  const onGestureStateChange = (event) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      lastOffset.x += event.nativeEvent.translationX;
+      lastOffset.y += event.nativeEvent.translationY;
+      viewX.setOffset(lastOffset.x);
+      viewX.setValue(0);
+      viewY.setOffset(lastOffset.y);
+      viewY.setValue(0);
+    }
   };
 
   {
-    /* *************************************************************************** */
+    /* *********************** END PAN FUNCTIONS ************************** */
   }
 
   return (
@@ -144,18 +223,6 @@ const MessageImage = (props) => {
         onDismiss={() => setPreviewVisible(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-          {/* <ImageViewer
-            imageUrls={[{ url: props.currentMessage.image }]}
-            backgroundColor="black"
-            enableSwipeDown
-            onSwipeDown={() => setPreviewVisible(false)}
-            swipeDownThreshold={200}
-            renderHeader={() => (
-              <View style={{ flex: 1, backgroundColor: "red" }}>
-                <Text style={{ color: "white" }}>HEY THERE</Text>
-              </View>
-            )}
-          /> */}
           <View style={{ backgroundColor: "#014983" }}>
             <Text
               style={{
@@ -169,34 +236,55 @@ const MessageImage = (props) => {
               Tap Here to Close Preview
             </Text>
           </View>
+          {/* *************************************************************************** */}
           <View
             style={{ flex: 1, backgroundColor: "white", overflow: "hidden" }}
           >
-            {/* *************************************************************************** */}
-            <PinchGestureHandler
-              onGestureEvent={onPinchEvent}
-              onHandlerStateChange={onPinchStateChange}
-              style={{ flex: 1 }}
-            >
-              <Animated.Image
-                style={{
-                  flex: 1,
-                  transform: [{ perspective: 200 }, { scale: zoomScale }],
-                }}
-                source={{ uri: props.currentMessage.image }}
-                resizeMode="contain"
-              />
-            </PinchGestureHandler>
-            {/* <Image
-              style={{
-                flex: 1,
-                resizeMode: "contain",
-              }}
-              source={{ uri: props.currentMessage.image }}
+            {/* <ImageView
+              images={[{ uri: props.currentMessage.image }]}
+              backgroundColor="white"
+              visible={previewVisible}
+              onRequestClose={() => setPreviewVisible(false)}
             /> */}
 
-            {/* *************************************************************************** */}
+            <PanGestureHandler
+              onGestureEvent={onGestureEvent}
+              onHandlerStateChange={onGestureStateChange}
+              ref={imagePanHandler}
+              simultaneousHandlers={imagePinchHandler}
+            >
+              <Animated.View
+                style={{
+                  flex: 1,
+                  transform: [{ translateX: viewX }, { translateY: viewY }],
+                }}
+              >
+                <PinchGestureHandler
+                  onGestureEvent={onPinchEvent}
+                  onHandlerStateChange={onPinchStateChange}
+                  ref={imagePinchHandler}
+                  simultaneousHandlers={imagePanHandler}
+                >
+                  <Animated.Image
+                    style={{
+                      flex: 1,
+                      transform: [{ scale: zoomScale }],
+                    }}
+                    source={{ uri: props.currentMessage.image }}
+                    resizeMode="contain"
+                  />
+                </PinchGestureHandler>
+              </Animated.View>
+            </PanGestureHandler>
+            {/* <Image
+                style={{
+                  flex: 1,
+                  resizeMode: "contain",
+                }}
+                source={{ uri: props.currentMessage.image }}
+              /> */}
           </View>
+          {/* *************************************************************************** */}
           <View style={{ backgroundColor: "#014983" }}>
             <Text
               style={{

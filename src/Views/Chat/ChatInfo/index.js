@@ -14,7 +14,6 @@ import {
   getImages,
 } from "../../../Services/Messages/MessageService";
 import { Icon, Avatar, Image } from "react-native-elements";
-import ImageViewer from "react-native-image-zoom-viewer";
 
 export const ChatInfo = (props) => {
   const [messages, setMessages] = useState(null);

@@ -7,7 +7,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native";
 import {
   getMainUser,
   getMessages,

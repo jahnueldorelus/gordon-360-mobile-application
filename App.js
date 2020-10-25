@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { AppBar } from "./src/Components/AppBar";
-import { View, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  NativeModules,
+  Platform,
+} from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
@@ -10,83 +16,88 @@ import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import AsyncStorage from "@react-native-community/async-storage";
 
-// Navigators
-const Drawer = createDrawerNavigator();
-const Stack = createStackNavigator();
+export default function App() {
+  // Navigators
+  const Drawer = createDrawerNavigator();
+  const Stack = createStackNavigator();
 
-// Gordon 360 Screen
-function Gordon360({ navigation }) {
-  const [token, setToken] = useState(null);
+  // This enables LayoutAnimation for Android
+  if (Platform.OS === "android") {
+    const { UIManager } = NativeModules;
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
-  /**
-   * Gets the user's token from storage
-   */
-  useEffect(() => {
-    async function getToken() {
-      setToken(JSON.parse(await AsyncStorage.getItem("token")));
-    }
+  // Gordon 360 Screen
+  function Gordon360({ navigation }) {
+    const [token, setToken] = useState(null);
 
-    getToken();
-  }, []);
+    /**
+     * Gets the user's token from storage
+     */
+    useEffect(() => {
+      async function getToken() {
+        setToken(JSON.parse(await AsyncStorage.getItem("token")));
+      }
 
-  if (token) {
+      getToken();
+    }, []);
+
+    if (token) {
+      return (
+        <View style={styles.screenView}>
+          <AppBar navigation={navigation} route="Gordon_360" />
+          <WebView
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            // Adds the token to the WebView's local storage to enable automatic sign in on 360
+            injectedJavaScriptBeforeContentLoaded={`window.localStorage.setItem('token', '"${token}"');`}
+            source={{ uri: "https://360.gordon.edu" }}
+            onMessage={(event) => {
+              console.log("event: ", event);
+            }}
+          />
+        </View>
+      );
+    } else return <></>;
+  }
+
+  // Messages Screen
+  function Messages() {
     return (
       <View style={styles.screenView}>
-        <AppBar navigation={navigation} route="Gordon_360" />
-        <WebView
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          // Adds the token to the WebView's local storage to enable automatic sign in on 360
-          injectedJavaScriptBeforeContentLoaded={`window.localStorage.setItem('token', '"${token}"');`}
-          source={{ uri: "https://360.gordon.edu" }}
-          onMessage={(event) => {
-            console.log("event: ", event);
-          }}
-        />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Rooms">
+            {(props) => (
+              // Rooms Screen
+              <View style={styles.screenView}>
+                <AppBar {...props} />
+                <RoomsList {...props} />
+              </View>
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="Chat">
+            {(props) => (
+              // Chat Screen
+              <View style={styles.screenView}>
+                <Chats {...props} />
+              </View>
+            )}
+          </Stack.Screen>
+        </Stack.Navigator>
       </View>
     );
-  } else return <></>;
-}
+  }
 
-// Messages Screen
-function Messages() {
-  return (
-    <View style={styles.screenView}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Rooms">
-          {(props) => (
-            // Rooms Screen
-            <View style={styles.screenView}>
-              <AppBar {...props} />
-              <RoomsList {...props} />
-            </View>
-          )}
-        </Stack.Screen>
-        <Stack.Screen name="Chat">
-          {(props) => (
-            // Chat Screen
-            <View style={styles.screenView}>
-              <AppBar {...props} />
-              <Chats {...props} />
-            </View>
-          )}
-        </Stack.Screen>
-      </Stack.Navigator>
-    </View>
-  );
-}
+  function LoginPage({ navigation }) {
+    useEffect(() => {}, []);
+    return (
+      <View style={styles.screenView}>
+        <AppBar navigation={navigation} route="Login" />
+        <Login navigation={navigation} />
+      </View>
+    );
+  }
 
-function LoginPage({ navigation }) {
-  useEffect(() => {}, []);
-  return (
-    <View style={styles.screenView}>
-      <AppBar navigation={navigation} route="Login" />
-      <Login navigation={navigation} />
-    </View>
-  );
-}
-
-export default function App() {
   return (
     <View style={styles.screenView}>
       <NavigationContainer>

@@ -17,11 +17,16 @@ import { renderMessageImage } from "./Components/MessageContainer/MessageImage";
 import { renderMessageText } from "./Components/MessageContainer/MessageText";
 import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
+import { CustomModal } from "../../../Components/CustomModal";
+import { AppBar } from "../../../Components/AppBar";
 
 export const Chats = (props) => {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
+  // Info for setting a custom modal for the image viewer
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalContent, setModalContent] = useState(<></>);
 
   /**
    * Gets the messages based upon the room ID and sorts them in order by date
@@ -55,46 +60,62 @@ export const Chats = (props) => {
     setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
   };
 
-  if (messages && user)
+  if (messages && user && navigator)
     return (
-      <GiftedChat
-        alignTop
-        alwaysShowSend
-        bottomOffset={getBottomSpace()}
-        isCustomViewBottom
-        messages={messages}
-        messagesContainerStyle={styles.messagesContainer}
-        /**
-         * DO NOT DELETE THIS. THE MINIMUM INPUT TOOLBAR MUST BE SET TO 66.
-         * SEE DOCUMENTATION FOR BUG "iOS_Text_Input"
-         */
-        minInputToolbarHeight={66}
-        onInputTextChanged={setText}
-        // onPressAvatar={console.log}
-        onSend={onSend}
-        parsePatterns={(linkStyle) => [
-          {
-            pattern: /#(\w+)/,
-            style: linkStyle,
-            onPress: (tag) => console.log(`Pressed on hashtag: ${tag}`),
-          },
-        ]}
-        renderActions={renderActions}
-        // renderAvatar={renderAvatar}
-        renderBubble={renderBubble}
-        renderComposer={renderComposer}
-        // renderCustomView={renderCustomView}
-        renderInputToolbar={renderInputToolbar}
-        // renderMessage={renderMessage}
-        renderMessageImage={renderMessageImage}
-        // renderMessageText={renderMessageText}
-        renderSend={renderSend}
-        renderSystemMessage={renderSystemMessage}
-        scrollToBottom
-        // showUserAvatar
-        text={text}
-        user={user}
-      />
+      <View style={{ flex: 1 }}>
+        <AppBar {...props} />
+        <GiftedChat
+          alignTop
+          alwaysShowSend
+          bottomOffset={getBottomSpace()}
+          isCustomViewBottom
+          messages={messages}
+          messagesContainerStyle={styles.messagesContainer}
+          /**
+           * DO NOT DELETE THIS. THE MINIMUM INPUT TOOLBAR MUST BE SET TO 66.
+           * SEE DOCUMENTATION FOR BUG "iOS_Text_Input"
+           */
+          minInputToolbarHeight={66}
+          onInputTextChanged={setText}
+          // onPressAvatar={console.log}
+          onSend={onSend}
+          parsePatterns={(linkStyle) => [
+            {
+              pattern: /#(\w+)/,
+              style: linkStyle,
+              onPress: (tag) => console.log(`Pressed on hashtag: ${tag}`),
+            },
+          ]}
+          renderActions={renderActions}
+          // renderAvatar={renderAvatar}
+          renderBubble={renderBubble}
+          renderComposer={renderComposer}
+          // renderCustomView={renderCustomView}
+          renderInputToolbar={renderInputToolbar}
+          // renderMessage={renderMessage}
+          renderMessageImage={(props) => {
+            return renderMessageImage(props, setModalVisible, setModalContent);
+          }}
+          // renderMessageText={renderMessageText}
+          renderSend={renderSend}
+          renderSystemMessage={renderSystemMessage}
+          scrollToBottom
+          // showUserAvatar
+          text={text}
+          user={user}
+        />
+        {modalVisible && (
+          <CustomModal
+            height={"100%"}
+            content={modalContent}
+            setModalVisible={setModalVisible}
+            backgroundColor={"#014983"}
+            clostTextColor={"white"}
+            closeTextFontSize={20}
+            coverScreen={true}
+          />
+        )}
+      </View>
     );
   else return <></>;
 };

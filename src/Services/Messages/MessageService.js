@@ -7,22 +7,31 @@ import { get, put } from "./HTTP/index";
  * Returns a list of rooms associated with the main user
  */
 export async function getRooms() {
-  let roomList = get("rooms");
+  let roomIDList = get("rooms");
   /**
    * Checks to make sure that the object returned is a list and is not
    * null or undefined
    */
-  let result = roomList.then(async (data) => {
+  let result = roomIDList.then(async (roomData) => {
     // If there's data available, it's saved to storage and returned
-    if (data) {
-      AsyncStorage.setItem("rooms", JSON.stringify(data));
-      // console.log("DATA: ", data);
+    if (roomData) {
+      // Gets the current room data from storage. If there's none, then an empty
+      // list is returned.
+      // let oldRoomObj = JSON.parse(await AsyncStorage.getItem("rooms"))
+      //   ? JSON.parse(await AsyncStorage.getItem("rooms"))
+      //   : [];
+
+      // Creates the updated room object
+      // let newRoomObject;
+
+      // Saves this new room object to storage
+      // AsyncStorage.setItem("rooms", JSON.stringify(newRoomObject));
 
       /**
        * TEMP - UNTIL FULL ROOM OBJECT IS RETURNED FROM BACK-END,
        * DUMMY DATA IS USED.
        */
-      // return data;
+      // return newRoomObject;
       return rooms;
     } else {
       /**

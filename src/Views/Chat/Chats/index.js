@@ -104,17 +104,15 @@ export const Chats = (props) => {
           text={text}
           user={user}
         />
-        {modalVisible && (
-          <CustomModal
-            height={"100%"}
-            content={modalContent}
-            setModalVisible={setModalVisible}
-            backgroundColor={"#014983"}
-            clostTextColor={"white"}
-            closeTextFontSize={20}
-            coverScreen={true}
-          />
-        )}
+
+        <CustomModal
+          clostTextColor={"white"}
+          closeTextFontSize={20}
+          content={modalContent}
+          coverScreen={true}
+          height={"100%"}
+          visible={modalVisible}
+        />
       </View>
     );
   else return <></>;

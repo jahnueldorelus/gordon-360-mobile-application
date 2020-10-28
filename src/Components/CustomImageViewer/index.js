@@ -184,6 +184,7 @@ export const CustomImageViewer = (props) => {
 
   return (
     <View style={styles.container}>
+      {/* ****************************** HEADER ******************************* */}
       <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
         <View style={{ backgroundColor: "#014983" }}>
           <Text
@@ -193,11 +194,14 @@ export const CustomImageViewer = (props) => {
               padding: 10,
               color: "white",
             }}
+            onPress={() => {
+              props.setVisible(false);
+            }}
           >
             Header Options
           </Text>
         </View>
-        {/* ****************************** HEADER ******************************* */}
+        {/* ****************************** IMAGE ******************************* */}
         <View style={{ flex: 1, backgroundColor: "white", overflow: "hidden" }}>
           <PanGestureHandler
             onGestureEvent={onPanGestureEvent}

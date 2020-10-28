@@ -32,7 +32,12 @@ const MessageImage = (props) => {
   const deviceWidth = Dimensions.get("window").width;
 
   // The image viewer component
-  const imageViewer = <CustomImageViewer image={props.currentMessage.image} />;
+  const imageViewer = (
+    <CustomImageViewer
+      image={props.currentMessage.image}
+      setVisible={props.setModalVisible}
+    />
+  );
 
   const styles = StyleSheet.create({
     container: {

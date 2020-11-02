@@ -81,6 +81,9 @@
      - Install React Native Image-Viewer using any of the following commands.
        - `npm i react-native-image-zoom-viewer`
        - `yarn add react-native-image-zoom-viewer`
+     - Install Moment (Used for Date) using any of the following commands.
+       - `npm i moment`
+       - `yarn add moment`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

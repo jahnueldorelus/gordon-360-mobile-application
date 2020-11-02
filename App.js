@@ -14,6 +14,7 @@ import { WebView } from "react-native-webview";
 import { Chats } from "./src/Views/Chat/Chats/index.js";
 import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
+import { Offline360 } from "./src/Views/Offline360";
 import AsyncStorage from "@react-native-community/async-storage";
 
 export default function App() {
@@ -45,7 +46,7 @@ export default function App() {
     if (token) {
       return (
         <View style={styles.screenView}>
-          <AppBar navigation={navigation} route="Gordon_360" />
+          {/* <AppBar navigation={navigation} route="Gordon_360" />
           <WebView
             javaScriptEnabled={true}
             domStorageEnabled={true}
@@ -55,7 +56,9 @@ export default function App() {
             onMessage={(event) => {
               console.log("event: ", event);
             }}
-          />
+          /> */}
+          <AppBar navigation={navigation} route="Gordon_360_Offline" />
+          <Offline360 />
         </View>
       );
     } else return <></>;

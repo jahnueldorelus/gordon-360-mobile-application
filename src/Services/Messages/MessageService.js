@@ -1,13 +1,13 @@
 import messages from "./DummyData/dummy_messages";
 import rooms from "./DummyData/dummy_rooms";
 import AsyncStorage from "@react-native-community/async-storage";
-import { get, put } from "./HTTP/index";
+import { get, put } from "../HTTP/index";
 
 /**
  * Returns a list of rooms associated with the main user
  */
 export async function getRooms() {
-  let roomIDList = get("rooms");
+  let roomIDList = get("dm/rooms");
   /**
    * Checks to make sure that the object returned is a list and is not
    * null or undefined
@@ -15,23 +15,20 @@ export async function getRooms() {
   let result = roomIDList.then(async (roomData) => {
     // If there's data available, it's saved to storage and returned
     if (roomData) {
-      // Gets the current room data from storage. If there's none, then an empty
-      // list is returned.
-      // let oldRoomObj = JSON.parse(await AsyncStorage.getItem("rooms"))
-      //   ? JSON.parse(await AsyncStorage.getItem("rooms"))
-      //   : [];
-
-      // Creates the updated room object
-      // let newRoomObject;
+      // Formats the data to be used with our components
+      let roomList = [];
+      roomData.forEach((room) => {
+        roomList.push(room[0]);
+      });
 
       // Saves this new room object to storage
-      // AsyncStorage.setItem("rooms", JSON.stringify(newRoomObject));
+      AsyncStorage.setItem("rooms", JSON.stringify(roomList));
 
       /**
-       * TEMP - UNTIL FULL ROOM OBJECT IS RETURNED FROM BACK-END,
-       * DUMMY DATA IS USED.
+       * TEMP - UNTIL DATA IS PARSED SUCCESSFULLY, TEMP DATA
+       * IS RETURNED
        */
-      // return newRoomObject;
+      // return roomList;
       return rooms;
     } else {
       /**
@@ -39,7 +36,14 @@ export async function getRooms() {
        * storage is returned if available
        */
       let roomData = JSON.parse(await AsyncStorage.getItem("rooms"));
-      return roomData ? roomData : [];
+      // return roomData ? roomData : [];
+
+      /**
+       * TEMP - UNTIL DATA IS PARSED SUCCESSFULLY, TEMP DATA
+       * IS RETURNED
+       */
+      // return roomList;
+      return rooms;
     }
   });
 

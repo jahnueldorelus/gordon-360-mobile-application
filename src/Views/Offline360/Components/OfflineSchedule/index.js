@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { getUserSchedule } from "../../../../Services/Offline360/Offline360Service";
 import moment from "moment";
 
 export const OfflineSchedule = (props) => {
@@ -30,38 +31,44 @@ export const OfflineSchedule = (props) => {
 
   // Creates the events objects
   useEffect(() => {
-    let allEvents = [];
-    props.events.forEach((event) => {
-      let eventObject = {};
-      // Creates a new event object to work alongside Moment date objects
-      eventObject.startTime = event.BEGIN_TIME.trim();
-      eventObject.endTime = event.END_TIME.trim();
-      eventObject.courseName = event.CRS_TITLE.trim();
-      eventObject.courseCode = event.CRS_CDE.trim();
-      eventObject.courseBuilding = event.BLDG_CDE.trim();
-      eventObject.courseRoom = event.ROOM_CDE.trim();
-      // Creates a list of days each event occurs on
-      eventObject.days = [];
-      /**
-       * Code letters for each day was taken from repo: `gordon-360-ui` from the file
-       * `/src/components/SchedulePanel/components/myScheduleDialog/index.js`
-       */
-      if (event.SUNDAY_CDE === "N") eventObject.days.push("Sun");
-      if (event.MONDAY_CDE === "M") eventObject.days.push("Mon");
-      if (event.TUESDAY_CDE === "T") eventObject.days.push("Tue");
-      if (event.WEDNESDAY_CDE === "W") eventObject.days.push("Wed");
-      if (event.THURSDAY_CDE === "R") eventObject.days.push("Thu");
-      if (event.FRIDAY_CDE === "F") eventObject.days.push("Fri");
-      if (event.SATURDAY_CDE === "S") eventObject.days.push("Sat");
+    async function getSchedule() {
+      let allEvents = [];
+      let events = await getUserSchedule();
 
-      allEvents.push(eventObject);
-    });
-    setEvents(allEvents);
+      events.forEach((event) => {
+        let eventObject = {};
+        // Creates a new event object to work alongside Moment date objects
+        eventObject.startTime = event.BEGIN_TIME.trim();
+        eventObject.endTime = event.END_TIME.trim();
+        eventObject.courseName = event.CRS_TITLE.trim();
+        eventObject.courseCode = event.CRS_CDE.trim();
+        eventObject.courseBuilding = event.BLDG_CDE.trim();
+        eventObject.courseRoom = event.ROOM_CDE.trim();
+        // Creates a list of days each event occurs on
+        eventObject.days = [];
+        /**
+         * Code letters for each day was taken from repo: `gordon-360-ui` from the file
+         * `/src/components/SchedulePanel/components/myScheduleDialog/index.js`
+         */
+        if (event.SUNDAY_CDE === "N") eventObject.days.push("Sun");
+        if (event.MONDAY_CDE === "M") eventObject.days.push("Mon");
+        if (event.TUESDAY_CDE === "T") eventObject.days.push("Tue");
+        if (event.WEDNESDAY_CDE === "W") eventObject.days.push("Wed");
+        if (event.THURSDAY_CDE === "R") eventObject.days.push("Thu");
+        if (event.FRIDAY_CDE === "F") eventObject.days.push("Fri");
+        if (event.SATURDAY_CDE === "S") eventObject.days.push("Sat");
+
+        allEvents.push(eventObject);
+      });
+      setEvents(allEvents);
+    }
+
+    getSchedule();
   }, []);
 
   const defaultFontSize = 18;
   const styles = StyleSheet.create({
-    mainContainer: { flex: 1, marginHorizontal: 5 },
+    mainContainer: { flex: 1 },
     calContainer: {
       paddingVertical: 10,
       backgroundColor: "#013E70",
@@ -306,7 +313,7 @@ export const OfflineSchedule = (props) => {
     else {
       return (
         <View style={styles.noEventsContainer}>
-          <Text style={styles.noEventsText}>No Events for Today!</Text>
+          <Text style={styles.noEventsText}>No events for today!</Text>
         </View>
       );
     }

@@ -4,6 +4,7 @@ import { GiftedChat } from "react-native-gifted-chat";
 import {
   getMessages,
   getMainUser,
+  getRooms,
 } from "../../../Services/Messages/MessageService";
 import { StyleSheet, View, Image, Dimensions } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
@@ -30,31 +31,35 @@ export const Chats = (props) => {
 
   /**
    * Gets the messages based upon the room ID and sorts them in order by date
+   * Also get the main user
    */
   useEffect(() => {
-    let chat = getMessages(props.route.params.roomProp._id).sort(
-      (a, b) => a.createdAt < b.createdAt
-    );
-    if (chat.length > 0) setMessages(chat[0].messages);
+    getUser();
+    getMessageData();
+  }, []);
+
+  /**
+   * Gets the messages of the user
+   */
+  async function getMessageData() {
+    let roomObj = await getMessages(props.route.params.roomProp._id);
+    let messages = roomObj.messages;
+    if (messages.length > 0) setMessages(messages);
     else {
       // This disables a chat room from being opened if the messages failed to load
       props.navigation.pop();
       props.navigation.navigate("Rooms", { error: "Failed to load messages" });
     }
-  }, []);
+  }
 
   /**
    * Gets the user from local storage
    */
-  useEffect(() => {
-    async function getUser() {
-      await getMainUser().then((data) => {
-        setUser(data);
-      });
-    }
-
-    getUser();
-  }, []);
+  async function getUser() {
+    await getMainUser().then((data) => {
+      setUser(data);
+    });
+  }
 
   const onSend = (newMessages = []) => {
     setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));

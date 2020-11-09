@@ -47,8 +47,10 @@ const MessageImage = (props) => {
     },
     image: {
       maxWidth: (deviceWidth / 3) * 2, // Allows up to two-thirds of the screen
+      minWidth: 200, // The minimum width of an image
       height: deviceHeight / 4,
       borderRadius: 5,
+      resizeMode: "contain",
     },
   });
 

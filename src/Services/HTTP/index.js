@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-community/async-storage";
 
-const apiSource = "https://360api.gordon.edu/api/";
+const apiSource = "https://360apitrain.gordon.edu/api/";
 
 /**
  * Does a GET to the API. If the user is not authenticated, then the request

@@ -3,7 +3,6 @@ import { View, StyleSheet, Dimensions, Text } from "react-native";
 import { FlatList } from "react-native";
 import {
   getRooms,
-  getLastMessageFromRoom,
   getRoomName,
   getMainUser,
 } from "../../Services/Messages/MessageService";
@@ -15,28 +14,27 @@ export const RoomsList = (props) => {
   const [rooms, setRooms] = useState(null);
   const [user, setUser] = useState(null);
 
+  // Gets the rooms of the main user and the main user's information
+  useEffect(() => {
+    getAllRooms();
+    getUser();
+  }, []);
+
   /**
    * Gets the rooms of the main user
    */
-  useEffect(() => {
-    async function getAllRooms() {
-      setRooms(await getRooms());
-    }
-    getAllRooms();
-  }, []);
+  async function getAllRooms() {
+    setRooms(await getRooms());
+  }
 
   /**
    * Gets the main user
    */
-  useEffect(() => {
-    async function getUser() {
-      await getMainUser().then((data) => {
-        setUser(data);
-      });
-    }
-
-    getUser();
-  }, []);
+  async function getUser() {
+    await getMainUser().then((data) => {
+      setUser(data);
+    });
+  }
 
   if (rooms && user)
     return (
@@ -73,7 +71,7 @@ export const RoomsList = (props) => {
                   {getRoomName(room.item, user)}
                 </ListItem.Title>
                 <ListItem.Subtitle numberOfLines={2}>
-                  {getLastMessageFromRoom(room.item._id)}
+                  {room.item.lastMessage}
                 </ListItem.Subtitle>
               </ListItem.Content>
               <ListItem.Chevron />

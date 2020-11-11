@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, Text } from "react-native";
-import { FlatList } from "react-native";
+import { View, StyleSheet, Dimensions, Text, FlatList } from "react-native";
 import {
   getRooms,
   getRoomName,
   getMainUser,
 } from "../../Services/Messages/MessageService";
 import { ListItem, Avatar } from "react-native-elements";
+import { CustomLoader } from "../../Components/CustomLoader";
 
 const deviceHeight = Dimensions.get("window").height;
 
@@ -87,7 +87,7 @@ export const RoomsList = (props) => {
         )}
       />
     );
-  else return <></>;
+  else return <CustomLoader />;
 };
 
 const styles = StyleSheet.create({

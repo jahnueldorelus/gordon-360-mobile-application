@@ -31,8 +31,9 @@ export async function getRooms() {
           // Creates the user name
           user.name = user.user_name;
           delete user.user_name;
-          // Creates the user avatar
-          user.avatar = user.user_avatar;
+          // TEMPORARILY SETS AN IMAGE FOR EACH USER SINCE THE SERVER RETURNS NOTHING
+          // user.avatar = user.user_avatar;
+          user.avatar = "https://placeimg.com/140/140/any";
           delete user.user_avatar;
         });
 

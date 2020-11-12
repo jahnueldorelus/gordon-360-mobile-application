@@ -106,11 +106,9 @@ export const Chats = (props) => {
         />
 
         <CustomModal
-          clostTextColor={"white"}
-          closeTextFontSize={20}
           content={modalContent}
-          coverScreen={true}
-          height={"100%"}
+          coverScreen
+          height={100}
           visible={modalVisible}
         />
       </View>

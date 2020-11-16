@@ -14,16 +14,33 @@ export const Appbar360Offline = (props) => {
       >
         <Image
           style={styles.navigationButtonImage}
-          source={require("../../Images/hamburger_menu.png")}
+          source={require("../Images/hamburger_menu.png")}
         />
         <Text style={styles.navigationButtonText}>Gordon 360 Offline</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          // Changes network connection to true to
+          // go to online mode
+          props.setNetworkConnected(true);
+        }}
+        style={styles.navigationButton}
+      >
+        <Image
+          style={styles.navigationButtonImage}
+          source={require("../Images/online.png")}
+        />
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  appBarContainer: { flexDirection: "row", alignItems: "center" },
+  appBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   navigationButton: {
     marginHorizontal: 10,
     flexDirection: "row",

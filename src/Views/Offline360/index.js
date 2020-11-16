@@ -20,68 +20,65 @@ export const Offline360 = () => {
   const [userChapel, setUserChapel] = useState(null);
   const [userInvolvements, setUserInvolvements] = useState(null);
 
-  // Gets the user's profile
+  // Gets the user's profile, image, and dining info
   useEffect(() => {
-    async function getProfile() {
-      setUserProfile(await getUserProfile());
-    }
     getProfile();
-  }, []);
-
-  // Gets the user's image
-  useEffect(() => {
-    async function getImage() {
-      setUserImage(await getUserImage());
-    }
     getImage();
-  }, []);
-
-  // Gets the user's dining info
-  useEffect(() => {
-    async function getDining() {
-      let data = await getUserDining();
-      let diningData = {};
-      // If there's data, then the user has a dining plan. Otherwise, they have no plan
-      if (data && data.Swipes && data.DiningDollars && data.GuestSwipes) {
-        // Creates the user's dining data. If the current balance is null, then the user has no balance
-        diningData.swipes = data.Swipes.CurrentBalance
-          ? data.Swipes.CurrentBalance
-          : 0;
-        diningData.dollars = data.DiningDollars.CurrentBalance
-          ? data.DiningDollars.CurrentBalance
-          : 0;
-        diningData.guestSwipes = data.GuestSwipes.CurrentBalance
-          ? data.GuestSwipes.CurrentBalance
-          : 0;
-      } else {
-        // Creates the user's dining data with each balance set to 0 since there's no dining plan
-        diningData.swipes = 0;
-        diningData.dollars = 0;
-        diningData.guestSwipes = 0;
-      }
-      setUserDining(diningData);
-    }
     getDining();
   }, []);
 
-  // Gets the user's involvements info once the user's profile is available
+  // Gets the user's involvements and chapel info when their profile,
+  // is available
   useEffect(() => {
-    async function getInvolvements() {
-      // Gets the user's involvements only if the user's ID is available
-      if (userProfile && userProfile.ID)
-        setUserInvolvements(await getUserInvolvements(userProfile.ID));
-    }
     getInvolvements();
-  }, [userProfile]);
-
-  // Gets the user's chapel info
-  useEffect(() => {
-    async function getChapel() {
-      setUserChapel(await getUserChapelInfo());
-    }
     getChapel();
   }, [userProfile]);
 
+  // Gets the user's profile
+  async function getProfile() {
+    setUserProfile(await getUserProfile());
+  }
+
+  // Gets the user's image
+  async function getImage() {
+    setUserImage(await getUserImage());
+  }
+
+  // Gets the user's dining info
+  async function getDining() {
+    let data = await getUserDining();
+    let diningData = {};
+    // If there's data, then the user has a dining plan. Otherwise, they have no plan
+    if (data && data.Swipes && data.DiningDollars && data.GuestSwipes) {
+      // Creates the user's dining data. If the current balance is null, then the user has no balance
+      diningData.swipes = data.Swipes.CurrentBalance
+        ? data.Swipes.CurrentBalance
+        : 0;
+      diningData.dollars = data.DiningDollars.CurrentBalance
+        ? data.DiningDollars.CurrentBalance
+        : 0;
+      diningData.guestSwipes = data.GuestSwipes.CurrentBalance
+        ? data.GuestSwipes.CurrentBalance
+        : 0;
+    } else {
+      // Creates the user's dining data with each balance set to 0 since there's no dining plan
+      diningData.swipes = 0;
+      diningData.dollars = 0;
+      diningData.guestSwipes = 0;
+    }
+    setUserDining(diningData);
+  }
+
+  // Gets the user's involvements info
+  async function getInvolvements() {
+    // Gets the user's involvements only if the user's ID is available
+    if (userProfile && userProfile.ID)
+      setUserInvolvements(await getUserInvolvements(userProfile.ID));
+  }
+  // Gets the user's chapel info
+  async function getChapel() {
+    setUserChapel(await getUserChapelInfo());
+  }
   if (userProfile && userImage && userDining && userInvolvements && userChapel)
     return (
       <View style={styles.mainContaner}>

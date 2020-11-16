@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AppBar } from "./src/Components/AppBar";
 import {
   View,
@@ -16,6 +16,8 @@ import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import { Offline360 } from "./src/Views/Offline360";
 import AsyncStorage from "@react-native-community/async-storage";
+import NetInfo from "@react-native-community/netinfo";
+import { CustomModal } from "./src/Components/CustomModal";
 
 export default function App() {
   // Navigators
@@ -31,37 +33,89 @@ export default function App() {
   // Gordon 360 Screen
   function Gordon360({ navigation }) {
     const [token, setToken] = useState(null);
+    const [networkConnected, setNetworkConnected] = useState(null);
+    const [canGoBack, setCanGoBack] = useState(false);
+    const [canGoForward, setCanGoForward] = useState(false);
+    const [showOffline, setShowOffline] = useState(false);
+    const web = useRef(null);
 
     /**
-     * Gets the user's token from storage
+     * Saves the user's token
      */
     useEffect(() => {
-      async function getToken() {
-        setToken(JSON.parse(await AsyncStorage.getItem("token")));
-      }
-
       getToken();
     }, []);
 
-    if (token) {
+    /**
+     * Creates an event listener for the network
+     */
+    useEffect(() => {
+      const networkListener = NetInfo.addEventListener((state) => {
+        console.log(state);
+        setNetworkConnected(state.isConnected && state.isInternetReachable);
+      });
+
+      // Removes the network listener. Syntax may be weird but it's the
+      // correct way according to documentation
+      return networkListener();
+    }, []);
+
+    // Gets the user's token
+    async function getToken() {
+      setToken(JSON.parse(await AsyncStorage.getItem("token")));
+    }
+
+    if (token && networkConnected) {
       return (
         <View style={styles.screenView}>
-          {/* <AppBar navigation={navigation} route="Gordon_360" />
-          <WebView
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            // Adds the token to the WebView's local storage to enable automatic sign in on 360
-            injectedJavaScriptBeforeContentLoaded={`window.localStorage.setItem('token', '"${token}"');`}
-            source={{ uri: "https://360.gordon.edu" }}
-            onMessage={(event) => {
-              console.log("event: ", event);
-            }}
-          /> */}
-          <AppBar navigation={navigation} route="Gordon_360_Offline" />
+          <AppBar
+            navigation={navigation}
+            route="Gordon_360"
+            showOffline={showOffline}
+            setShowOffline={setShowOffline}
+            web={web}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+          />
+          <View style={styles.screenView}>
+            <WebView
+              ref={web}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              // Adds the token to the WebView's local storage to enable automatic sign in on 360
+              injectedJavaScriptBeforeContentLoaded={`window.localStorage.setItem('token', '"${token}"');`}
+              source={{ uri: "https://360.gordon.edu" }}
+              onMessage={(event) => {
+                console.log("event: ", event);
+              }}
+              bounces={false}
+              onNavigationStateChange={(navState) => {
+                setCanGoBack(navState.canGoBack);
+                setCanGoForward(navState.canGoForward);
+              }}
+            />
+            <CustomModal
+              content={<Offline360 />}
+              visible={showOffline}
+              coverScreen
+              containInView
+              height={100}
+            />
+          </View>
+        </View>
+      );
+    } else
+      return (
+        <View style={styles.screenView}>
+          <AppBar
+            navigation={navigation}
+            route="Gordon_360_Offline"
+            setNetworkConnected={setNetworkConnected}
+            web={web}
+          />
           <Offline360 />
         </View>
       );
-    } else return <></>;
   }
 
   // Messages Screen

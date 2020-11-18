@@ -5,7 +5,8 @@ import { StyleSheet } from "react-native";
 import { AppbarChat } from "./Components/Chat/index";
 import { AppbarRoom } from "./Components/Room/index";
 import { AppbarLogin } from "./Components/Login/index";
-import { Appbar360 } from "./Components/360/index";
+import { Appbar360 } from "./Components/360/Online/index";
+import { Appbar360Offline } from "./Components/360/Offline";
 
 export const AppBar = (props) => {
   /**
@@ -18,21 +19,24 @@ export const AppBar = (props) => {
 
   const styles = StyleSheet.create({
     appBar: {
-      backgroundColor: props.route === "Gordon_360" ? "#012849" : "#014983",
+      backgroundColor:
+        props.route === "Gordon_360" || props.route === "Gordon_360_Offline"
+          ? "#012849"
+          : "#014983",
       flexDirection: "column",
       paddingTop: paddingTopForiPhoneX,
       paddingBottom: paddingVertical,
       paddingHorizontal: 10,
     },
   });
-
   return (
     <View style={styles.appBar}>
       <StatusBar barStyle="light-content" hidden={false} translucent={true} />
+      {props.route === "Login" && <AppbarLogin {...props} />}
       {props.route.name === "Chat" && <AppbarChat {...props} />}
       {props.route.name === "Rooms" && <AppbarRoom {...props} />}
       {props.route === "Gordon_360" && <Appbar360 {...props} />}
-      {props.route === "Login" && <AppbarLogin {...props} />}
+      {props.route === "Gordon_360_Offline" && <Appbar360Offline {...props} />}
     </View>
   );
 };

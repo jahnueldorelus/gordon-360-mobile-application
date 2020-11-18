@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-community/async-storage";
 
-const apiSource = "https://360apitrain.gordon.edu/api/dm/";
+const apiSource = "https://360apitrain.gordon.edu/api/";
 
 /**
  * Does a GET to the API. If the user is not authenticated, then the request
@@ -48,8 +48,8 @@ export async function get(url) {
  */
 export async function put(url, body) {
   // If the request is authenticated
-  if (isAuthenticated())
-    await fetch(apiSource + url, {
+  if (isAuthenticated()) {
+    const data = await fetch(apiSource + url, {
       method: "PUT",
       headers: {
         Accept: "application/json",
@@ -62,7 +62,6 @@ export async function put(url, body) {
     })
       // If a response was returned
       .then(async (response) => {
-        console.log("response: ", response);
         // Parses the response to access data
         return await response.json();
       })
@@ -70,6 +69,9 @@ export async function put(url, body) {
       .catch((error) => {
         return error;
       });
+
+    return data;
+  }
   // If the request isn't authenticated
   else return false;
 }

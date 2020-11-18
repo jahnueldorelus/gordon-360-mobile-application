@@ -4,33 +4,13 @@ import { Button } from "react-native-elements";
 import { Input } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-community/async-storage";
+import { get } from "../../Services/HTTP/";
 
 export const Login = (props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginFailedText, setLoginFailedText] = useState(false);
-
-  /**
-   * TEMPORARY
-   * Saves the main user to local storage
-   */
-  useEffect(() => {
-    async function saveUser() {
-      try {
-        await AsyncStorage.setItem(
-          "user",
-          JSON.stringify({
-            _id: 5,
-            name: "Aaron",
-            avatar: "https://placeimg.com/140/140/any",
-          })
-        );
-      } catch (e) {}
-    }
-
-    saveUser();
-  }, []);
 
   /**
    * Styles used for this component. This is created inside of the component and
@@ -121,11 +101,25 @@ export const Login = (props) => {
         response.json().then(async (result) => {
           // If the token is available
           if (result.access_token) {
+            // Adds the token to storage
             await AsyncStorage.setItem(
               "token",
               JSON.stringify(result.access_token)
             );
-            props.navigation.navigate("Messages");
+            // Gets the user's profile in order to create the main user object
+            let userProfile = get("profiles");
+            userProfile.then(async (data) => {
+              let mainUser = {
+                _id: data.ID,
+                name: `${data.FirstName} ${data.LastName}`,
+                // TEMP IMAGE - PLEASE REPLACE
+                avatar: "https://placeimg.com/140/140/any",
+              };
+              // Saves the main user to storage
+              await AsyncStorage.setItem("user", JSON.stringify(mainUser));
+              // Navigates to the Messages screen
+              props.navigation.navigate("Messages");
+            });
           }
           // If the token is not available
           else {

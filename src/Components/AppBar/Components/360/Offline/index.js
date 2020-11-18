@@ -3,7 +3,7 @@ import { View, Image, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 
-export const Appbar360 = (props) => {
+export const Appbar360Offline = (props) => {
   return (
     <View style={styles.appBarContainer}>
       <TouchableOpacity
@@ -16,14 +16,31 @@ export const Appbar360 = (props) => {
           style={styles.navigationButtonImage}
           source={require("../Images/hamburger_menu.png")}
         />
-        <Text style={styles.navigationButtonText}>Gordon 360</Text>
+        <Text style={styles.navigationButtonText}>Gordon 360 Offline</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          // Changes network connection to true to
+          // go to online mode
+          props.setNetworkConnected(true);
+        }}
+        style={styles.navigationButton}
+      >
+        <Image
+          style={styles.navigationButtonImage}
+          source={require("../Images/online.png")}
+        />
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  appBarContainer: { flexDirection: "row", alignItems: "center" },
+  appBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   navigationButton: {
     marginHorizontal: 10,
     flexDirection: "row",

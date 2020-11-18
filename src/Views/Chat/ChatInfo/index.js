@@ -7,17 +7,16 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native";
 import {
   getMainUser,
   getMessages,
   getImages,
 } from "../../../Services/Messages/MessageService";
 import { Icon, Avatar, Image } from "react-native-elements";
-import ImageViewer from "react-native-image-zoom-viewer";
 
 export const ChatInfo = (props) => {
-  const [messages, setMessages] = useState(null);
+  // const [messages, setMessages] = useState(null);
   const [users, setUsers] = useState([]);
   const [messagesWithImages, setMessagesWithImages] = useState([]);
   const [mainUser, setMainUser] = useState([null]);
@@ -27,41 +26,53 @@ export const ChatInfo = (props) => {
   const [showImageViewer, setShowImageViewer] = useState(false);
 
   /**
-   * Gets the list of messages for the chat. The main user, the room, and
-   * all users in the room are retrieved.
+   * Sets the main user's data, the room's messages, the room itself,
+   * and a list of all the images in the room
    */
   useEffect(() => {
-    async function setUserData() {
-      await getMainUser().then((currentUser) => {
-        // Gets the main user
-        setMainUser(currentUser);
-        // Gets the list of users excluding the main user
-        setUsers(
-          props.route.params.roomProp.users.filter(
-            (user) => user._id !== currentUser._id
-          )
-        );
-      });
-    }
     setUserData();
-
-    // Sets the messages of the chat
-    setMessages(getMessages(props.route.params.roomProp._id)[0].messages);
-    // Sets the room info
     setRoom(props.route.params.roomProp);
-    setMessagesWithImages(
-      getImages(props.route.params.roomProp._id).map((message) => {
-        return { url: message.image };
-      })
-    );
+    getImagesData();
   }, []);
+
+  /**
+   * Gets the list of users apart from the main user
+   */
+  async function setUserData() {
+    await getMainUser().then((currentUser) => {
+      // Gets the main user
+      setMainUser(currentUser);
+      // Gets the list of users excluding the main user
+      setUsers(
+        props.route.params.roomProp.users.filter((user) => {
+          return user._id !== currentUser._id;
+        })
+      );
+    });
+  }
+
+  /**
+   * Gets the images of the room for the chat details
+   */
+  async function getImagesData() {
+    let images = await getImages(props.route.params.roomProp._id);
+    // Checks to make sure that the images variable is an array before
+    // attempting to map
+    if (Array.isArray(images)) {
+      setMessagesWithImages(
+        images.map((message) => {
+          return { url: message.image };
+        })
+      );
+    }
+  }
 
   /**
    * DO NOT REMOVE TOUCHABLE FEEDBACK. ALSO, DON'T USE THE COMPONENT BUTTON
    * IN THIS MODAL. USE TOUCHABLEOPACITY INSTEAD. THIS FIXES A BUG WITHIN REACT NATIVE.
    * SEE DOCUMENTATION FOR BUG "Modal_Closing_State_Unchanged"
    */
-  if (messages && users && mainUser && room && messagesWithImages) {
+  if (users && mainUser && room && messagesWithImages) {
     return (
       <Modal
         visible={props.visible}

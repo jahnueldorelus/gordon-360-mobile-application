@@ -1,43 +1,38 @@
 {
-  "dependencies": {
-    "@react-native-community/async-storage": "^1.12.1",
-    "@react-native-community/masked-view": "~0.1.10",
-    "@react-navigation/drawer": "~5.8.4",
-    "@react-navigation/native": "^5.6.1",
-    "@react-navigation/stack": "^5.9.3",
-    "axios": "^0.20.0",
-    "create-react-native-app": "^3.5.1",
-    "eslint-plugin-react-hooks": "^4.1.2",
-    "expo": "~38.0.0",
-    "expo-cli": "^3.28.0",
-    "expo-linear-gradient": "~8.2.1",
-    "react": "~16.11.0",
-    "react-devtools": "^4.8.2",
-    "react-dom": "~16.11.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-38.0.2.tar.gz",
-    "react-native-axios": "^0.17.1",
-    "react-native-elements": "^3.0.0-alpha.1",
-    "react-native-gesture-handler": "~1.6.1",
-    "react-native-gifted-chat": "^0.16.3",
-    "react-native-image-zoom-viewer": "^3.0.1",
-    "react-native-image-zoom-viewer-fix": "^2.2.31",
-    "react-native-modal-patch": "git+https://github.com/HarvestProfit/react-native-modal-patch.git",
-    "react-native-reanimated": "~1.9.0",
-    "react-native-safe-area-context": "~3.0.6",
-    "react-native-screens": "~2.9.0",
-    "react-native-vector-icons": "^7.1.0",
-    "react-native-web": "0.11.7",
-    "react-native-webview": "^10.9.2"
-  },
-  "devDependencies": {
-    "@babel/core": "7.9.0"
-  },
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo web",
+    "web": "expo start --web",
     "eject": "expo eject"
+  },
+  "dependencies": {
+    "@react-native-community/async-storage": "^1.12.1",
+    "@react-native-community/masked-view": "^0.1.10",
+    "@react-native-community/netinfo": "5.9.6",
+    "@react-navigation/drawer": "^5.9.3",
+    "@react-navigation/native": "^5.7.6",
+    "@react-navigation/stack": "^5.9.3",
+    "expo": "~39.0.2",
+    "expo-cli": "^3.28.5",
+    "expo-linear-gradient": "~8.3.0",
+    "expo-status-bar": "~1.0.2",
+    "moment": "^2.29.1",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-39.0.4.tar.gz",
+    "react-native-elements": "^3.0.0-alpha.1",
+    "react-native-gesture-handler": "^1.8.0",
+    "react-native-gifted-chat": "^0.16.3",
+    "react-native-reanimated": "^1.13.1",
+    "react-native-screens": "^2.11.0",
+    "react-native-vector-icons": "^7.1.0",
+    "react-native-web": "~0.13.12",
+    "react-native-webview": "^10.9.3"
+  },
+  "devDependencies": {
+    "@babel/core": "~7.9.0"
   },
   "private": true
 }

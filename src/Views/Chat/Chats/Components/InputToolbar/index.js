@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View } from "react-native";
-import Composer from "./Components/Composer";
-import Send from "./Components/Send";
-import Actions from "./Components/Actions";
+import { Actions, Composer, Send } from "react-native-gifted-chat";
 
 /**
  * THIS COMPONENT IS A CLASS INSTEAD OF A CUSTOM HOOK DUE TO AN BUG

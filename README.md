@@ -51,8 +51,8 @@
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient @react-native-community/netinfo`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage && expo install expo-linear-gradient @react-native-community/netinfo`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -81,6 +81,11 @@
      - Install React Native Image-Viewer using any of the following commands.
        - `npm i react-native-image-zoom-viewer`
        - `yarn add react-native-image-zoom-viewer`
+     - Install Moment (Used for Date) using any of the following commands.
+       - `npm i moment`
+       - `yarn add moment`
+     - Install NetInfo using the following command.
+       - `expo install @react-native-community/netinfo`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

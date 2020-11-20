@@ -6,7 +6,10 @@ export const AccountInfo = (props) => {
    * Returns the residency of the user if the user is a student
    */
   const getResidence = () => {
-    if (props.userProfile && props.userProfile.PersonType.includes("stu")) {
+    if (
+      props.userProfile &&
+      props.userProfile.PersonType.trim().includes("stu")
+    ) {
       return (
         <View style={props.styles.accountViewCard}>
           <Image
@@ -15,7 +18,7 @@ export const AccountInfo = (props) => {
           />
           <Text style={props.styles.listItemName}>Residence</Text>
           <Text numberOfLines={1} style={props.styles.listItemValue}>
-            {getResidenceFormat(props.userProfile.OnOffCampus)}
+            {getResidenceFormat(props.userProfile.OnOffCampus.trim())}
           </Text>
         </View>
       );
@@ -51,7 +54,7 @@ export const AccountInfo = (props) => {
   const getDormitory = () => {
     if (
       props.userProfile &&
-      props.userProfile.PersonType.includes("stu") &&
+      props.userProfile.PersonType.trim().includes("stu") &&
       getResidenceFormat(props.userProfile.OnOffCampus) === "On Campus"
     )
       return (
@@ -62,8 +65,8 @@ export const AccountInfo = (props) => {
           />
           <Text style={props.styles.listItemName}>Dormitory</Text>
           <Text numberOfLines={1} style={props.styles.listItemValue}>
-            {props.userProfile.BuildingDescription}: Room{" "}
-            {props.userProfile.OnCampusRoom}
+            {props.userProfile.BuildingDescription.trim()}: Room{" "}
+            {props.userProfile.OnCampusRoom.trim()}
           </Text>
         </View>
       );
@@ -78,7 +81,7 @@ export const AccountInfo = (props) => {
         />
         <Text style={props.styles.listItemName}>ID</Text>
         <Text numberOfLines={1} style={props.styles.listItemValue}>
-          {props.userProfile.ID}
+          {props.userProfile.ID.trim()}
         </Text>
       </View>
       {/********************** Mailbox # **********************/}
@@ -89,7 +92,7 @@ export const AccountInfo = (props) => {
         />
         <Text style={props.styles.listItemName}>Mailbox</Text>
         <Text numberOfLines={1} style={props.styles.listItemValue}>
-          # {props.userProfile.Mail_Location}
+          # {props.userProfile.Mail_Location.trim()}
         </Text>
       </View>
       {/********************** Chapel Credits Info **********************/}

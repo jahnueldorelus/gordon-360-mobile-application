@@ -15,6 +15,23 @@ import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
+import Reactotron, { networking } from "reactotron-react-native";
+import AsyncStorage from "@react-native-community/async-storage";
+
+// If in development mode, Reactotron will attempt to connect to the
+// desktop application
+if (__DEV__) {
+  Reactotron.setAsyncStorageHandler(AsyncStorage)
+    .configure({ name: "React Native Example Inspect" })
+    .use(
+      networking({
+        ignoreContentTypes: /^(image)\/.*$/i,
+        ignoreUrls: /\/(logs|symbolicate)$/,
+      })
+    )
+    .useReactNative()
+    .connect();
+}
 
 export default function App() {
   // Navigators

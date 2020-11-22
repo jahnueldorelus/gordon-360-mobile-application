@@ -4,9 +4,9 @@ import { GiftedChat } from "react-native-gifted-chat";
 import {
   getMessages,
   getMainUser,
-  getRooms,
+  sendMessage,
 } from "../../../Services/Messages/MessageService";
-import { StyleSheet, View, Image, Dimensions } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
@@ -20,6 +20,7 @@ import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
+import AsyncStorage from "@react-native-community/async-storage";
 
 export const Chats = (props) => {
   const [text, setText] = useState("");
@@ -42,8 +43,7 @@ export const Chats = (props) => {
    * Gets the messages of the user
    */
   async function getMessageData() {
-    let roomObj = await getMessages(props.route.params.roomProp._id);
-    let messages = roomObj.messages;
+    let messages = await getMessages(props.route.params.roomProp._id);
     if (messages.length > 0) setMessages(messages);
     else {
       // This disables a chat room from being opened if the messages failed to load
@@ -61,8 +61,56 @@ export const Chats = (props) => {
     });
   }
 
-  const onSend = (newMessages = []) => {
-    setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
+  const onSend = async (text) => {
+    // Shows the text message as pending until the database recevies the message
+    text[0].pending = true;
+    // Creates a copy of the  message list
+    let oldMessageList = [...messages];
+    // Adds the new text to the beginning of the list
+    oldMessageList.splice(0, 0, text[0]);
+    setMessages(oldMessageList);
+
+    // Saves the message list to storage
+    await AsyncStorage.setItem(
+      `room:${props.route.params.roomProp._id}`,
+      JSON.stringify(oldMessageList)
+    );
+    // Updates the rooms list to display the new last text message
+    props.route.params.updateRooms(false); // False disables the function from fetching and saving the messages for each room
+    // Sends the message to the database
+    await sendMessage(text[0], props.route.params.roomProp._id)
+      .then(async (wasSubmitted) => {
+        // If the database received the message
+        if (wasSubmitted) {
+          // Since the database received the text, the message is no longer pending
+          text[0].pending = false;
+          let newMessageList = [...oldMessageList];
+          // Replaces the original message that was pending with the new message that's not pending
+          newMessageList.splice(0, 1, text[0]);
+          setMessages(newMessageList);
+          // Saves the message list to storage
+          await AsyncStorage.setItem(
+            `room:${props.route.params.roomProp._id}`,
+            JSON.stringify(newMessageList)
+          );
+          // Updates the rooms list to display the new last text message
+          props.route.params.updateRooms(false); // False disables the function from fetching and saving the messages for each room
+        } else {
+          /**
+           * Since the database failed to save the message, let the user
+           * know that sending the text failed and give them a chance to either
+           * retry or cancel the text
+           */
+        }
+      })
+      // If the fetch fails
+      .catch(() => {
+        /**
+         * Since adding the message to the database failed, let the user
+         * know that sending the text failed and give them a chance to either
+         * retry or cancel the text
+         */
+      });
   };
 
   if (messages && user && navigator)

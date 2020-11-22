@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions, Text, FlatList } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Text,
+  FlatList,
+  LogBox,
+} from "react-native";
 import {
   getRooms,
   getRoomName,
@@ -54,9 +61,16 @@ export const RoomsList = (props) => {
                 // before passed as a parameter to navigation
                 roomProp.createdAt = new Date(room.item.createdAt).toJSON();
                 roomProp.lastUpdated = new Date(room.item.lastUpdated).toJSON();
+                // This prevents a warning about passing in a function as a parameter in the navigation
+                // It's fine for us to do this according to this documentation
+                // https://reactnavigation.org/docs/troubleshooting/#i-get-the-warning-non-serializable-values-were-found-in-the-navigation-state
+                LogBox.ignoreLogs([
+                  "Non-serializable values were found in the navigation state",
+                ]);
                 // Navigates to the chat screen with a specified room id
                 props.navigation.navigate("Chat", {
                   roomProp,
+                  updateRooms: getAllRooms,
                 });
               }}
             >

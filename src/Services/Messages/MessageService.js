@@ -6,8 +6,10 @@ import moment from "moment";
 
 /**
  * Returns a list of rooms associated with the main user
+ * @param updateMessages Boolean that determines if the messages for each room
+ *                        should be fetched and stored. Default is true
  */
-export async function getRooms() {
+export async function getRooms(updateMessages = true) {
   let roomIDList = get("dm/rooms");
   /**
    * Checks to make sure that the object returned is a list and is not
@@ -38,7 +40,7 @@ export async function getRooms() {
         });
 
         // Retrieves and saves all messages associated with the specified room
-        await saveMessages(room[0]._id);
+        if (updateMessages) await saveMessages(room[0]._id);
 
         // Creates the last message of the room
         room[0].lastMessage = await getLastMessageFromRoom(room[0]._id);
@@ -87,29 +89,31 @@ async function saveMessages(room_ID) {
         // TEMPORARILY SETS AN IMAGE FOR EACH MESSAGE
         message.image = "https://placeimg.com/140/140/any";
       });
-      // Gets the messages that were already in storage if there were any.
-      // Otherwise, an empty list is returned
-      let messages = (await AsyncStorage.getItem("messages"))
-        ? JSON.parse(await AsyncStorage.getItem("messages"))
-        : [];
-      // Keeps track if the message object has been updated in the list of messages
-      let updatedMessages = false;
-      // Parses through the list of messages to find the correct message list to replace
-      messages.forEach((room) => {
-        if (room._id === room_ID) {
-          room.messages = data;
-          updatedMessages = true;
-        }
-      });
-      // If the messages list with the specified room id is not in the list, then a
-      // new message list object is added to the list
-      if (!updatedMessages) {
-        messages.push({ _id: room_ID, messages: data });
-      }
-      // Saves this new message array to storage
-      AsyncStorage.setItem("messages", JSON.stringify(messages));
+
+      // Saves the messages to storage
+      AsyncStorage.setItem(`room:${room_ID}`, JSON.stringify(data));
     }
   });
+}
+
+/**
+ * Sends a message to be stored in the database
+ * @param {Object} message The GiftedChat message object
+ * @param {number} room_ID The ID of the room the message belongs to
+ */
+export async function sendMessage(message, room_ID) {
+  let newMessageObject = {};
+  newMessageObject.id = message._id;
+  newMessageObject.room_id = room_ID;
+  newMessageObject.text = message.text;
+  newMessageObject.createdAt = moment(message.createdAt).format(
+    "YYYY-MM-DDTHH:mm:ss.SSS"
+  );
+  newMessageObject.audio = null;
+  newMessageObject.video = null;
+  newMessageObject.system = false;
+  newMessageObject.received = false;
+  return put("dm/text", newMessageObject);
 }
 
 /**
@@ -117,10 +121,7 @@ async function saveMessages(room_ID) {
  * @param {number} room_ID The ID of a room
  */
 export async function getMessages(room_ID) {
-  let messages = JSON.parse(await AsyncStorage.getItem("messages"));
-  return messages.filter((chat) => {
-    return chat._id === room_ID;
-  })[0];
+  return JSON.parse(await AsyncStorage.getItem(`room:${room_ID}`));
 }
 
 /**
@@ -128,17 +129,16 @@ export async function getMessages(room_ID) {
  * @param {number} room_ID The ID of a room
  */
 export async function getLastMessageFromRoom(room_ID) {
-  let textData = await getMessages(room_ID);
-  if (textData) {
+  let messages = await getMessages(room_ID);
+  if (messages) {
     // Parses through the text data to get the last message
     let lastMessage = ""; // Last text defaults to an empty string
-    let texts = textData.messages;
 
-    if (texts.length > 0) {
-      texts = texts.sort((a, b) => {
+    if (messages.length > 0) {
+      messages = messages.sort((a, b) => {
         return moment(a.createdAt).isBefore(moment(b.createdAt));
       });
-      if (texts[0].text.length > 0) lastMessage = texts[0].text;
+      if (messages[0].text.length > 0) lastMessage = messages[0].text;
     }
     return lastMessage;
   }
@@ -230,7 +230,7 @@ export async function getImages(room_ID) {
   let images = [];
   if (messageData)
     // Filters out all message objects that doesn't contain an image
-    images = messageData.messages.filter(
+    images = messageData.filter(
       (message) => message.createdAt && message.image
     );
   return images;

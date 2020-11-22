@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
-  Animated,
   Dimensions,
   LayoutAnimation,
   Platform,
@@ -50,22 +49,30 @@ export const CustomModal = (props) => {
 
   // Gets the height of the modal by ratio of the given height
   const getViewHeight = () => {
-    let height = 0;
-    // If the modal will appear over all content, a ratio is determined
-    // with the device's height
-    if (props.coverScreen)
-      height = Math.round(deviceHeight * (props.height / 100));
-    // If the modal will be contained in its parent view, a percentage
-    // is used instead of a number
-    if (containInView) height = `${props.height}%`;
-    return height;
+    // If the height given is 0, then the modal's height is based off the height
+    // of the content provided.
+    if (props.height === 0) {
+      return "auto";
+    }
+    // If the height given is not 0, then a percentage of the height is calculated
+    else {
+      let height = 0;
+      // If the modal will appear over all content, a ratio is determined
+      // with the device's height
+      if (props.coverScreen)
+        height = Math.round(deviceHeight * (props.height / 100));
+      // If the modal will be contained in its parent view, a percentage
+      // is used instead of a number
+      if (containInView) height = `${props.height}%`;
+      return height;
+    }
   };
 
   // If visible, show the modal. Otherwise, return nothing
   if (visible) {
     const styles = StyleSheet.create({
       container: {
-        backgroundColor: "transparent",
+        backgroundColor: "white",
         // If the screen will not be covered, then it will appear in the same view
         // currently displayed and not on top of it
         position: props.coverScreen ? "absolute" : "relative",
@@ -77,15 +84,15 @@ export const CustomModal = (props) => {
             : "auto",
         width: "100%",
         bottom: 0,
+        overflow: "hidden",
+        ...props.styles,
       },
       view: {
         flex: 1,
+        overflow: "hidden",
       },
       content: {
         flex: 1,
-        backgroundColor: props.backgroundColor
-          ? props.backgroundColor
-          : "white",
         borderTopRightRadius: props.coverScreen ? 15 : 0,
         borderTopLeftRadius: props.coverScreen ? 15 : 0,
         overflow: "hidden",
@@ -93,11 +100,11 @@ export const CustomModal = (props) => {
     });
 
     return (
-      <Animated.View style={styles.container}>
+      <View style={styles.container}>
         <View style={[styles.view]}>
-          <Animated.View style={styles.content}>{props.content}</Animated.View>
+          <View style={styles.content}>{props.content}</View>
         </View>
-      </Animated.View>
+      </View>
     );
   } else {
     return <></>;
@@ -109,6 +116,7 @@ CustomModal.propTypes = {
   content: PropTypes.object.isRequired,
   coverScreen: PropTypes.bool,
   containInView: PropTypes.bool,
-  height: PropTypes.number.isRequired,
+  height: PropTypes.number,
   visible: PropTypes.bool.isRequired,
+  styles: PropTypes.object,
 };

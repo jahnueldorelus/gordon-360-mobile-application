@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { Profile } from "./Components/Profile";
+import { ProfileInfo } from "./Components/ProfileInfo";
 import { AccountInfo } from "./Components/AccountInfo";
 import { Involvements } from "./Components/Involvements";
 import {
@@ -10,11 +10,11 @@ import {
   getUserDining,
   getUserInvolvements,
   getUserChapelInfo,
-} from "../../Services/Offline360/Offline360Service";
-import { OfflineSchedule } from "./Components/OfflineSchedule";
+} from "../../Services/Profile/ProfileService";
+import { Schedule } from "./Components/CourseSchedule";
 
-export const Offline360 = () => {
-  const [userProfile, setUserProfile] = useState(null);
+export const Profile = () => {
+  const [userProfileInfo, setUserProfileInfo] = useState(null);
   const [userImage, setUserImage] = useState(null);
   const [userDining, setUserDining] = useState(null);
   const [userChapel, setUserChapel] = useState(null);
@@ -32,11 +32,11 @@ export const Offline360 = () => {
   useEffect(() => {
     getInvolvements();
     getChapel();
-  }, [userProfile]);
+  }, [userProfileInfo]);
 
   // Gets the user's profile
   async function getProfile() {
-    setUserProfile(await getUserProfile());
+    setUserProfileInfo(await getUserProfile());
   }
 
   // Gets the user's image
@@ -72,27 +72,33 @@ export const Offline360 = () => {
   // Gets the user's involvements info
   async function getInvolvements() {
     // Gets the user's involvements only if the user's ID is available
-    if (userProfile && userProfile.ID)
-      setUserInvolvements(await getUserInvolvements(userProfile.ID));
+    if (userProfileInfo && userProfileInfo.ID)
+      setUserInvolvements(await getUserInvolvements(userProfileInfo.ID));
   }
   // Gets the user's chapel info
   async function getChapel() {
     setUserChapel(await getUserChapelInfo());
   }
-  if (userProfile && userImage && userDining && userInvolvements && userChapel)
+  if (
+    userProfileInfo &&
+    userImage &&
+    userDining &&
+    userInvolvements &&
+    userChapel
+  )
     return (
       <View style={styles.mainContaner}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.infoContainer}>
-            <Profile
-              userProfile={userProfile}
+            <ProfileInfo
+              userProfile={userProfileInfo}
               userImage={userImage}
               styles={styles}
             />
             {/********************** User ID **********************/}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <AccountInfo
-                userProfile={userProfile}
+                userProfile={userProfileInfo}
                 userChapel={userChapel}
                 userDining={userDining}
                 styles={styles}
@@ -101,7 +107,7 @@ export const Offline360 = () => {
           </View>
           {/********************** Scheduling Info **********************/}
           <View style={styles.schedule}>
-            <OfflineSchedule />
+            <Schedule />
           </View>
           <View style={styles.involvements}>
             <Involvements userInvolvements={userInvolvements} styles={styles} />

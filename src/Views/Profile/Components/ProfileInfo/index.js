@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image } from "react-native";
 
-export const Profile = (props) => {
+export const ProfileInfo = (props) => {
   /**
    * Returns the class of a student
    */
@@ -61,9 +61,11 @@ export const Profile = (props) => {
               props.styles.profileViewTextName,
             ]}
           >
-            {props.userProfile.FirstName} {props.userProfile.LastName}
-            {props.userProfile.NickName !== props.userProfile.FirstName
-              ? ` (${props.userProfile.NickName})`
+            {props.userProfile.FirstName.trim()}{" "}
+            {props.userProfile.LastName.trim()}
+            {props.userProfile.NickName.trim() !==
+            props.userProfile.FirstName.trim()
+              ? ` (${props.userProfile.NickName.trim()})`
               : ""}
           </Text>
           <Text
@@ -72,7 +74,7 @@ export const Profile = (props) => {
               props.styles.profileViewTextEmail,
             ]}
           >
-            {props.userProfile.Email}
+            {props.userProfile.Email.trim()}
           </Text>
         </View>
       </View>

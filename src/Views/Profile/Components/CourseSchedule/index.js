@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { getUserSchedule } from "../../../../Services/Offline360/Offline360Service";
+import { getUserSchedule } from "../../../../Services/Profile/ProfileService";
 import moment from "moment";
 
-export const OfflineSchedule = (props) => {
+export const Schedule = (props) => {
   const [days, setDays] = useState();
   const [selectedDate, setSelectedDate] = useState();
   const [events, setEvents] = useState();
@@ -302,7 +302,7 @@ export const OfflineSchedule = (props) => {
               <Text style={styles.eventInfoCodeText}>{event.courseCode}</Text>
               <Text style={styles.eventInfoNameText}>{event.courseName}</Text>
               <Text style={styles.eventInfoLocationText}>
-                {event.courseBuilding} {event.courseRoom}
+                {event.courseBuilding.trim()} {event.courseRoom.trim()}
               </Text>
             </View>
           </View>

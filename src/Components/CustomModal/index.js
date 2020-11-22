@@ -12,7 +12,7 @@ import PropTypes from "prop-types";
 
 export const CustomModal = (props) => {
   const [viewHeight, setViewHeight] = useState(0);
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(null);
   // Checks to see if the prop coverScreen is enabled. If not, the prop
   // containInView is automatically enabled. This prevents the modal from not displaying
   const [containInView, setContainInView] = useState(
@@ -20,12 +20,9 @@ export const CustomModal = (props) => {
   );
   const deviceHeight = Dimensions.get("window").height;
 
-  // Saves the data of the visibility prop for comparison if the prop changes
-  const oldVisibleProp = useRef(props.visible);
-
   useEffect(() => {
-    // Displays opening animation
-    if (props.visible !== oldVisibleProp.current) {
+    if (props.visible) {
+      // Displays opening animation
       /**
        * Creates the animation of the modal coming up from the bottom
        * The set timeout is IMPORTANT. Do not remove it. Still not sure why this
@@ -41,10 +38,8 @@ export const CustomModal = (props) => {
       }, 0);
 
       setVisible(true);
-    }
-
-    // Displays closing animation
-    else {
+    } else {
+      // Displays closing animation of the modal if it was opened
       LayoutAnimation.easeInEaseOut();
       setViewHeight("0%");
       setTimeout(() => {

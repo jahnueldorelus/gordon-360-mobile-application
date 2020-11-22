@@ -44,7 +44,7 @@ const Actions = (props) => {
         onPress={() => {
           ImagePicker.getCameraPermissionsAsync().then(async (permission) => {
             // If the permission is granted, the user's photo library is opened
-            if (permission.granted === "hi") {
+            if (permission.granted) {
               let image = await ImagePicker.launchImageLibraryAsync({
                 allowsEditing: false,
                 quality: undefined,
@@ -56,7 +56,7 @@ const Actions = (props) => {
             // If permission is denied
             else {
               // If it's possible to ask for permission, the user is asked for permission
-              if (permission.canAskAgain === "hi") {
+              if (permission.canAskAgain) {
                 ImagePicker.requestCameraPermissionsAsync();
               }
               // If it's not possible to ask for permission, the user is directed to their settings

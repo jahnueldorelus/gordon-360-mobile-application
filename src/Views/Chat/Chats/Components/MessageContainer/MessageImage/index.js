@@ -12,12 +12,24 @@ import { CustomImageViewer } from "../../../../../../Components/CustomImageViewe
  * Just a function that calls the real component MessageImage
  * @param {JSON} props Props passed from parent
  */
-export const renderMessageImage = (props, setModalVisible, setModalContent) => {
+export const renderMessageImage = (
+  props,
+  setModalVisible,
+  setModalContent,
+  setModalContain,
+  setModalCover,
+  setModalHeight,
+  setModalStyles
+) => {
   return (
     <MessageImage
       {...props}
       setModalVisible={setModalVisible}
       setModalContent={setModalContent}
+      setModalContain={setModalContain}
+      setModalCover={setModalCover}
+      setModalHeight={setModalHeight}
+      setModalStyles={setModalStyles}
     />
   );
 };
@@ -59,7 +71,11 @@ const MessageImage = (props) => {
       <TouchableOpacity
         onPress={() => {
           props.setModalContent(imageViewer);
+          props.setModalContain(false);
+          props.setModalCover(true);
+          props.setModalHeight(100);
           props.setModalVisible(true);
+          props.setModalStyles({});
         }}
       >
         <Image

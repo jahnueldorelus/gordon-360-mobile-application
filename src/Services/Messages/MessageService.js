@@ -87,7 +87,7 @@ async function saveMessages(room_ID) {
         message.user.avatar = "https://placeimg.com/140/140/any";
         delete message.user.user_avatar;
         // TEMPORARILY SETS AN IMAGE FOR EACH MESSAGE
-        // message.image = "https://placeimg.com/140/140/any";
+        message.image = "https://placeimg.com/140/140/any";
       });
 
       // Saves the messages to storage
@@ -109,7 +109,6 @@ export async function sendMessage(message, room_ID) {
   newMessageObject.createdAt = moment(message.createdAt).format(
     "YYYY-MM-DDTHH:mm:ss.SSS"
   );
-  newMessageObject.image = null;
   newMessageObject.audio = null;
   newMessageObject.video = null;
   newMessageObject.system = false;

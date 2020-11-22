@@ -26,9 +26,14 @@ export const Chats = (props) => {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   // Info for setting a custom modal for the image viewer
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState(<></>);
+  const [modalHeight, setModalHeight] = useState(0);
+  const [modalContain, setModalContain] = useState(null);
+  const [modalCover, setModalCover] = useState(null);
+  const [modalStyles, setModalStyles] = useState({});
 
   /**
    * Gets the messages based upon the room ID and sorts them in order by date
@@ -62,6 +67,8 @@ export const Chats = (props) => {
   }
 
   const onSend = async (text) => {
+    // Adds the selected image to the text
+    text[0].image = selectedImage;
     // Shows the text message as pending until the database recevies the message
     text[0].pending = true;
     // Creates a copy of the  message list
@@ -139,7 +146,18 @@ export const Chats = (props) => {
               onPress: (tag) => console.log(`Pressed on hashtag: ${tag}`),
             },
           ]}
-          renderActions={renderActions}
+          renderActions={(props) => {
+            return renderActions(
+              props,
+              setSelectedImage,
+              setModalVisible,
+              setModalContent,
+              setModalContain,
+              setModalCover,
+              setModalHeight,
+              setModalStyles
+            );
+          }}
           // renderAvatar={renderAvatar}
           renderBubble={renderBubble}
           renderComposer={renderComposer}
@@ -147,7 +165,15 @@ export const Chats = (props) => {
           renderInputToolbar={renderInputToolbar}
           // renderMessage={renderMessage}
           renderMessageImage={(props) => {
-            return renderMessageImage(props, setModalVisible, setModalContent);
+            return renderMessageImage(
+              props,
+              setModalVisible,
+              setModalContent,
+              setModalContain,
+              setModalCover,
+              setModalHeight,
+              setModalStyles
+            );
           }}
           // renderMessageText={renderMessageText}
           renderSend={renderSend}
@@ -160,9 +186,11 @@ export const Chats = (props) => {
 
         <CustomModal
           content={modalContent}
-          coverScreen
-          height={100}
+          coverScreen={modalCover}
+          containInView={modalContain}
+          height={modalHeight}
           visible={modalVisible}
+          styles={modalStyles}
         />
       </View>
     );

@@ -51,8 +51,8 @@
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage reactotron-react-native && expo install expo-linear-gradient @react-native-community/netinfo`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage reactotron-react-native && expo install expo-linear-gradient @react-native-community/netinfo`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage reactotron-react-native && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage reactotron-react-native && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -89,6 +89,10 @@
      - Install Reactotron using the following command. This dependency is to be used with the Reactotron Application which helps monitor and debug react-native applications (only works with simulators). You may download it from here: https://github.com/infinitered/reactotron/releases. Click on the latest version and choose the file that's suited for your computer. For example, Window users should choose the file that ends with ".exe" or ".dmg" for Mac users.
        - `npm i reactotron-react-native`
        - `yarn add reactotron-react-native`
+     - Install Expo Image Picker using the following command.
+       - `expo install expo-image-picker`
+     - Install Safe Area Context using any of the following commands.
+       - `expo install react-native-safe-area-context`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

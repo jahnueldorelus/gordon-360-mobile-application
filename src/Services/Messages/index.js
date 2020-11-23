@@ -201,7 +201,7 @@ export function getChatName(room, mainUser) {
      * Since the room is not a group (2 users only), the name of the other user
      * (not the main user), is returned
      */
-    return room.users.filter((user) => user.user_id !== mainUser._id)[0].name;
+    return room.users.filter((user) => user._id !== mainUser._id)[0].name;
   }
 }
 

@@ -12,7 +12,7 @@ import {
   getMainUser,
   getMessages,
   getImages,
-} from "../../../Services/Messages/MessageService";
+} from "../../../Services/Messages";
 import { Icon, Avatar, Image } from "react-native-elements";
 
 export const ChatInfo = (props) => {

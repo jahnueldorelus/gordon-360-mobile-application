@@ -1,10 +1,8 @@
 import React from "react";
 import { View, StatusBar, SafeAreaView, Platform } from "react-native";
-import { getStatusBarHeight, isIphoneX } from "react-native-iphone-x-helper";
 import { StyleSheet } from "react-native";
 import { AppbarChat } from "./Components/Chat/index";
 import { AppbarRoom } from "./Components/Room/index";
-import { AppbarLogin } from "./Components/Login/index";
 import { Appbar360 } from "./Components/360/index";
 import { AppbarProfile } from "./Components/Profile";
 
@@ -23,7 +21,6 @@ export const AppBar = (props) => {
     <View style={styles.appBar}>
       <StatusBar barStyle="light-content" hidden={false} translucent={true} />
       <SafeAreaView>
-        {props.route === "Login" && <AppbarLogin {...props} />}
         {props.route.name === "Chat" && <AppbarChat {...props} />}
         {props.route.name === "Rooms" && <AppbarRoom {...props} />}
         {props.route === "Gordon_360" && <Appbar360 {...props} />}

@@ -10,7 +10,7 @@ import {
   getUserDining,
   getUserInvolvements,
   getUserChapelInfo,
-} from "../../Services/Profile/ProfileService";
+} from "../../Services/Profile";
 import { Schedule } from "./Components/CourseSchedule";
 
 export const Profile = () => {

@@ -89,7 +89,6 @@ export default function App() {
   function LoginPage({ navigation }) {
     return (
       <View style={styles.screenView}>
-        <AppBar navigation={navigation} route="Login" />
         <Login navigation={navigation} />
       </View>
     );
@@ -99,7 +98,7 @@ export default function App() {
     <SafeAreaProvider>
       <View style={styles.screenView}>
         <NavigationContainer>
-          <Drawer.Navigator initialRouteName="Messages">
+          <Drawer.Navigator initialRouteName="Login">
             <Drawer.Screen name="Profile" component={ProfilePage} />
             <Drawer.Screen name="Gordon 360" component={Gordon360Page} />
             <Drawer.Screen name="Messages" component={Messages} />

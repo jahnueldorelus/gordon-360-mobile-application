@@ -3,10 +3,7 @@ import { View, Text, Image, Dimensions } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import { Avatar, Accessory } from "react-native-elements";
-import {
-  getChatName,
-  getMainUser,
-} from "../../../../Services/Messages/MessageService";
+import { getChatName, getMainUser } from "../../../../Services/Messages";
 import { Icon } from "react-native-elements";
 import { ChatInfo } from "../../../../Views/Chat/ChatInfo/index";
 

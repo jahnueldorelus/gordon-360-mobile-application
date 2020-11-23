@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { getUserSchedule } from "../../../../Services/Profile/ProfileService";
+import { getUserSchedule } from "../../../../Services/Profile";
 import moment from "moment";
 
 export const Schedule = (props) => {

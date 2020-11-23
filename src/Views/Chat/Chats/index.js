@@ -5,7 +5,7 @@ import {
   getMessages,
   getMainUser,
   sendMessage,
-} from "../../../Services/Messages/MessageService";
+} from "../../../Services/Messages";
 import { StyleSheet, View } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";

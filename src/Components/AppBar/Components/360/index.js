@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { View, Image, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
@@ -22,7 +22,7 @@ export const Appbar360 = (props) => {
       </View>
       <View style={styles.webControlsContainer}>
         <TouchableOpacity
-          disabled={!props.canGoBack}
+          disabled={!props.canGoBack && !props.isConnected}
           onPress={() => {
             // Goes back a page in the webview
             if (props.web) props.web.current.goBack();
@@ -30,7 +30,7 @@ export const Appbar360 = (props) => {
         >
           <Image
             style={
-              props.canGoBack
+              props.canGoBack && props.isConnected
                 ? styles.navigationButtonImage
                 : styles.navigationButtonImageDisabled
             }
@@ -38,7 +38,7 @@ export const Appbar360 = (props) => {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          disabled={!props.canGoForward}
+          disabled={!props.canGoForward && props.isConnected}
           onPress={() => {
             // Goes forward a page in the webview
             if (props.web) props.web.current.goForward();
@@ -46,7 +46,7 @@ export const Appbar360 = (props) => {
         >
           <Image
             style={[
-              props.canGoForward
+              props.canGoForward && props.isConnected
                 ? styles.navigationButtonImage
                 : styles.navigationButtonImageDisabled,
               styles.webControlButtonSpacing,
@@ -55,13 +55,20 @@ export const Appbar360 = (props) => {
           />
         </TouchableOpacity>
         <TouchableOpacity
+          disabled={!props.isConnected}
           onPress={() => {
             // Refreshes the page in the webview
-            if (props.web) props.web.current.reload();
+            if (props.web) {
+              props.web.current.reload();
+            }
           }}
         >
           <Image
-            style={styles.navigationButtonImage}
+            style={
+              props.isConnected
+                ? styles.navigationButtonImage
+                : styles.navigationButtonImageDisabled
+            }
             source={require("./Images/refresh.png")}
           />
         </TouchableOpacity>

@@ -93,8 +93,8 @@ export const CustomModal = (props) => {
       },
       content: {
         flex: 1,
-        borderTopRightRadius: props.coverScreen ? 15 : 0,
-        borderTopLeftRadius: props.coverScreen ? 15 : 0,
+        borderTopRightRadius: props.roundedCorners ? 15 : 0,
+        borderTopLeftRadius: props.roundedCorners ? 15 : 0,
         overflow: "hidden",
       },
     });
@@ -118,5 +118,6 @@ CustomModal.propTypes = {
   containInView: PropTypes.bool,
   height: PropTypes.number,
   visible: PropTypes.bool.isRequired,
+  roundedCorners: PropTypes.bool,
   styles: PropTypes.object,
 };

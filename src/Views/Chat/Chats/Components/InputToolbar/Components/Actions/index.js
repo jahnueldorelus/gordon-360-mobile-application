@@ -12,7 +12,8 @@ import * as ImagePicker from "expo-image-picker";
 
 export function renderActions(
   props,
-  setSelectedImage,
+  selectedImages,
+  setSelectedImages,
   setModalVisible,
   setModalContent,
   setModalContain,
@@ -22,7 +23,8 @@ export function renderActions(
 ) {
   return (
     <Actions
-      setSelectedImage={setSelectedImage}
+      selectedImages={selectedImages}
+      setSelectedImages={setSelectedImages}
       setModalVisible={setModalVisible}
       setModalContent={setModalContent}
       setModalContain={setModalContain}
@@ -50,8 +52,13 @@ const Actions = (props) => {
                 quality: undefined,
                 base64: true,
               });
-              if (!image.cancelled)
-                props.setSelectedImage(`data:image/gif;base64,${image.base64}`);
+              if (!image.cancelled) {
+                let newSelectedImages = JSON.parse(props.selectedImages);
+                newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
+                // The images are set in a JSON object in order for useEffect() in
+                // hook components to recognize that there's a new value change
+                props.setSelectedImages(JSON.stringify(newSelectedImages));
+              }
             }
             // If permission is denied
             else {

@@ -26,7 +26,7 @@ export const Chats = (props) => {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
   // Info for setting a custom modal for the image viewer
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState(<></>);
@@ -68,7 +68,8 @@ export const Chats = (props) => {
 
   const onSend = async (text) => {
     // Adds the selected image to the text
-    text[0].image = selectedImage;
+    // text[0].image = selectedImages; // COME BACK AND EDIT THIS TO BE ABLE TO SEND IMAGES
+
     // Shows the text message as pending until the database recevies the message
     text[0].pending = true;
     // Creates a copy of the  message list
@@ -133,9 +134,14 @@ export const Chats = (props) => {
           messagesContainerStyle={styles.messagesContainer}
           /**
            * DO NOT DELETE THIS. THE MINIMUM INPUT TOOLBAR MUST BE SET TO 66.
+           * IF THERE ARE SELECTED IMAGES, THIS MUST BE SET TO 227. IT'S 227
+           * INSTEAD OF 66 BECAUSE THE MAX HEIGHT OF THE IMAGE IS 150 AND IT HAS
+           * A MARGIN BOTTOM OF 11. THEREFORE, 150 + 11 + 66 = 227.
            * SEE DOCUMENTATION FOR BUG "iOS_Text_Input"
            */
-          minInputToolbarHeight={66}
+          minInputToolbarHeight={
+            JSON.parse(selectedImages).length > 0 ? 227 : 66
+          }
           onInputTextChanged={setText}
           // onPressAvatar={console.log}
           onSend={onSend}
@@ -149,7 +155,8 @@ export const Chats = (props) => {
           renderActions={(props) => {
             return renderActions(
               props,
-              setSelectedImage,
+              selectedImages,
+              setSelectedImages,
               setModalVisible,
               setModalContent,
               setModalContain,
@@ -162,7 +169,9 @@ export const Chats = (props) => {
           renderBubble={renderBubble}
           renderComposer={renderComposer}
           // renderCustomView={renderCustomView}
-          renderInputToolbar={renderInputToolbar}
+          renderInputToolbar={(props) =>
+            renderInputToolbar(props, selectedImages, setSelectedImages)
+          }
           // renderMessage={renderMessage}
           renderMessageImage={(props) => {
             return renderMessageImage(

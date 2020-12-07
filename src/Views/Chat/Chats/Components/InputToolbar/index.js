@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { Actions, Composer, Send } from "react-native-gifted-chat";
+import { SelectedImages } from "./Components/SelectedImages";
 
 /**
  * THIS COMPONENT IS A CLASS INSTEAD OF A CUSTOM HOOK DUE TO AN BUG
@@ -11,7 +12,8 @@ import { Actions, Composer, Send } from "react-native-gifted-chat";
  * the bug and a memory leak issue.
  */
 class InputToolbar extends Component {
-  contructor(props) {
+  constructor(props) {
+    super(props);
     this.renderAccessory = this.renderAccessory.bind(this);
     this.renderActions = this.renderActions.bind(this);
     this.renderComposer = this.renderComposer.bind(this);
@@ -58,8 +60,6 @@ class InputToolbar extends Component {
         style={[
           styles.container,
           {
-            // position: this.state.position,
-            justifyContent: "center",
             /**
              * Do not delete the vertical padding or minimum height. This fills the gap
              * between the Input Toolbar and the keyboard that appears on the screen.
@@ -70,6 +70,14 @@ class InputToolbar extends Component {
           },
         ]}
       >
+        {/* Displays any user selected images */}
+        {JSON.parse(this.props.images).length > 0 && (
+          <SelectedImages
+            images={JSON.parse(this.props.images)}
+            setSelectedImages={this.props.setSelectedImages}
+          />
+        )}
+
         <View style={[styles.primary, this.props.primaryStyle]}>
           {this.renderActions()}
           {/**
@@ -119,7 +127,22 @@ class InputToolbar extends Component {
   }
 }
 
-export const renderInputToolbar = (props) => <InputToolbar {...props} />;
+export const renderInputToolbar = (
+  props,
+  selectedImages,
+  setSelectedImages
+) => {
+  // console.log("Input has Images?: ", selectedImages.length > 0 ? true : false);
+  // The name of the prop here is what the Composer component uses
+  // to determine if GiftedChat's UI should re-render
+  return (
+    <InputToolbar
+      {...props}
+      images={selectedImages}
+      setSelectedImages={setSelectedImages}
+    />
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

@@ -88,7 +88,7 @@ export default function App() {
       <SafeAreaProvider>
         <View style={styles.screenView}>
           <NavigationContainer>
-            <Drawer.Navigator initialRouteName="Gordon 360" drawerType="slide">
+            <Drawer.Navigator initialRouteName="Messages" drawerType="slide">
               <Drawer.Screen name="Profile" component={ProfilePage} />
               <Drawer.Screen
                 name="Gordon 360"

@@ -14,24 +14,36 @@ export const renderComposer = (props) => {
 
 const Composer = (props) => {
   const [inputSize, setInputSize] = useState(null);
-  const imageSet = useRef(false);
+  const giftedChatInputHeightSet = useRef(false);
 
   /**
    * Properly displays any selected images and videos
    */
   useEffect(() => {
+    // The list of user selected image(s)
+    let images = JSON.parse(props.images);
+
     /**
-     * If there are selected images/videos and the proper measurements by GiftedChat has
-     * not already been set,then GiftedChat's InputSizeChanged method is called to make it re-render
-     * the UI to display the selected images/videos correctly
+     * If there are selected images and the proper measurements by GiftedChat has not
+     * already been set, then GiftedChat's InputSizeChanged method is called to make
+     * it re-render the UI to display the selected images/videos correctly
      */
-    if (props.images && !imageSet.current && inputSize) {
-      imageSet.current = true;
+    if (
+      images &&
+      images.length > 0 &&
+      !giftedChatInputHeightSet.current &&
+      inputSize
+    ) {
+      giftedChatInputHeightSet.current = true;
       props.onInputSizeChanged(inputSize);
-    }
-    // If there are no selected imagess or videos, everything is reset
-    else if (!props.images) {
-      imageSet.current = false;
+    } else if (images.length === 0 && giftedChatInputHeightSet.current) {
+      /**
+       * If there are no selected images or videos, everything is reset and GiftedChat is
+       * re-rendered to remove the space that was allocated to display the user's selected
+       * images
+       */
+      giftedChatInputHeightSet.current = false;
+      props.onInputSizeChanged(inputSize);
     }
   }, [props.images]);
 

@@ -132,7 +132,6 @@ export const renderInputToolbar = (
   selectedImages,
   setSelectedImages
 ) => {
-  // console.log("Input has Images?: ", selectedImages.length > 0 ? true : false);
   // The name of the prop here is what the Composer component uses
   // to determine if GiftedChat's UI should re-render
   return (

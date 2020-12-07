@@ -51,6 +51,8 @@ export const SelectedImages = (props) => {
     // Removes and saves the new list of user selected images
     let newSelectedImages = [...props.images];
     newSelectedImages.splice(imageIndex, 1);
+    // The images are set in a JSON object in order for useEffect() in
+    // hook components to recognize that there's a new value change
     props.setSelectedImages(JSON.stringify(newSelectedImages));
   };
 
@@ -93,9 +95,8 @@ export const SelectedImages = (props) => {
           );
         } else {
           return (
-            <View style={styles.loaderContainer}>
+            <View style={styles.loaderContainer} key={index}>
               <ActivityIndicator
-                key={index}
                 size="small"
                 color="rgba(1, 73, 131, 0.7)"
                 style={styles.loader}
@@ -121,6 +122,7 @@ export const SelectedImages = (props) => {
         // image has been added
         if (newWidth > scrollViewContentSizeWidth) {
           scrollRef.current.scrollToEnd({ animated: true });
+          setScrollViewContentSizeWidth(newWidth);
         }
       }}
       onLayout={({ nativeEvent }) => {

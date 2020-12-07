@@ -15,6 +15,7 @@ export const SelectedImages = (props) => {
     null
   );
   const scrollRef = useRef();
+  const oldScrollViewWidthRef = useRef(0);
 
   // Sets the dimensions of the image within the maximum height of 150
   useEffect(() => {
@@ -118,15 +119,26 @@ export const SelectedImages = (props) => {
         marginBottom: 11,
       }}
       onContentSizeChange={(newWidth) => {
+        console.log({
+          oldWidth: oldScrollViewWidthRef.current,
+          newWidth,
+          deviceWidth: scrollViewContentSizeWidth,
+        });
         // Scroll view scrolls to the end of the list only if a new
         // image has been added
-        if (newWidth > scrollViewContentSizeWidth) {
+        if (
+          newWidth > scrollViewContentSizeWidth &&
+          oldScrollViewWidthRef.current < newWidth
+        ) {
           scrollRef.current.scrollToEnd({ animated: true });
-          setScrollViewContentSizeWidth(newWidth);
         }
+        oldScrollViewWidthRef.current = newWidth;
       }}
       onLayout={({ nativeEvent }) => {
         setScrollViewContentSizeWidth(nativeEvent.layout.width);
+        // Sets the reference only if the referece hasn't already been set
+        if (oldScrollViewWidthRef.current === 0)
+          oldScrollViewWidthRef.current = nativeEvent.layout.width;
       }}
     >
       {Images()}

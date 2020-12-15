@@ -39,118 +39,120 @@ export function renderActions(
  * Renders the Action buttons in the InputToolbar
  * @param {JSON} props Props passed from parent
  */
-const Actions = (props) => {
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => {
-          ImagePicker.getCameraPermissionsAsync().then(async (permission) => {
-            // If the permission is granted, the user's photo library is opened
-            if (permission.granted) {
-              let image = await ImagePicker.launchImageLibraryAsync({
-                allowsEditing: false,
-                quality: undefined,
-                base64: true,
-              });
-              if (!image.cancelled) {
-                let newSelectedImages = JSON.parse(props.selectedImages);
-                newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
-                // The images are set in a JSON object in order for useEffect() in
-                // hook components to recognize that there's a new value change
-                props.setSelectedImages(JSON.stringify(newSelectedImages));
-              }
+const ActionBar = (props) => (
+  <View style={styles.container}>
+    {console.log("Rendered Actions")}
+    <TouchableOpacity
+      onPress={() => {
+        ImagePicker.getCameraPermissionsAsync().then(async (permission) => {
+          // If the permission is granted, the user's photo library is opened
+          if (permission.granted) {
+            let image = await ImagePicker.launchImageLibraryAsync({
+              allowsEditing: false,
+              quality: undefined,
+              base64: true,
+            });
+            if (!image.cancelled) {
+              let newSelectedImages = JSON.parse(props.selectedImages);
+              newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
+              // The images are set in a JSON object in order for useEffect() in
+              // hook components to recognize that there's a new value change
+              props.setSelectedImages(JSON.stringify(newSelectedImages));
             }
-            // If permission is denied
+          }
+          // If permission is denied
+          else {
+            // If it's possible to ask for permission, the user is asked for permission
+            if (permission.canAskAgain) {
+              ImagePicker.requestCameraPermissionsAsync();
+            }
+            // If it's not possible to ask for permission, the user is directed to their settings
+            // to enable permissions for the app
             else {
-              // If it's possible to ask for permission, the user is asked for permission
-              if (permission.canAskAgain) {
-                ImagePicker.requestCameraPermissionsAsync();
-              }
-              // If it's not possible to ask for permission, the user is directed to their settings
-              // to enable permissions for the app
-              else {
-                props.setModalStyles({
-                  borderColor: "#014983",
-                  borderWidth: 2,
-                  borderTopLeftRadius: 16,
-                  borderTopRightRadius: 16,
-                  borderBottomWidth: 0,
-                });
-                props.setModalContent(
-                  <View style={styles.modalContainer}>
-                    <SafeAreaView edges={["bottom"]}>
-                      <Text style={styles.modalTextTitle}>
-                        Please enable camera permissions for the app inside of
-                        Settings.
-                      </Text>
-                      <View style={styles.modalContainerActions}>
-                        <TouchableOpacity
-                          style={[styles.modalButtonCancel, styles.modalButton]}
-                          onPress={() => {
-                            props.setModalStyles({});
-                            props.setModalVisible(false);
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.modalText,
-                              styles.modalButtonCancelText,
-                            ]}
-                          >
-                            Cancel
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
+              props.setModalStyles({
+                borderColor: "#014983",
+                borderWidth: 2,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                borderBottomWidth: 0,
+              });
+              props.setModalContent(
+                <View style={styles.modalContainer}>
+                  <SafeAreaView edges={["bottom"]}>
+                    <Text style={styles.modalTextTitle}>
+                      Please enable camera permissions for the app inside of
+                      Settings.
+                    </Text>
+                    <View style={styles.modalContainerActions}>
+                      <TouchableOpacity
+                        style={[styles.modalButtonCancel, styles.modalButton]}
+                        onPress={() => {
+                          props.setModalStyles({});
+                          props.setModalVisible(false);
+                        }}
+                      >
+                        <Text
                           style={[
-                            styles.modalButtonSettings,
-                            styles.modalButton,
+                            styles.modalText,
+                            styles.modalButtonCancelText,
                           ]}
-                          onPress={() => {
-                            Linking.openSettings();
-                          }}
                         >
-                          <Text
-                            style={[
-                              styles.modalText,
-                              styles.modalButtonSettingsText,
-                            ]}
-                          >
-                            Open Settings
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </SafeAreaView>
-                  </View>
-                );
-                props.setModalCover(true);
-                props.setModalContain(false);
-                props.setModalHeight(0);
-                props.setModalVisible(true);
-              }
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.modalButtonSettings, styles.modalButton]}
+                        onPress={() => {
+                          Linking.openSettings();
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.modalText,
+                            styles.modalButtonSettingsText,
+                          ]}
+                        >
+                          Open Settings
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </SafeAreaView>
+                </View>
+              );
+              props.setModalCover(true);
+              props.setModalContain(false);
+              props.setModalHeight(0);
+              props.setModalVisible(true);
             }
-          });
-        }}
-      >
-        <Image
-          style={styles.imageButton}
-          source={require("../Images/image.png")}
-        />
-      </TouchableOpacity>
-      <TouchableOpacity>
-        <Image
-          style={styles.videoButton}
-          source={require("../Images/video.png")}
-        />
-      </TouchableOpacity>
-    </View>
-  );
-};
+          }
+        });
+      }}
+    >
+      <Image
+        style={styles.imageButton}
+        source={require("../Images/image.png")}
+      />
+    </TouchableOpacity>
+    <TouchableOpacity>
+      <Image
+        style={styles.videoButton}
+        source={require("../Images/video.png")}
+      />
+    </TouchableOpacity>
+  </View>
+);
+
+// Prevents the ActionBar from re-rendering since it never changes
+const Actions = React.memo(ActionBar, (prevProps, nextProps) => {
+  return prevProps.selectedImages.length === nextProps.selectedImages.length;
+});
 
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 10,
     alignSelf: "center",
     flexDirection: "row",
+    alignSelf: "flex-end",
   },
   imageButton: {
     width: 39,

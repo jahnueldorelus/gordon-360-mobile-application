@@ -3,13 +3,14 @@ import {
   ImageBackground,
   Image,
   StyleSheet,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
   View,
 } from "react-native";
 import { Icon } from "react-native-elements";
+import { getImages } from "../../../../../../../Services/Messages";
 
-export const SelectedImages = (props) => {
+const SelectedImages = (props) => {
   const [imageDimensions, setImageDimensions] = useState([]);
   const [scrollViewContentSizeWidth, setScrollViewContentSizeWidth] = useState(
     null
@@ -58,91 +59,95 @@ export const SelectedImages = (props) => {
   };
 
   // The list of JSX for each user selected image
-  const Images = () => {
-    return (
-      // Parses the JSON object to get the array before attempting to use it
-      props.images.map((img, index) => {
-        // Determines the dimensions of the image
-        const imageStyle = {
-          width: imageDimensions[`${index}`]
-            ? imageDimensions[`${index}`].width
-            : null,
-          height: imageDimensions[`${index}`]
-            ? imageDimensions[`${index}`].height
-            : null,
-        };
+  const getImage = (image) => {
+    // Determines the dimensions of the image
+    const imageStyle = {
+      width: imageDimensions[`${image.index}`]
+        ? imageDimensions[`${image.index}`].width
+        : null,
+      height: imageDimensions[`${image.index}`]
+        ? imageDimensions[`${image.index}`].height
+        : null,
+    };
 
-        /**
-         * Checks to see if the image's dimension's are available. If not,
-         * a loading image is shown instead
-         */
-        if (imageStyle.width && imageStyle.height) {
-          return (
-            <ImageBackground
-              key={index}
-              style={[styles.imageContainer, imageStyle]}
-              imageStyle={imageStyle}
-              source={{ uri: img }}
-            >
-              <Icon
-                name="cancel"
-                type="material"
-                color="white"
-                containerStyle={styles.imageIconContainer}
-                iconStyle={styles.imageIcon}
-                onPress={() => removeImage(index)}
-              />
-            </ImageBackground>
-          );
-        } else {
-          return (
-            <View style={styles.loaderContainer} key={index}>
-              <ActivityIndicator
-                size="small"
-                color="rgba(1, 73, 131, 0.7)"
-                style={styles.loader}
-              />
-            </View>
-          );
-        }
-      })
-    );
+    /**
+     * Checks to see if the image's dimension's are available. If not,
+     * a loading image is shown instead
+     */
+    if (imageStyle.width && imageStyle.height) {
+      return (
+        <ImageBackground
+          key={image.index}
+          style={[styles.imageContainer, imageStyle]}
+          imageStyle={imageStyle}
+          source={{ uri: image.item }}
+        >
+          <Icon
+            name="cancel"
+            type="material"
+            color="white"
+            containerStyle={styles.imageIconContainer}
+            iconStyle={styles.imageIcon}
+            onPress={() => removeImage(image.index)}
+          />
+        </ImageBackground>
+      );
+    } else {
+      return (
+        <View style={styles.loaderContainer} key={image.index}>
+          <ActivityIndicator
+            size="small"
+            color="rgba(1, 73, 131, 0.7)"
+            style={styles.loader}
+          />
+        </View>
+      );
+    }
   };
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
+    // <ScrollView
+    //   ref={scrollRef}
+    //   horizontal
+    //   showsHorizontalScrollIndicator={false}
+    //   style={{
+    //     marginBottom: 11,
+    //   }}
+    //   onContentSizeChange={(newWidth) => {
+    //     // Scroll view scrolls to the end of the list only if a new
+    //     // image has been added
+    //     if (
+    //       newWidth > scrollViewContentSizeWidth &&
+    //       oldScrollViewWidthRef.current < newWidth
+    //     ) {
+    //       scrollRef.current.scrollToEnd({ animated: true });
+    //     }
+    //     oldScrollViewWidthRef.current = newWidth;
+    //   }}
+    //   onLayout={({ nativeEvent }) => {
+    //     setScrollViewContentSizeWidth(nativeEvent.layout.width);
+    //     // Sets the reference only if the referece hasn't already been set
+    //     if (oldScrollViewWidthRef.current === 0)
+    //       oldScrollViewWidthRef.current = nativeEvent.layout.width;
+    //   }}
+    // >
+    //   {Images()}
+    <FlatList
       style={{
-        flex: 1,
         marginBottom: 11,
       }}
-      onContentSizeChange={(newWidth) => {
-        console.log({
-          oldWidth: oldScrollViewWidthRef.current,
-          newWidth,
-          deviceWidth: scrollViewContentSizeWidth,
-        });
-        // Scroll view scrolls to the end of the list only if a new
-        // image has been added
-        if (
-          newWidth > scrollViewContentSizeWidth &&
-          oldScrollViewWidthRef.current < newWidth
-        ) {
-          scrollRef.current.scrollToEnd({ animated: true });
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      data={props.images}
+      keyExtractor={(item, index) => index.toString()}
+      renderItem={(image) => {
+        {
+          console.log("Rendered Images");
         }
-        oldScrollViewWidthRef.current = newWidth;
+        return getImage(image);
       }}
-      onLayout={({ nativeEvent }) => {
-        setScrollViewContentSizeWidth(nativeEvent.layout.width);
-        // Sets the reference only if the referece hasn't already been set
-        if (oldScrollViewWidthRef.current === 0)
-          oldScrollViewWidthRef.current = nativeEvent.layout.width;
-      }}
-    >
-      {Images()}
-    </ScrollView>
+      ListEmptyComponent={() => <View />}
+    />
   );
 };
 
@@ -173,4 +178,10 @@ const styles = StyleSheet.create({
   loader: {
     marginHorizontal: 30,
   },
+});
+
+export default React.memo(SelectedImages, (prevProps, nextProps) => {
+  // Determines if the component has the same images. If so,
+  // the component doesn't re-render
+  return prevProps.images.length === nextProps.images.length;
 });

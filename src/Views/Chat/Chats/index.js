@@ -6,7 +6,7 @@ import {
   getMainUser,
   sendMessage,
 } from "../../../Services/Messages";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, LayoutAnimation } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
@@ -34,6 +34,9 @@ export const Chats = (props) => {
   const [modalContain, setModalContain] = useState(null);
   const [modalCover, setModalCover] = useState(null);
   const [modalStyles, setModalStyles] = useState({});
+
+  // Configures the animation for all components of GiftedChat
+  LayoutAnimation.easeInEaseOut();
 
   /**
    * Gets the messages based upon the room ID and sorts them in order by date

@@ -60,8 +60,10 @@ const Composer = (props) => {
         const { contentSize } = e.nativeEvent;
         // Sets the input size so that it's always availble
         // to be used when re-rendering the InputToolbar
-        setInputSize(contentSize);
-        contentSize.height = Math.ceil(contentSize.height);
+        if (!inputSize) {
+          setInputSize(contentSize);
+          contentSize.height = Math.ceil(contentSize.height);
+        }
         props.onInputSizeChanged(contentSize);
       }}
       onChangeText={(text) => {

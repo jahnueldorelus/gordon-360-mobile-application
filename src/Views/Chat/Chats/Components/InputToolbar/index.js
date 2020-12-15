@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import { StyleSheet, View, ScrollView } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Actions, Composer, Send } from "react-native-gifted-chat";
-import { SelectedImages } from "./Components/SelectedImages";
+import SelectedImages from "./Components/SelectedImages";
 
 /**
  * THIS COMPONENT IS A CLASS INSTEAD OF A CUSTOM HOOK DUE TO AN BUG
@@ -78,7 +78,7 @@ class InputToolbar extends Component {
           />
         )}
 
-        <View style={[styles.primary, this.props.primaryStyle]}>
+        <View style={[styles.primary]}>
           {this.renderActions()}
           {/**
            * With a custom Composer, the Composer and Send button are rendered
@@ -95,7 +95,7 @@ class InputToolbar extends Component {
                 flex: 1,
                 marginRight: 10,
                 flexDirection: "row",
-                alignItems: "center",
+                // alignItems: "center",
                 justifyContent: "space-between",
                 borderRadius: 20,
                 height: this.props.composerHeight + 10,
@@ -110,18 +110,21 @@ class InputToolbar extends Component {
                   flex: 1,
                   justifyContent: "flex-end",
                   paddingHorizontal: 15,
+                  alignSelf: "center",
                 }}
               >
                 {this.renderComposer()}
               </View>
-              <View>{this.renderSend()}</View>
+              <View style={{ alignSelf: "flex-end", marginBottom: 3 }}>
+                {this.renderSend()}
+              </View>
             </View>
           )}
           {/* If a custom composer is not present, the original composer and sent components are returned */}
-          {!this.props.renderComposer && this.renderComposer()}
-          {!this.props.renderComposer && this.renderSend()}
+          {/* {!this.props.renderComposer && this.renderComposer()}
+          {!this.props.renderComposer && this.renderSend()} */}
         </View>
-        {this.renderAccessory()}
+        {/* {this.renderAccessory()} */}
       </View>
     );
   }

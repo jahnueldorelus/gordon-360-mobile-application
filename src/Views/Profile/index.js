@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { ProfileInfo } from "./Components/ProfileInfo";
 import { AccountInfo } from "./Components/AccountInfo";
@@ -10,7 +10,7 @@ import {
   getUserDining,
   getUserInvolvements,
   getUserChapelInfo,
-} from "../../Services/Profile/ProfileService";
+} from "../../Services/Profile";
 import { Schedule } from "./Components/CourseSchedule";
 
 export const Profile = () => {

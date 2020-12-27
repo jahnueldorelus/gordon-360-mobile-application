@@ -10,29 +10,16 @@ import {
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
-import { Chats } from "./src/Views/Chat/Chats/index.js";
+import { ChatView } from "./src/Views/Chat/ChatView";
 import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
-import Reactotron, { networking } from "reactotron-react-native";
-import AsyncStorage from "@react-native-community/async-storage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NetworkProvider } from "react-native-offline";
 
-// If in development mode, Reactotron will attempt to connect to the
-// desktop application
-if (__DEV__) {
-  Reactotron.setAsyncStorageHandler(AsyncStorage)
-    .configure({ name: "React Native Example Inspect" })
-    .use(
-      networking({
-        ignoreContentTypes: /^(image)\/.*$/i,
-        ignoreUrls: /\/(logs|symbolicate)$/,
-      })
-    )
-    .useReactNative()
-    .connect();
-}
+// Makes a live connection to the back-end with a web socket
+// startWebConnection();
 
 export default function App() {
   // Navigators
@@ -68,7 +55,7 @@ export default function App() {
             {(props) => (
               // Chat Screen
               <View style={styles.screenView}>
-                <Chats {...props} />
+                <ChatView {...props} />
               </View>
             )}
           </Stack.Screen>
@@ -77,6 +64,7 @@ export default function App() {
     );
   }
 
+  // User Profile Screen
   function ProfilePage({ navigation }) {
     return (
       <View style={styles.screenView}>
@@ -86,36 +74,46 @@ export default function App() {
     );
   }
 
+  // Login Screen
   function LoginPage({ navigation }) {
     return (
       <View style={styles.screenView}>
-        <AppBar navigation={navigation} route="Login" />
         <Login navigation={navigation} />
       </View>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <View style={styles.screenView}>
-        <NavigationContainer>
-          <Drawer.Navigator initialRouteName="Messages">
-            <Drawer.Screen name="Profile" component={ProfilePage} />
-            <Drawer.Screen name="Gordon 360" component={Gordon360Page} />
-            <Drawer.Screen name="Messages" component={Messages} />
-            <Drawer.Screen
-              name="Login"
-              component={LoginPage}
-              /**
-               * Uncomment later, but this will be used to prevent users on
-               * iOS from accessing the drawer navigator using gestures
-               */
-              options={{ gestureEnabled: false }}
-            />
-          </Drawer.Navigator>
-        </NavigationContainer>
-      </View>
-    </SafeAreaProvider>
+    <NetworkProvider pingServerUrl="https://360train.gordon.edu">
+      <SafeAreaProvider>
+        <View style={styles.screenView}>
+          <NavigationContainer>
+            <Drawer.Navigator initialRouteName="Messages" drawerType="slide">
+              <Drawer.Screen name="Profile" component={ProfilePage} />
+              <Drawer.Screen
+                name="Gordon 360"
+                component={Gordon360Page}
+                /**
+                 * Prevent users from accessing the drawer navigator using gestures
+                 * Since the WebView uses gestures for navigating through the browser's
+                 * history, the drawer navigator interferes with swiping gesture to go back a page
+                 */
+                options={{ swipeEnabled: false }}
+              />
+              <Drawer.Screen name="Messages" component={Messages} />
+              <Drawer.Screen
+                name="Login"
+                component={LoginPage}
+                /**
+                 * Prevent users from accessing the drawer navigator using gestures
+                 */
+                options={{ swipeEnabled: false }}
+              />
+            </Drawer.Navigator>
+          </NavigationContainer>
+        </View>
+      </SafeAreaProvider>
+    </NetworkProvider>
   );
 }
 

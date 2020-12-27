@@ -7,11 +7,7 @@ import {
   FlatList,
   LogBox,
 } from "react-native";
-import {
-  getRooms,
-  getRoomName,
-  getMainUser,
-} from "../../Services/Messages/MessageService";
+import { getRooms, getRoomName, getMainUser } from "../../Services/Messages";
 import { ListItem, Avatar } from "react-native-elements";
 import { CustomLoader } from "../../Components/CustomLoader";
 

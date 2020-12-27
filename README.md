@@ -1,12 +1,8 @@
-# Drawer navigation example
-
 <p>
   <!-- iOS -->
   <img alt="Supports Expo iOS" longdesc="Supports Expo iOS" src="https://img.shields.io/badge/iOS-4630EB.svg?style=flat-square&logo=APPLE&labelColor=999999&logoColor=fff" />
   <!-- Android -->
   <img alt="Supports Expo Android" longdesc="Supports Expo Android" src="https://img.shields.io/badge/Android-4630EB.svg?style=flat-square&logo=ANDROID&labelColor=A4C639&logoColor=fff" />
-  <!-- Web -->
-  <img alt="Supports Expo Web" longdesc="Supports Expo Web" src="https://img.shields.io/badge/web-4630EB.svg?style=flat-square&logo=GOOGLE-CHROME&labelColor=4285F4&logoColor=fff" />
 </p>
 
 ## 📜&nbsp;&nbsp;&nbsp;User Stories
@@ -51,8 +47,8 @@
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage reactotron-react-native && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage reactotron-react-native && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage react-native-offline && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage react-native-offline && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -86,13 +82,13 @@
        - `yarn add moment`
      - Install NetInfo using the following command.
        - `expo install @react-native-community/netinfo`
-     - Install Reactotron using the following command. This dependency is to be used with the Reactotron Application which helps monitor and debug react-native applications (only works with simulators). You may download it from here: https://github.com/infinitered/reactotron/releases. Click on the latest version and choose the file that's suited for your computer. For example, Window users should choose the file that ends with ".exe" or ".dmg" for Mac users.
-       - `npm i reactotron-react-native`
-       - `yarn add reactotron-react-native`
      - Install Expo Image Picker using the following command.
        - `expo install expo-image-picker`
      - Install Safe Area Context using any of the following commands.
        - `expo install react-native-safe-area-context`
+     - Install React Native Offline using any of the following commands.
+       - `npm i react-native-offline`
+       - `yarn add react-native-offline`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:
@@ -132,9 +128,7 @@
     </td>
     <td style="color: #FFE266"> 
       <ol>
-        <li> node_modules/react-native-gifted-chat/lib/InputToolbar.js </li>
-        <br/>
-        <li> src/Views/Chat/Chat.js </li>
+        <li> src/Views/Chat/Chats/Components/InputToolbar/Components/Composer/index.js </li>
       </ol>
     </td>
   </tr>
@@ -143,6 +137,27 @@
   <tr align="left" valign="top" style="border-bottom: 1px solid grey">
     <td style="color: #FFE266"> 
       2
+    </td>
+    <td style="color: #FFE266"> 
+      Text_Input
+    </td>
+    <td style="color: #FC9186"> 
+     Upon typing multiple lines inside the textfield located in the input toolbar inside a chat, a spacing between the keyboard and the input toolbar will appear. It's impact is not great but causes a UI disturbance and removes space available to the input toolbar to grow.
+    </td>
+    <td style="color: #82C9FF"> 
+      This is due to the input toolbar not having a correct minimum height. GiftedChat requires a minimum height for the input toolbar. When the minimum height given is lower than the actual height of the input toolbar, GiftedChat fails to calculate the correct spacing allocated for the input toolbar. As long as the correct height of the input is given (by calculating the height of each component and their respective spacing), the input toolbar is displayed correctly without spacing appearing between the input toolbar and keyboard.
+    </td>
+    <td style="color: #FFE266">
+      <ol>
+      <li> src/Views/Chat/Chats/index.js </li>
+      </ol>
+    </td>
+  </tr>
+
+  <!-------------------------------------------------- # 3 -------------------------------------------------->
+  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
+    <td style="color: #FFE266"> 
+      3
     </td>
     <td style="color: #FFE266"> 
       Animated_Native_Driver
@@ -188,10 +203,10 @@
     </td>
   </tr>
 
-  <!-------------------------------------------------- # 3 -------------------------------------------------->
+  <!-------------------------------------------------- # 4 -------------------------------------------------->
   <tr align="left" valign="top" style="border-bottom: 1px solid grey">
     <td style="color: #FFE266"> 
-      2
+      4
     </td>
     <td style="color: #FFE266"> 
       Modal_Closing_State_Unchanged
@@ -205,6 +220,48 @@
     <td style="color: #FFE266">
       <ol>
       <li> src/Views/Chat/ChatInfo/index.js </li>
+      </ol>
+    </td>
+  </tr>
+
+  <!-------------------------------------------------- # 5 -------------------------------------------------->
+  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
+    <td style="color: #FFE266"> 
+      5
+    </td>
+    <td style="color: #FFE266"> 
+      GiftedChat_InputToolbar_Rerender
+    </td>
+    <td style="color: #FC9186"> 
+      This is a warning for any changes made to the input toolbar. Upon displaying each component in the input toolbar, GiftedChat automatically calculates the height of the input toolbar to display it correctly and prevent the keyboard from covering over it. If you add or a remove a component in the input toolbar that results in a change of its height, GiftedChat's initial calculations of the height will no longer work. This will cause a bug where the input toolbar will be incorrectly placed on the screen. In most cases, you will see the input toolbar displayed and trail off the bottom of the screen. You will also see the keyboard (when invoked) appear above the input toolbar making it impossible to see what you're typing.
+    </td>
+    <td style="color: #82C9FF"> 
+    GiftedChat has to be prompted to re-render itself. After extensively looking at GiftedChat's source code, there's not a simple function that can be called. Adding or removing a component from the input toolbar after it has already been displayed will not trigger GiftedChat to re-render. The only things that will trigger GiftedChat to re-render (that's in OUR CONTROL to invoke) is the visibility of the keyboard and the change of the content size of the textfield in the input toolbar. As it would be a terrible UI idea to invoke the keyboard and remove it in order to re-render GiftedChat, we use the content size of the textfield instead.<br/><br/>This is done by always having a reference to the content size of the textfield (or known as the component "<span style="color: #AEDCFF"><strong>Composer</strong></span>"). Upon changing the height of the input toolbar (by adding or removing a component), we pass the content size of the textfield to GiftedChat. Even though we're passing the same content size that GiftedChat already calculated, passing in a content size causes GiftedChat to re-render. Unfortunately, this requires for props to be passed all the way to the <span style="color: #AEDCFF"><strong>Composer</strong></span> component to have the logic present for the Composer to determine if it should invoke GiftedChat to re-render.<br/><br/>Therefore, while it's highly unusual, using the textfield is the only way to ensure that all components in the input toolbar are displayed correctly.<br/><br/>When developing, in order to add the logic of having the Composer component trigger GiftedChat to re-render, you must do 3 important things.<br/><ol><li>Whatever you compare to have GiftedChat re-render the input toolbar, make sure that it's <span style="color: #AEDCFF"><strong>passed through props to the "Composer" component</strong></span>.</li><li><span style="color: #AEDCFF"><strong>Use a ref</strong></span> to hold the initial value of your prop in order to do a logical comparison for changes in the useEffect hook.<br/><span style="color: #AEDCFF"><strong>REMEMBER to update the ref</strong></span> to hold the new prop value after doing your comparison so that it always has the correct value passed in.</li><li>Make sure to <span style="color: #AEDCFF"><strong>add logic for your prop inside of React.memo</strong></span>! This is important as React.memo handles the re-rendering of the Composer component (it prevents unnecessary re-renders). If you forget to add the logic for your prop to React.memo, the Composer component will never recognize any changes to your prop.</li></ol>
+    </td>
+    <td style="color: #FFE266">
+      <ol>
+      <li> src/Views/Chat/Chats/Components/InputToolbar/Components/Composer/index.js </li>
+      </ol>
+    </td>
+  </tr>
+
+  <!-------------------------------------------------- # 6 -------------------------------------------------->
+  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
+    <td style="color: #FFE266"> 
+      6
+    </td>
+    <td style="color: #FFE266"> 
+      InputToolbar_Class
+    </td>
+    <td style="color: #FC9186"> 
+      This is a warning to avoid changing the InputToolBar component to a functional hook component. Due to GiftedChat only using class components, if you create the input toolbar using a functional hook, a bug may occur where the keyboard (when invoked) will cover over the input toolbar making it invisible. The reason for this occuring is not known.
+    </td>
+    <td style="color: #82C9FF"> 
+    Simply leave the InputToolbar as a class component. While you may make all components used by InputToolbar functional hooks, the InputToolbar component itself must remain as a class.
+    </td>
+    <td style="color: #FFE266">
+      <ol>
+      <li> src/Views/Chat/Chats/Components/InputToolbar/index.js </li>
       </ol>
     </td>
   </tr>

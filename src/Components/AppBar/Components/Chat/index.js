@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, Dimensions } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { View, Text } from "react-native";
 import { StyleSheet } from "react-native";
-import { Avatar, Accessory } from "react-native-elements";
+import { Avatar } from "react-native-elements";
 import { getChatName, getMainUser } from "../../../../Services/Messages";
 import { Icon } from "react-native-elements";
 import { ChatInfo } from "../../../../Views/Chat/ChatInfo/index";
@@ -36,17 +35,16 @@ export const AppbarChat = (props) => {
     return (
       <View style={styles.appBarContainer}>
         <View style={styles.navigationButton}>
-          <TouchableOpacity
+          <Icon
+            name="arrow-circle-left"
+            type="font-awesome-5"
+            color="white"
+            size={30}
             onPress={() => {
               props.navigation.pop();
               props.navigation.navigate("Rooms");
             }}
-          >
-            <Image
-              style={styles.navigationButtonImage}
-              source={require("../Images/back_button.png")}
-            />
-          </TouchableOpacity>
+          />
         </View>
         <View style={styles.chatName}>
           <Avatar

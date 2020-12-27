@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Image,
   View,
   TouchableOpacity,
   Linking,
@@ -9,39 +8,34 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
+import { Icon } from "react-native-elements";
 
-export function renderActions(
-  props,
-  selectedImages,
-  setSelectedImages,
-  setModalVisible,
-  setModalContent,
-  setModalContain,
-  setModalCover,
-  setModalHeight,
-  setModalStyles
-) {
-  return (
-    <Actions
-      selectedImages={selectedImages}
-      setSelectedImages={setSelectedImages}
-      setModalVisible={setModalVisible}
-      setModalContent={setModalContent}
-      setModalContain={setModalContain}
-      setModalCover={setModalCover}
-      setModalHeight={setModalHeight}
-      setModalStyles={setModalStyles}
-    />
-  );
+/**
+ * Returns the action buttons and passes in different handlers as props
+ * @param {*} props The original props that GiftedChat created
+ * @param {*} ImageHandler An Image handler that handles the user selected images
+ * @param {*} ModalHandler Modal handler that handles the visibility and style of the custom modal
+ */
+export function renderActions(props, ImageHandler, ModalHandler) {
+  return <Actions ImageHandler={ImageHandler} ModalHandler={ModalHandler} />;
 }
 
 /**
  * Renders the Action buttons in the InputToolbar
  * @param {JSON} props Props passed from parent
  */
-const ActionBar = (props) => (
-  <View style={styles.container}>
-    {console.log("Rendered Actions")}
+const Actions = (props) => (
+  <View
+    style={[
+      styles.container,
+      {
+        marginBottom: 8,
+        marginTop:
+          JSON.parse(props.ImageHandler.selectedImages).length > 0 ? 8 : -3,
+      },
+    ]}
+  >
+    {/***** IMAGE PICKER *****/}
     <TouchableOpacity
       onPress={() => {
         ImagePicker.getCameraPermissionsAsync().then(async (permission) => {
@@ -53,11 +47,18 @@ const ActionBar = (props) => (
               base64: true,
             });
             if (!image.cancelled) {
-              let newSelectedImages = JSON.parse(props.selectedImages);
-              newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
-              // The images are set in a JSON object in order for useEffect() in
-              // hook components to recognize that there's a new value change
-              props.setSelectedImages(JSON.stringify(newSelectedImages));
+              let newSelectedImages = JSON.parse(
+                props.ImageHandler.selectedImages
+              );
+              // newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
+              newSelectedImages.push(image.uri);
+              /**
+               * The images are set in a JSON object in order for useEffect() in
+               * components to recognize the list of images have changed
+               */
+              props.ImageHandler.setSelectedImages(
+                JSON.stringify(newSelectedImages)
+              );
             }
           }
           // If permission is denied
@@ -69,14 +70,15 @@ const ActionBar = (props) => (
             // If it's not possible to ask for permission, the user is directed to their settings
             // to enable permissions for the app
             else {
-              props.setModalStyles({
-                borderColor: "#014983",
-                borderWidth: 2,
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
-                borderBottomWidth: 0,
-              });
-              props.setModalContent(
+              // The new configuration for the modal
+              let newModalConfig = { ...props.ModalHandler.modalConfig };
+
+              /**
+               * The modal's configuration is set to allow the user to cancel
+               * choosing an image or go into the app's settings to enable the permission
+               * of accessing the camera.
+               */
+              newModalConfig.content = (
                 <View style={styles.modalContainer}>
                   <SafeAreaView edges={["bottom"]}>
                     <Text style={styles.modalTextTitle}>
@@ -87,13 +89,17 @@ const ActionBar = (props) => (
                       <TouchableOpacity
                         style={[styles.modalButtonCancel, styles.modalButton]}
                         onPress={() => {
-                          props.setModalStyles({});
-                          props.setModalVisible(false);
+                          // The new configuration for the modal
+                          let newModalConfigTwo = {
+                            ...props.ModalHandler.modalConfig,
+                          };
+                          newModalConfigTwo.visible = false;
+                          props.ModalHandler.setModalConfig(newModalConfigTwo);
                         }}
                       >
                         <Text
                           style={[
-                            styles.modalText,
+                            styles.modalButtonText,
                             styles.modalButtonCancelText,
                           ]}
                         >
@@ -108,7 +114,7 @@ const ActionBar = (props) => (
                       >
                         <Text
                           style={[
-                            styles.modalText,
+                            styles.modalButtonText,
                             styles.modalButtonSettingsText,
                           ]}
                         >
@@ -119,61 +125,76 @@ const ActionBar = (props) => (
                   </SafeAreaView>
                 </View>
               );
-              props.setModalCover(true);
-              props.setModalContain(false);
-              props.setModalHeight(0);
-              props.setModalVisible(true);
+              newModalConfig.visible = true;
+              newModalConfig.height = 0;
+              newModalConfig.contain = false;
+              newModalConfig.cover = true;
+              newModalConfig.styles = styles.modalStyles;
+
+              props.ModalHandler.setModalConfig(newModalConfig);
             }
           }
         });
       }}
     >
-      <Image
-        style={styles.imageButton}
-        source={require("../Images/image.png")}
+      <Icon
+        containerStyle={styles.imageButton}
+        type="material"
+        name="insert-photo"
+        size={40}
+        color="#028af8"
       />
     </TouchableOpacity>
-    <TouchableOpacity>
-      <Image
-        style={styles.videoButton}
-        source={require("../Images/video.png")}
+
+    {/***** VIDEO PICKER *****/}
+    <TouchableOpacity
+      disabled={true} /* Remove disabled when a video picker is available */
+    >
+      <Icon
+        containerStyle={styles.videoButton}
+        type="material"
+        name="movie"
+        size={40}
+        color="grey" // Change back to "#028af8" when a video picker is available
       />
     </TouchableOpacity>
   </View>
 );
 
-// Prevents the ActionBar from re-rendering since it never changes
-const Actions = React.memo(ActionBar, (prevProps, nextProps) => {
-  return prevProps.selectedImages.length === nextProps.selectedImages.length;
-});
+// Border radius style of the modal
+const modalRadius = { borderTopLeftRadius: 16, borderTopRightRadius: 16 };
 
+// The style of this component
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 10,
-    alignSelf: "center",
     flexDirection: "row",
-    alignSelf: "flex-end",
   },
   imageButton: {
-    width: 39,
-    height: 39,
-    tintColor: "#92C7FF",
     marginHorizontal: 5,
   },
   videoButton: {
-    width: 36,
-    height: 36,
-    tintColor: "#92C7FF",
-    marginHorizontal: 5,
+    marginHorizontal: 10,
+  },
+  modalStyles: {
+    overflow: "visible",
+    ...modalRadius,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 7,
+    },
+    shadowOpacity: 0.43,
+    shadowRadius: 9.51,
+
+    elevation: 15,
   },
   modalContainer: {
-    backgroundColor: "rgba(0,0,0,0.02)",
     alignItems: "center",
     justifyContent: "center",
-    borderColor: "#014983",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
     padding: 10,
+    ...modalRadius,
+    marginVertical: 10,
   },
   modalContainerActions: {
     justifyContent: "center",
@@ -182,10 +203,12 @@ const styles = StyleSheet.create({
   },
   modalTextTitle: {
     fontSize: 17,
+    marginBottom: 10,
+    color: "#012849",
   },
-  modalText: {
+  modalButtonText: {
     fontSize: 20,
-    marginVertical: 10,
+    padding: 10,
   },
   modalButton: {
     paddingHorizontal: 10,
@@ -193,7 +216,7 @@ const styles = StyleSheet.create({
   },
   modalButtonCancel: {
     backgroundColor: "white",
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: "#014983",
   },
   modalButtonCancelText: {

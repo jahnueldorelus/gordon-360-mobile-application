@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import { View, Image, Text } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import React from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { StyleSheet } from "react-native";
+import { Icon } from "react-native-elements";
 
 export const Appbar360 = (props) => {
   return (
@@ -13,65 +13,62 @@ export const Appbar360 = (props) => {
           }}
           style={styles.navigationButton}
         >
-          <Image
-            style={styles.navigationButtonImage}
-            source={require("./Images/hamburger_menu.png")}
-          />
+          <Icon name="bars" type="font-awesome-5" color="white" size={28} />
           <Text style={styles.navigationButtonText}>Gordon 360</Text>
         </TouchableOpacity>
       </View>
+
       <View style={styles.webControlsContainer}>
-        <TouchableOpacity
-          disabled={!props.canGoBack && !props.isConnected}
+        <Icon
+          name="arrow-left"
+          type="font-awesome-5"
+          color={
+            props.canGoBack && props.isConnected
+              ? "white"
+              : "rgba(255,255,255,0.3)"
+          }
+          disabled={!props.canGoBack || !props.isConnected}
+          size={24}
           onPress={() => {
             // Goes back a page in the webview
             if (props.web) props.web.current.goBack();
           }}
-        >
-          <Image
-            style={
-              props.canGoBack && props.isConnected
-                ? styles.navigationButtonImage
-                : styles.navigationButtonImageDisabled
-            }
-            source={require("./Images/backward.png")}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          disabled={!props.canGoForward && props.isConnected}
+          iconStyle={styles.webControlButtonSpacing}
+          disabledStyle={styles.webControlButtonDisabled}
+        />
+        <Icon
+          name="arrow-right"
+          type="font-awesome-5"
+          color={
+            props.canGoForward && props.isConnected
+              ? "white"
+              : "rgba(255,255,255,0.3)"
+          }
+          disabled={!props.canGoForward || !props.isConnected}
+          size={24}
           onPress={() => {
             // Goes forward a page in the webview
             if (props.web) props.web.current.goForward();
           }}
-        >
-          <Image
-            style={[
-              props.canGoForward && props.isConnected
-                ? styles.navigationButtonImage
-                : styles.navigationButtonImageDisabled,
-              styles.webControlButtonSpacing,
-            ]}
-            source={require("./Images/forward.png")}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
+          iconStyle={styles.webControlButtonSpacing}
+          disabledStyle={styles.webControlButtonDisabled}
+        />
+
+        <Icon
+          name="sync"
+          type="font-awesome-5"
           disabled={!props.isConnected}
+          size={24}
+          color={props.isConnected ? "white" : "rgba(255,255,255,0.3)"}
           onPress={() => {
             // Refreshes the page in the webview
             if (props.web) {
               props.web.current.reload();
             }
           }}
-        >
-          <Image
-            style={
-              props.isConnected
-                ? styles.navigationButtonImage
-                : styles.navigationButtonImageDisabled
-            }
-            source={require("./Images/refresh.png")}
-          />
-        </TouchableOpacity>
+          iconStyle={styles.webControlButtonSpacing}
+          disabledStyle={styles.webControlButtonDisabled}
+        />
       </View>
     </View>
   );
@@ -86,19 +83,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navigationButton: {
-    marginHorizontal: 5,
+    marginHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
-  },
-  navigationButtonImage: {
-    width: 32,
-    height: 32,
-    tintColor: "white",
-  },
-  navigationButtonImageDisabled: {
-    width: 32,
-    height: 32,
-    tintColor: "rgba(255,255,255,0.3)",
   },
   navigationButtonText: {
     color: "white",
@@ -110,8 +97,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     flexDirection: "row",
     flex: 1,
+    alignItems: "center",
   },
   webControlButtonSpacing: {
-    marginHorizontal: 30,
+    marginHorizontal: "10%",
+  },
+  webControlButtonDisabled: {
+    backgroundColor: "transparent",
   },
 });

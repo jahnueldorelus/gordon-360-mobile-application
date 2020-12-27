@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-community/async-storage";
-import { get, put } from "../HTTP";
+import { get } from "../HTTP";
 
 /**
  * Returns the user's profile info

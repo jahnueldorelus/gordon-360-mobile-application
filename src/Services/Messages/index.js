@@ -1,5 +1,3 @@
-import messages from "./DummyData/dummy_messages";
-import rooms from "./DummyData/dummy_rooms";
 import AsyncStorage from "@react-native-community/async-storage";
 import { get, put } from "../HTTP/index";
 import moment from "moment";

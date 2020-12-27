@@ -8,11 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { TouchableOpacity } from "react-native";
-import {
-  getMainUser,
-  getMessages,
-  getImages,
-} from "../../../Services/Messages";
+import { getMainUser, getImages } from "../../../Services/Messages";
 import { Icon, Avatar, Image } from "react-native-elements";
 
 export const ChatInfo = (props) => {

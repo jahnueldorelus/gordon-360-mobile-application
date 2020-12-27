@@ -8,18 +8,13 @@ import { MessageText } from "react-native-gifted-chat";
 export const renderMessageText = (props) => (
   <MessageText
     {...props}
-    containerStyle={{
-      left: { backgroundColor: "#31342B", borderWidth: 1 },
-      right: { backgroundColor: "black" },
-    }}
-    textStyle={{
-      left: { color: "white" },
-      right: { color: "white" },
-    }}
     linkStyle={{
       left: { color: "#31342B" },
       right: { color: "gray" },
     }}
-    customTextStyle={{ fontSize: 24, lineHeight: 16 }}
+    textStyle={{
+      left: { color: "#31342B" },
+      right: { color: "white" },
+    }}
   />
 );

@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Image, Text } from "react-native";
+import { View, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
+import { Icon } from "react-native-elements";
 
 export const AppbarProfile = (props) => {
   return (
@@ -12,10 +13,7 @@ export const AppbarProfile = (props) => {
         }}
         style={styles.navigationButton}
       >
-        <Image
-          style={styles.navigationButtonImage}
-          source={require("../Images/hamburger_menu.png")}
-        />
+        <Icon name="bars" type="font-awesome-5" color="white" size={28} />
         <Text style={styles.navigationButtonText}>Profile</Text>
       </TouchableOpacity>
     </View>
@@ -32,11 +30,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
-  },
-  navigationButtonImage: {
-    width: 32,
-    height: 32,
-    tintColor: "white",
   },
   navigationButtonText: {
     color: "white",

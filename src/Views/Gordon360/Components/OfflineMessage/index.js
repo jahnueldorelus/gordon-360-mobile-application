@@ -35,7 +35,7 @@ export const OfflineMessage = (props) => {
                   Uh-oh, it appears you're offline!
                 </Text>
                 <Text style={[styles.modalViewText, styles.modalViewTextHelp]}>
-                  To view Gordon 360, please establish an internet connection.
+                  To view Gordon 360, please re-connect to the internet.
                 </Text>
               </View>
               <View

@@ -10,14 +10,12 @@ import {
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
-import { Chats } from "./src/Views/Chat/Chats/index.js";
+import { ChatView } from "./src/Views/Chat/ChatView";
 import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
-import AsyncStorage from "@react-native-community/async-storage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { startWebConnection } from "./src/Services/WebSocket";
 import { NetworkProvider } from "react-native-offline";
 
 // Makes a live connection to the back-end with a web socket
@@ -57,7 +55,7 @@ export default function App() {
             {(props) => (
               // Chat Screen
               <View style={styles.screenView}>
-                <Chats {...props} />
+                <ChatView {...props} />
               </View>
             )}
           </Stack.Screen>
@@ -66,6 +64,7 @@ export default function App() {
     );
   }
 
+  // User Profile Screen
   function ProfilePage({ navigation }) {
     return (
       <View style={styles.screenView}>
@@ -75,6 +74,7 @@ export default function App() {
     );
   }
 
+  // Login Screen
   function LoginPage({ navigation }) {
     return (
       <View style={styles.screenView}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -12,26 +12,8 @@ import { CustomImageViewer } from "../../../../../../Components/CustomImageViewe
  * Just a function that calls the real component MessageImage
  * @param {JSON} props Props passed from parent
  */
-export const renderMessageImage = (
-  props,
-  setModalVisible,
-  setModalContent,
-  setModalContain,
-  setModalCover,
-  setModalHeight,
-  setModalStyles
-) => {
-  return (
-    <MessageImage
-      {...props}
-      setModalVisible={setModalVisible}
-      setModalContent={setModalContent}
-      setModalContain={setModalContain}
-      setModalCover={setModalCover}
-      setModalHeight={setModalHeight}
-      setModalStyles={setModalStyles}
-    />
-  );
+export const renderMessageImage = (props, ModalHandler) => {
+  return <MessageImage {...props} ModalHandler={ModalHandler} />;
 };
 
 /**
@@ -43,14 +25,22 @@ const MessageImage = (props) => {
   const deviceHeight = Dimensions.get("window").height;
   const deviceWidth = Dimensions.get("window").width;
 
+  // Handles the visibility of the image viewer
+  const handleImageVisibility = (isVisibile) => {
+    let newModalConfig = { ...props.ModalHandler.modalConfig };
+    newModalConfig.visible = isVisibile;
+    props.ModalHandler.setModalConfig(newModalConfig);
+  };
+
   // The image viewer component
   const imageViewer = (
     <CustomImageViewer
       image={props.currentMessage.image}
-      setVisible={props.setModalVisible}
+      setVisible={handleImageVisibility}
     />
   );
 
+  // The styles of this component
   const styles = StyleSheet.create({
     container: {
       paddingHorizontal: 10,
@@ -70,12 +60,18 @@ const MessageImage = (props) => {
     <View style={styles.container}>
       <TouchableOpacity
         onPress={() => {
-          props.setModalContent(imageViewer);
-          props.setModalContain(false);
-          props.setModalCover(true);
-          props.setModalHeight(100);
-          props.setModalVisible(true);
-          props.setModalStyles({});
+          // The new configuration for the modal
+          let newModalConfig = { ...props.ModalHandler.modalConfig };
+          /**
+           * The modal's configuration is set to show the image in the image viewer
+           */
+          newModalConfig.visible = true;
+          newModalConfig.content = imageViewer;
+          newModalConfig.height = 100;
+          newModalConfig.contain = false;
+          newModalConfig.cover = true;
+          newModalConfig.styles = {};
+          props.ModalHandler.setModalConfig(newModalConfig);
         }}
       >
         <Image

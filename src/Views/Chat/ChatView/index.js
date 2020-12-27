@@ -6,12 +6,15 @@ import {
   getMainUser,
   sendMessage,
 } from "../../../Services/Messages";
-import { StyleSheet, View, LayoutAnimation } from "react-native";
+import { StyleSheet, View, LayoutAnimation, Keyboard } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
 import { renderComposer } from "./Components/InputToolbar/Components/Composer";
-import { renderCustomView } from "./Components/MessageContainer/CustomView";
+/**
+ * Uncomment if you'd like to add a custom view to each message.
+ */
+// import { renderCustomView } from "./Components/MessageContainer/CustomView";
 import { renderInputToolbar } from "./Components/InputToolbar";
 import { renderMessage } from "./Components/MessageContainer/Message";
 import { renderMessageImage } from "./Components/MessageContainer/MessageImage";
@@ -22,25 +25,35 @@ import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
 import AsyncStorage from "@react-native-community/async-storage";
 
-export const Chats = (props) => {
+export const ChatView = (props) => {
+  // The current text inside the input toolbar
   const [text, setText] = useState("");
+  // The list of messages for the chat
   const [messages, setMessages] = useState([]);
+  // The user that's currently signed in
   const [user, setUser] = useState(null);
+  // The list of images the user has selected
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
-  // Info for setting a custom modal for the image viewer
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState(<></>);
-  const [modalHeight, setModalHeight] = useState(0);
-  const [modalContain, setModalContain] = useState(null);
-  const [modalCover, setModalCover] = useState(null);
-  const [modalStyles, setModalStyles] = useState({});
+  // Determines if the actions buttons of the input toolbar should display
+  const [showActions, setShowActions] = useState(false);
+  // Configuration for setting the custom modal
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    content: <></>,
+    height: 0,
+    contain: null,
+    cover: null,
+    styles: {},
+  });
 
-  // Configures the animation for all components of GiftedChat
+  /**
+   * Configures the animation for all components of GiftedChat so that
+   * animation is smooth for all transitions
+   */
   LayoutAnimation.easeInEaseOut();
 
   /**
-   * Gets the messages based upon the room ID and sorts them in order by date
-   * Also get the main user
+   * Gets the current user and the chat messages
    */
   useEffect(() => {
     getUser();
@@ -48,7 +61,7 @@ export const Chats = (props) => {
   }, []);
 
   /**
-   * Gets the messages of the user
+   * Gets the messages based upon the room ID
    */
   async function getMessageData() {
     let messages = await getMessages(props.route.params.roomProp._id);
@@ -124,7 +137,39 @@ export const Chats = (props) => {
       });
   };
 
-  if (messages && user && navigator)
+  /**
+   * Configures the minimum height of the input toolbar.
+   * Do not delete or change the values below unless you change its
+   * corresponding values in its respective components.
+   * See documentation for bug "Text_Input"
+   */
+  const minInputToolbarHeight = () => {
+    /**
+     * Minimum height is 66. This height is required for the input toolbar to display
+     * correctly without a spacing bug between the input toolbar and keyboard
+     */
+    let minHeight = 66;
+
+    /**
+     * If there are selected images, an added spacing of 161 is required to
+     * display the images without a spacing bug between the input toolbar and keyboard.
+     * The spacing required is 161 because each image has a height of 150 including
+     * 11 for spacing.
+     */
+    if (JSON.parse(selectedImages).length > 0) minHeight += 161;
+
+    /**
+     * If the action buttons will be displayed, an added spacing of 45 is required to
+     * display the buttons without a spacing bug between the input toolbar and keyboard.
+     * The spacing required is 45 because each button has a height of 40 including 5
+     * for spacing
+     */
+    if (showActions) minHeight += 45;
+
+    return minHeight;
+  };
+
+  if (messages && user)
     return (
       <View style={{ flex: 1 }}>
         <AppBar {...props} />
@@ -135,16 +180,7 @@ export const Chats = (props) => {
           isCustomViewBottom
           messages={messages}
           messagesContainerStyle={styles.messagesContainer}
-          /**
-           * DO NOT DELETE THIS. THE MINIMUM INPUT TOOLBAR MUST BE SET TO 66.
-           * IF THERE ARE SELECTED IMAGES, THIS MUST BE SET TO 227. IT'S 227
-           * INSTEAD OF 66 BECAUSE THE MAX HEIGHT OF THE IMAGE IS 150 AND IT HAS
-           * A MARGIN BOTTOM OF 11. THEREFORE, 150 + 11 + 66 = 227.
-           * SEE DOCUMENTATION FOR BUG "iOS_Text_Input"
-           */
-          minInputToolbarHeight={
-            JSON.parse(selectedImages).length > 0 ? 227 : 66
-          }
+          minInputToolbarHeight={minInputToolbarHeight()}
           onInputTextChanged={setText}
           // onPressAvatar={console.log}
           onSend={onSend}
@@ -156,38 +192,36 @@ export const Chats = (props) => {
             },
           ]}
           renderActions={(props) => {
-            return renderActions(
-              props,
-              selectedImages,
-              setSelectedImages,
-              setModalVisible,
-              setModalContent,
-              setModalContain,
-              setModalCover,
-              setModalHeight,
-              setModalStyles
-            );
+            const ImageHandler = { selectedImages, setSelectedImages };
+            const ModalHandler = { modalConfig, setModalConfig };
+            return renderActions(props, ImageHandler, ModalHandler);
           }}
-          // renderAvatar={renderAvatar}
+          renderAvatar={renderAvatar}
           renderBubble={renderBubble}
           renderComposer={renderComposer}
+          /**
+           * Uncomment if you'd like to add a custom view to each message.
+           * This view appears after a message's text and before the message's
+           * status information (aka date, sent, delivered, etc.)
+           */
           // renderCustomView={renderCustomView}
-          renderInputToolbar={(props) =>
-            renderInputToolbar(props, selectedImages, setSelectedImages)
-          }
-          // renderMessage={renderMessage}
-          renderMessageImage={(props) => {
-            return renderMessageImage(
+          renderInputToolbar={(props) => {
+            const ImageHandler = { selectedImages, setSelectedImages };
+            const ModalHandler = { modalConfig, setModalConfig };
+            const ActionHandler = { showActions, setShowActions };
+            return renderInputToolbar(
               props,
-              setModalVisible,
-              setModalContent,
-              setModalContain,
-              setModalCover,
-              setModalHeight,
-              setModalStyles
+              ImageHandler,
+              ModalHandler,
+              ActionHandler
             );
           }}
-          // renderMessageText={renderMessageText}
+          renderMessage={renderMessage}
+          renderMessageImage={(props) => {
+            const ModalHandler = { modalConfig, setModalConfig };
+            return renderMessageImage(props, ModalHandler);
+          }}
+          renderMessageText={renderMessageText}
           renderSend={renderSend}
           renderSystemMessage={renderSystemMessage}
           scrollToBottom
@@ -197,12 +231,12 @@ export const Chats = (props) => {
         />
 
         <CustomModal
-          content={modalContent}
-          coverScreen={modalCover}
-          containInView={modalContain}
-          height={modalHeight}
-          visible={modalVisible}
-          styles={modalStyles}
+          content={modalConfig.content}
+          coverScreen={modalConfig.cover}
+          containInView={modalConfig.contain}
+          height={modalConfig.height}
+          visible={modalConfig.visible}
+          styles={modalConfig.styles}
         />
       </View>
     );

@@ -17,11 +17,13 @@ import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NetworkProvider } from "react-native-offline";
+import { startWebConnection } from "./src/Services/WebSocket";
 
 // Makes a live connection to the back-end with a web socket
-// startWebConnection();
 
 export default function App() {
+  startWebConnection();
+
   // Navigators
   const Drawer = createDrawerNavigator();
   const Stack = createStackNavigator();

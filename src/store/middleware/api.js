@@ -20,6 +20,7 @@ export default ({ dispatch, getState }) => (next) => async (action) => {
     onSuccess,
     onError,
     useEndpoint,
+    passedData,
   } = action.payload;
 
   // Calls the onStart action if available
@@ -58,6 +59,7 @@ export default ({ dispatch, getState }) => (next) => async (action) => {
         type: onSuccess,
         payload: response.data,
         config: response.config,
+        passedData,
       });
   } catch (error) {
     /**

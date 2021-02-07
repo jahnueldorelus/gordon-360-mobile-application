@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
-import { sendMessage } from "../../../Services/Messages";
 import { getSelectedRoomID } from "../../../store/ui/chat";
 import { getUserInfo, getUserImage } from "../../../store/entities/profile";
-import { getUserMessagesByID } from "../../../store/entities/chat";
+import { getUserMessagesByID, sendMessage } from "../../../store/entities/chat";
 import { useDispatch, useSelector } from "react-redux";
 import { StyleSheet, View, LayoutAnimation } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
@@ -23,7 +22,6 @@ import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
-import AsyncStorage from "@react-native-community/async-storage";
 
 export const ChatView = (props) => {
   // Redux Dispatch
@@ -67,57 +65,9 @@ export const ChatView = (props) => {
    */
   LayoutAnimation.easeInEaseOut();
 
+  // Sends the user's message
   const onSend = async (text) => {
-    // // Adds the selected image to the text
-    // text[0].image = selectedImages; // COME BACK AND EDIT THIS TO BE ABLE TO SEND IMAGES
-    // // Shows the text message as pending until the database recevies the message
-    // text[0].pending = true;
-    // // Creates a copy of the message list
-    // let oldMessageList = [...messages];
-    // // Adds the new text to the beginning of the list
-    // oldMessageList.splice(0, 0, text[0]);
-    // setMessages(oldMessageList);
-    // // Saves the message list to storage
-    // await AsyncStorage.setItem(
-    //   `room:${props.route.params.roomProp._id}`,
-    //   JSON.stringify(oldMessageList)
-    // );
-    // // Updates the rooms list to display the new last text message
-    // props.route.params.updateRooms(false); // False disables the function from fetching and saving the messages for each room
-    // // Sends the message to the database
-    // await sendMessage(text[0], props.route.params.roomProp._id)
-    //   .then(async (wasSubmitted) => {
-    //     // If the database received the message
-    //     if (wasSubmitted) {
-    //       // Since the database received the text, the message is no longer pending
-    //       text[0].pending = false;
-    //       let newMessageList = [...oldMessageList];
-    //       // Replaces the original message that was pending with the new message that's not pending
-    //       newMessageList.splice(0, 1, text[0]);
-    //       setMessages(newMessageList);
-    //       // Saves the message list to storage
-    //       await AsyncStorage.setItem(
-    //         `room:${props.route.params.roomProp._id}`,
-    //         JSON.stringify(newMessageList)
-    //       );
-    //       // Updates the rooms list to display the new last text message
-    //       props.route.params.updateRooms(false); // False disables the function from fetching and saving the messages for each room
-    //     } else {
-    //       /**
-    //        * Since the database failed to save the message, let the user
-    //        * know that sending the text failed and give them a chance to either
-    //        * retry or cancel the text
-    //        */
-    //     }
-    //   })
-    //   // If the fetch fails
-    //   .catch(() => {
-    //     /**
-    //      * Since adding the message to the database failed, let the user
-    //      * know that sending the text failed and give them a chance to either
-    //      * retry or cancel the text
-    //      */
-    //   });
+    dispatch(sendMessage(text[0]));
   };
 
   /**

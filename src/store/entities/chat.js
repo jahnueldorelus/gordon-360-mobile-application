@@ -124,26 +124,28 @@ const slice = createSlice({
       const roomMessages = state.messages[roomID];
       const roomMessagesSorted = state.messageSort[roomID];
       // Adds the message to the room's object of messages
-      roomMessages[messageObj._id] = messageObj;
+      roomMessages[messageObj.id] = messageObj;
       // Adds the message to the room's sorted message list (at the beginning)
       roomMessagesSorted.splice(0, 0, {
-        _id: messageObj._id,
+        _id: messageObj.id,
         createdAt: messageObj.createdAt,
       });
     },
 
-    // Updates the loading status of a message
-    updateMessageStatus: (state, action) => {
-      const { roomID, messageObj } = action.payload;
-      const roomMessages = state.messages[roomID];
-      const roomMessagesSorted = state.messageSort[roomID];
-      // Adds the message to the room's object of messages
-      roomMessages[messageObj._id] = messageObj;
-      // Adds the message to the room's sorted message list (at the beginning)
-      roomMessagesSorted.splice(0, 0, {
-        _id: messageObj._id,
-        createdAt: messageObj.createdAt,
-      });
+    // Updates the pending status of a message
+    updateMessagePending: (state, action) => {
+      const serverSuccess = action.payload;
+      // If the server successfully received the message
+      if (serverSuccess) {
+        const { roomID, messageObj } = action.passedData;
+        const message = state.messages[roomID][messageObj.id];
+        const room = state.rooms[roomID];
+        // Changes the message's pending status to false
+        message.pending = false;
+        // Updates the room's lastUpdated and lastMessage properties
+        room.lastMessage = messageObj.text;
+        room.lastUpdated = messageObj.createdAt;
+      }
     },
 
     /**
@@ -276,26 +278,32 @@ export const sendMessage = (message) => (dispatch, getState) => {
   const roomID = getState().ui.chat.selectedRoomID;
   // Reformats the message object for the back-end to parse correctly
   const newMessage = {
-    id: message.id,
+    id: message._id,
+    _id: message._id,
     room_id: roomID,
     text: message.text,
-    user_id: message.user._id,
+    user: message.user,
     createdAt: moment(message.createdAt).format("YYYY-MM-DDTHH:mm:ss.SSS"),
+    image: message.image ? message.image : null,
     audio: message.audio ? message.audio : null,
     video: message.video ? message.video : null,
-    system: message.system ? message.system : null,
-    pending: message.pending ? message.pending : null,
-    received: message.received ? message.received : null,
+    system: message.system ? message.system : false,
+    received: message.received ? message.received : false,
+    pending: true,
   };
 
+  // Adds the message to the state
+  dispatch(slice.actions.addMessage({ roomID, messageObj: newMessage }));
+
+  // Sends the message to the back-end
   dispatch(
     apiRequested({
       url: "/dm/text",
       method: "put",
-      data: roomID,
+      data: newMessage,
       useEndpoint: true,
-      onSuccess: slice.actions.messagesAdded.type,
-      onEnd: slice.actions.dataLoadingEnded.type,
+      onSuccess: slice.actions.updateMessagePending.type,
+      passedData: { roomID, messageObj: newMessage },
     })
   );
 };

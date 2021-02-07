@@ -17,6 +17,10 @@ import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NetworkProvider } from "react-native-offline";
+import { store, persistor } from "./src/store/configuration/configureStore";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { startWebConnection } from "./src/Services/WebSocket";
 
 // Makes a live connection to the back-end with a web socket
 // startWebConnection();
@@ -84,36 +88,43 @@ export default function App() {
   }
 
   return (
-    <NetworkProvider pingServerUrl="https://360train.gordon.edu">
-      <SafeAreaProvider>
-        <View style={styles.screenView}>
-          <NavigationContainer>
-            <Drawer.Navigator initialRouteName="Messages" drawerType="slide">
-              <Drawer.Screen name="Profile" component={ProfilePage} />
-              <Drawer.Screen
-                name="Gordon 360"
-                component={Gordon360Page}
-                /**
-                 * Prevent users from accessing the drawer navigator using gestures
-                 * Since the WebView uses gestures for navigating through the browser's
-                 * history, the drawer navigator interferes with swiping gesture to go back a page
-                 */
-                options={{ swipeEnabled: false }}
-              />
-              <Drawer.Screen name="Messages" component={Messages} />
-              <Drawer.Screen
-                name="Login"
-                component={LoginPage}
-                /**
-                 * Prevent users from accessing the drawer navigator using gestures
-                 */
-                options={{ swipeEnabled: false }}
-              />
-            </Drawer.Navigator>
-          </NavigationContainer>
-        </View>
-      </SafeAreaProvider>
-    </NetworkProvider>
+    <Provider store={store}>
+      <PersistGate persistor={persistor} loading={null}>
+        <NetworkProvider pingServerUrl="https://360train.gordon.edu">
+          <SafeAreaProvider>
+            <View style={styles.screenView}>
+              <NavigationContainer>
+                <Drawer.Navigator
+                  initialRouteName="Messages"
+                  drawerType="slide"
+                >
+                  <Drawer.Screen name="Profile" component={ProfilePage} />
+                  <Drawer.Screen
+                    name="Gordon 360"
+                    component={Gordon360Page}
+                    /**
+                     * Prevent users from accessing the drawer navigator using gestures
+                     * Since the WebView uses gestures for navigating through the browser's
+                     * history, the drawer navigator interferes with swiping gesture to go back a page
+                     */
+                    options={{ swipeEnabled: false }}
+                  />
+                  <Drawer.Screen name="Messages" component={Messages} />
+                  <Drawer.Screen
+                    name="Login"
+                    component={LoginPage}
+                    /**
+                     * Prevent users from accessing the drawer navigator using gestures
+                     */
+                    options={{ swipeEnabled: false }}
+                  />
+                </Drawer.Navigator>
+              </NavigationContainer>
+            </View>
+          </SafeAreaProvider>
+        </NetworkProvider>
+      </PersistGate>
+    </Provider>
   );
 }
 

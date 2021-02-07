@@ -1,37 +1,25 @@
-import React, { useEffect, useState } from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Image } from "react-native";
 import { StyleSheet } from "react-native";
-import { Avatar } from "react-native-elements";
-import { getChatName, getMainUser } from "../../../../Services/Messages";
+import { getRoomImage, getChatName } from "../../../../Services/Messages";
 import { Icon } from "react-native-elements";
 import { ChatInfo } from "../../../../Views/Chat/ChatInfo/index";
+import { getUserRoomByID } from "../../../../store/entities/chat";
+import { getSelectedRoomID } from "../../../../store/ui/chat";
+import { getUserInfo } from "../../../../store/entities/profile";
+import { useSelector } from "react-redux";
 
 export const AppbarChat = (props) => {
-  const [room, setRoom] = useState(null);
-  const [user, setUser] = useState(null);
+  // User's selected room
+  const roomID = useSelector(getSelectedRoomID);
+  // User's selected room
+  const userRoom = useSelector(getUserRoomByID(roomID));
+  // User's profile
+  const userProfile = useSelector(getUserInfo);
+  // Modal's visibility
   const [modalInfoVisible, setModaInfoVisible] = useState(false);
 
-  /**
-   * Sets the room from the prop given
-   */
-  useEffect(() => {
-    setRoom(props.route.params.roomProp);
-  }, []);
-
-  /**
-   * Gets the main user
-   */
-  useEffect(() => {
-    async function getUser() {
-      await getMainUser().then((data) => {
-        setUser(data);
-      });
-    }
-
-    getUser();
-  }, []);
-
-  if (room && user)
+  if (userRoom && userProfile)
     return (
       <View style={styles.appBarContainer}>
         <View style={styles.navigationButton}>
@@ -47,22 +35,9 @@ export const AppbarChat = (props) => {
           />
         </View>
         <View style={styles.chatName}>
-          <Avatar
-            size="small"
-            rounded
-            overlayContainerStyle={{
-              backgroundColor: "white",
-              borderWidth: 1,
-              borderColor: "white",
-            }}
-            source={{
-              uri: room.roomImage,
-            }}
-            onPress={() => console.log("Works!")}
-            activeOpacity={0.7}
-          />
+          <Image style={styles.image} source={getRoomImage(userRoom.image)} />
           <Text style={styles.text} numberOfLines={1}>
-            {getChatName(room, user)}
+            {getChatName(userRoom, userProfile)}
           </Text>
         </View>
         <View style={styles.options}>
@@ -112,5 +87,13 @@ const styles = StyleSheet.create({
   },
   options: {
     marginHorizontal: 10,
+  },
+  image: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "white",
+    height: 36,
+    width: 36,
+    borderRadius: 50,
   },
 });

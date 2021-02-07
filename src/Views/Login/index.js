@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -18,8 +18,27 @@ import AsyncStorage from "@react-native-community/async-storage";
 import { get } from "../../Services/HTTP/";
 import { getUserImage } from "../../Services/Profile";
 import { ScrollView } from "react-native-gesture-handler";
+import {
+  fetchToken,
+  getToken,
+  getTokenError,
+  getTokenLoading,
+} from "../../store/entities/auth";
+import { fetchProfile } from "../../store/entities/profile";
+import { useDispatch, useSelector } from "react-redux";
+import { resetTokenError } from "../../store/entities/auth";
 
 export const Login = (props) => {
+  // Redux Dispatch
+  const dispatch = useDispatch();
+
+  // The user's token
+  const token = useSelector(getToken);
+  // The token's error status
+  const tokenError = useSelector(getTokenError);
+  // The token's loading status
+  const tokenLoading = useSelector(getTokenLoading);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,6 +47,28 @@ export const Login = (props) => {
   const [usernameHighlighted, setUsernameHighlighted] = useState(false);
   const [passwordHighlighted, setPasswordHighlighted] = useState(false);
   const secondTextField = useRef(null);
+
+  // Gets the user's profile after fetching their token and handles if the fetch fails
+  useEffect(() => {
+    if (token && !tokenLoading) {
+      if (token) {
+        dispatch(fetchProfile());
+        // Deletes any sensitive information saved in the state
+        setUsername("");
+        setPassword("");
+        setLoginFailedText("");
+        // Navigates to the Messages screen since authentication passed
+        props.navigation.navigate("Messages");
+      } else if (token && tokenError) {
+        dispatch(resetTokenError());
+        console.log("Token Error");
+        // Stops the login button from showing a loader since the fetch failed
+        setLoading(false);
+        // Sets the login as failed
+        setLoginFailedText("Invalid email or password");
+      }
+    }
+  }, [token, tokenError, tokenLoading]);
 
   /**
    * Styles used for this component. This is created inside of the component and
@@ -122,77 +163,79 @@ export const Login = (props) => {
   /**
    * Gets the token from the back-end
    */
-  async function getAuthorized() {
+  const getAuthorized = () => {
     // Makes the login button show a loader
     setLoading(true);
 
-    // A fetch request to get the user's token
-    await fetch("https://360apitrain.gordon.edu/token", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `username=${
-        // If the username contains '@gordon.edu', the address is removed since
-        // '@gordon.edu' is not needed for authentication
-        username.endsWith("@gordon.edu") ? username.split("@")[0] : username
-      }&password=${password}&grant_type=password`,
-    })
-      // If a response was returned
-      .then((response) => {
-        // Parses the response to access data
-        response.json().then(async (result) => {
-          // If the token is available
-          if (result.access_token) {
-            // Adds the token to storage
-            await AsyncStorage.setItem(
-              "token",
-              JSON.stringify(result.access_token)
-            );
-            // Deletes any sensitive information saved in the state
-            setUsername("");
-            setPassword("");
-            setLoginFailedText("");
-            // Creates the main user object to be used throughout the components
-            let mainUser = {};
-            // Gets the user's profile in order to create the main user object
-            let userProfile = get("profiles");
-            userProfile
-              // Adds the user's id and name to the main user object
-              .then(async (data) => {
-                mainUser._id = data.ID;
-                mainUser.name = `${data.FirstName} ${data.LastName}`;
-              })
-              // Adds the user's image ot the main user object
-              .then(async () => {
-                // Gets the user's image
-                let userImage = await getUserImage();
-                mainUser.avatar = userImage;
-              })
-              // Saves the main user object and navigates to Messages
-              .then(async () => {
-                // Saves the main user to storage
-                await AsyncStorage.setItem("user", JSON.stringify(mainUser));
-                // Navigates to the Messages screen
-                props.navigation.navigate("Messages");
-              });
-          }
-          // If the token is not available
-          else {
-            // Sets the login as failed
-            setLoginFailedText("Invalid email or password");
-          }
-        });
-        // Stops the login button from showing a loader
-        setLoading(false);
-      })
-      // If the fetch failed, then the login failed
-      .catch(() => {
-        // Stops the login button from showing a loader
-        setLoading(false);
-      });
-  }
+    dispatch(fetchToken(username, password));
+
+    // // A fetch request to get the user's token
+    // await fetch("https://360apitrain.gordon.edu/token", {
+    //   method: "POST",
+    //   headers: {
+    //     Accept: "application/json",
+    //     "Content-Type": "application/x-www-form-urlencoded",
+    //   },
+    //   body: `username=${
+    //     // If the username contains '@gordon.edu', the address is removed since
+    //     // '@gordon.edu' is not needed for authentication
+    //     username.endsWith("@gordon.edu") ? username.split("@")[0] : username
+    //   }&password=${password}&grant_type=password`,
+    // })
+    //   // If a response was returned
+    //   .then((response) => {
+    //     // Parses the response to access data
+    //     response.json().then(async (result) => {
+    //       // If the token is available
+    //       if (result.access_token) {
+    //         // Adds the token to storage
+    //         await AsyncStorage.setItem(
+    //           "token",
+    //           JSON.stringify(result.access_token)
+    //         );
+    //         // Deletes any sensitive information saved in the state
+    //         setUsername("");
+    //         setPassword("");
+    //         setLoginFailedText("");
+    //         // Creates the main user object to be used throughout the components
+    //         let mainUser = {};
+    //         // Gets the user's profile in order to create the main user object
+    //         let userProfile = get("profiles");
+    //         userProfile
+    //           // Adds the user's id and name to the main user object
+    //           .then(async (data) => {
+    //             mainUser._id = data.ID;
+    //             mainUser.name = `${data.FirstName} ${data.LastName}`;
+    //           })
+    //           // Adds the user's image ot the main user object
+    //           .then(async () => {
+    //             // Gets the user's image
+    //             let userImage = await getUserImage();
+    //             mainUser.avatar = userImage;
+    //           })
+    //           // Saves the main user object and navigates to Messages
+    //           .then(async () => {
+    //             // Saves the main user to storage
+    //             await AsyncStorage.setItem("user", JSON.stringify(mainUser));
+    //             // Navigates to the Messages screen
+    //             props.navigation.navigate("Messages");
+    //           });
+    //       }
+    //       // If the token is not available
+    //       else {
+    //         // Sets the login as failed
+    //         setLoginFailedText("Invalid email or password");
+    //       }
+    //     });
+    //     // Stops the login button from showing a loader
+    //     setLoading(false);
+    //   })
+    //   // If the fetch failed, then the login failed
+    //   .catch(() => {
+    //     // Stops the login button from showing a loader
+    //     setLoading(false);
+    //   });
+  };
 
   return (
     <LinearGradient colors={["#014983", "#00AEEF"]} style={styles.gradient}>

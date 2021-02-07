@@ -1,111 +1,211 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   StyleSheet,
   Dimensions,
   Text,
   FlatList,
-  LogBox,
+  Image,
+  RefreshControl,
 } from "react-native";
-import { getRooms, getRoomName, getMainUser } from "../../Services/Messages";
-import { ListItem, Avatar } from "react-native-elements";
+import { getRoomName, getRoomImage } from "../../Services/Messages";
+import { ListItem } from "react-native-elements";
 import { CustomLoader } from "../../Components/CustomLoader";
+import {
+  getUserRooms,
+  fetchRooms,
+  fetchMessages,
+  getUserMessages,
+  getUserChatLoading,
+} from "../../store/entities/chat";
+import { getUserInfo } from "../../store/entities/profile";
+import { getToken } from "../../store/entities/auth";
+import { useDispatch, useSelector } from "react-redux";
+import moment from "moment";
+import { LinearGradient } from "expo-linear-gradient";
+import { setRoomID } from "../../store/ui/chat";
 
 const deviceHeight = Dimensions.get("window").height;
 
 export const RoomsList = (props) => {
-  const [rooms, setRooms] = useState(null);
-  const [user, setUser] = useState(null);
+  // Redux Dispath
+  const dispatch = useDispatch();
+  // The user's token
+  const token = useSelector(getToken);
+  // The user's list of rooms
+  const rooms = useSelector(getUserRooms);
+  // The user's messages
+  const messages = useSelector(getUserMessages);
+  // The user's profile info
+  const userProfile = useSelector(getUserInfo);
+  // The user's chat loading status
+  const dataLoading = useSelector(getUserChatLoading);
 
   // Gets the rooms of the main user and the main user's information
   useEffect(() => {
-    getAllRooms();
-    getUser();
-  }, []);
+    // If the user's token is available
+    if (token) {
+      // If user's rooms is available
+      if (!jQuery.isEmptyObject(rooms)) {
+        /**
+         * If the user's messages are unavailable or the user's
+         * room and messages are being refreshed
+         */
+        if (jQuery.isEmptyObject(messages) || dataLoading)
+          dispatch(fetchMessages());
+      } else {
+        // If the user's rooms are not available, they are fetched
+        dispatch(fetchRooms());
+      }
+    } else {
+      // Navigates to the Messages screen since authentication passed
+      props.navigation.navigate("Login");
+    }
+  }, [token, rooms]);
 
   /**
-   * Gets the rooms of the main user
+   * Gets the date of the room
+   * @param {Object} room
+   * @returns {String} The date of the room
    */
-  async function getAllRooms() {
-    setRooms(await getRooms());
-  }
+  const getRoomDate = (date) => {
+    const roomDate = moment(date);
+    // Checks to see if the date is the same as the current day
+    if (roomDate.isSame(new Date(), "day")) {
+      return `Today - ${roomDate.format("h:mm a")}`;
+      // return roomDate.format("MMMM Do YYYY, h:mm:ss a")
+    }
+    // Checks to see if the date is within the same week
+    else if (roomDate.isSame(new Date(), "week")) {
+      // If the date was the day before the current day (aka yesterday)
+      if (roomDate.isSame(moment().subtract(1, "days").startOf("day"), "d")) {
+        return `Yesterday - ${roomDate.format("h:mm a")}`;
+      }
+      // If the date is within the same week as the current day
+      else {
+        return roomDate.format("dddd - h:mm a");
+      }
+    } else {
+      return roomDate.format("MM/DD/YY - h:mm a");
+    }
+  };
 
-  /**
-   * Gets the main user
-   */
-  async function getUser() {
-    await getMainUser().then((data) => {
-      setUser(data);
-    });
-  }
-
-  if (rooms && user)
+  if (rooms && userProfile)
     return (
-      <FlatList
-        style={styles.room}
-        data={rooms}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={(room, index) => {
-          return (
-            <ListItem
-              bottomDivider
-              key={index}
-              onPress={() => {
-                // Creates a copy of the room object
-                let roomProp = { ...room.item };
-                // Since Date object are non-serializable, they are converted to JSON
-                // before passed as a parameter to navigation
-                roomProp.createdAt = new Date(room.item.createdAt).toJSON();
-                roomProp.lastUpdated = new Date(room.item.lastUpdated).toJSON();
-                // This prevents a warning about passing in a function as a parameter in the navigation
-                // It's fine for us to do this according to this documentation
-                // https://reactnavigation.org/docs/troubleshooting/#i-get-the-warning-non-serializable-values-were-found-in-the-navigation-state
-                LogBox.ignoreLogs([
-                  "Non-serializable values were found in the navigation state",
-                ]);
-                // Navigates to the chat screen with a specified room id
-                props.navigation.navigate("Chat", {
-                  roomProp,
-                  updateRooms: getAllRooms,
-                });
+      <LinearGradient
+        // Background Linear Gradient
+        colors={["#014983", "#FFFAFF"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}
+      >
+        <FlatList
+          style={styles.room}
+          data={rooms}
+          keyExtractor={(item, index) => index.toString()}
+          refreshControl={
+            <RefreshControl
+              refreshing={dataLoading}
+              onRefresh={() => {
+                /**
+                 * Fetching the messages is not necessary as useEffect
+                 * will fetch the messages after the rooms are fetched
+                 */
+                dispatch(fetchRooms());
               }}
-            >
-              <Avatar
-                rounded
-                size="medium"
-                title={room.item.name ? room.item.name : "temp"}
-                source={room.item.roomImage && { uri: room.item.roomImage }}
-              />
-              <ListItem.Content>
-                <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-                  {getRoomName(room.item, user)}
-                </ListItem.Title>
-                <ListItem.Subtitle numberOfLines={2}>
-                  {room.item.lastMessage}
-                </ListItem.Subtitle>
-              </ListItem.Content>
-              <ListItem.Chevron />
-            </ListItem>
-          );
-        }}
-        ListEmptyComponent={() => (
-          <View>
-            <Text style={styles.emptyList}>
-              No Chats Available. Start a new one!
-            </Text>
-          </View>
-        )}
-      />
+              tintColor={"white"}
+            />
+          }
+          renderItem={(room) => {
+            return (
+              <ListItem
+                containerStyle={{
+                  ...styles.listItemContainer,
+                  // Adds a bottom margin to the last item in the list
+                  marginBottom: room.index === rooms.length - 1 ? 15 : 0,
+                }}
+                key={room.index}
+                underlayColor="none"
+                onPress={() => {
+                  // Sets the user's selected room ID
+                  dispatch(setRoomID(room.item.id));
+                  // Navigates to the chat screen with a specified room id
+                  props.navigation.navigate("Chat", {
+                    roomProp: {},
+                  });
+                }}
+              >
+                <Image
+                  source={getRoomImage(room.item.image)}
+                  style={styles.listItemImage}
+                />
+                <ListItem.Content>
+                  <ListItem.Title
+                    numberOfLines={1}
+                    style={styles.listItemTitle}
+                  >
+                    {getRoomName(room.item, userProfile)}
+                  </ListItem.Title>
+                  <ListItem.Subtitle numberOfLines={2}>
+                    {room.item.lastMessage}
+                  </ListItem.Subtitle>
+                  <ListItem.Subtitle
+                    numberOfLines={1}
+                    style={styles.listSubTitleDate}
+                  >
+                    {getRoomDate(room.item.lastUpdated)}
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+                <ListItem.Chevron />
+              </ListItem>
+            );
+          }}
+          ListEmptyComponent={() => (
+            <View>
+              <Text style={styles.emptyList}>
+                No Chats Available. Start a new one!
+              </Text>
+            </View>
+          )}
+        />
+      </LinearGradient>
     );
   else return <CustomLoader />;
 };
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   room: {
     flex: 1,
-    backgroundColor: "white",
   },
-  listItemTitle: { fontWeight: "bold" },
+  listItemContainer: {
+    // backgroundColor: "transparent",
+    margin: 15,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  listItemTitle: { fontWeight: "bold", color: "#001f37" },
+  listItemImage: {
+    borderColor: "#014983",
+    width: 50,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 50,
+  },
+  listSubTitleDate: {
+    fontWeight: "bold",
+    fontSize: 12,
+    alignSelf: "flex-end",
+    marginTop: 5,
+    color: "#25455f",
+  },
   emptyList: {
     fontSize: 18,
     textAlign: "center",

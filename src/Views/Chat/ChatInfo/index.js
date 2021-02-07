@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,69 +6,44 @@ import {
   ScrollView,
   Modal,
   TouchableWithoutFeedback,
+  TouchableOpacity,
+  TouchableHighlight,
+  Image,
 } from "react-native";
-import { TouchableOpacity } from "react-native";
-import { getMainUser, getImages } from "../../../Services/Messages";
-import { Icon, Avatar, Image } from "react-native-elements";
+import { getUserImage, getRoomChatImages } from "../../../Services/Messages";
+import { Icon } from "react-native-elements";
+import {
+  getUserRoomByID,
+  getUserMessagesByID,
+} from "../../../store/entities/chat";
+import { getSelectedRoomID } from "../../../store/ui/chat";
+import { getUserInfo } from "../../../store/entities/profile";
+import { useSelector } from "react-redux";
 
 export const ChatInfo = (props) => {
-  // const [messages, setMessages] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [messagesWithImages, setMessagesWithImages] = useState([]);
-  const [mainUser, setMainUser] = useState([null]);
-  const [room, setRoom] = useState(null);
+  // The minimum height and width of each message image
   const [minImageWidthAndHeight, setMinImageWidthAndHeight] = useState(200);
+  // The view width of the image container
   const [viewWidth, setViewWidth] = useState();
+  // Determines if the image viewer should display
   const [showImageViewer, setShowImageViewer] = useState(false);
-
-  /**
-   * Sets the main user's data, the room's messages, the room itself,
-   * and a list of all the images in the room
-   */
-  useEffect(() => {
-    setUserData();
-    setRoom(props.route.params.roomProp);
-    getImagesData();
-  }, []);
-
-  /**
-   * Gets the list of users apart from the main user
-   */
-  async function setUserData() {
-    await getMainUser().then((currentUser) => {
-      // Gets the main user
-      setMainUser(currentUser);
-      // Gets the list of users excluding the main user
-      setUsers(
-        props.route.params.roomProp.users.filter((user) => {
-          return user._id !== currentUser._id;
-        })
-      );
-    });
-  }
-
-  /**
-   * Gets the images of the room for the chat details
-   */
-  async function getImagesData() {
-    let images = await getImages(props.route.params.roomProp._id);
-    // Checks to make sure that the images variable is an array before
-    // attempting to map
-    if (Array.isArray(images)) {
-      setMessagesWithImages(
-        images.map((message) => {
-          return { url: message.image };
-        })
-      );
-    }
-  }
+  // User's selected room ID
+  const roomID = useSelector(getSelectedRoomID);
+  // User's selected room
+  const userRoom = useSelector(getUserRoomByID(roomID));
+  // User's profile
+  const userProfile = useSelector(getUserInfo);
+  // Selected room messages
+  const userRoomMessages = useSelector(getUserMessagesByID(roomID));
+  // User's selected room images
+  const userRoomImages = getRoomChatImages(userRoomMessages);
 
   /**
    * DO NOT REMOVE TOUCHABLE FEEDBACK. ALSO, DON'T USE THE COMPONENT BUTTON
    * IN THIS MODAL. USE TOUCHABLEOPACITY INSTEAD. THIS FIXES A BUG WITHIN REACT NATIVE.
    * SEE DOCUMENTATION FOR BUG "Modal_Closing_State_Unchanged"
    */
-  if (users && mainUser && room && messagesWithImages) {
+  if (userRoom && userProfile && userRoomImages) {
     return (
       <Modal
         visible={props.visible}
@@ -101,118 +76,67 @@ export const ChatInfo = (props) => {
                   />
                 </TouchableOpacity>
               </View>
-              <View
-                style={{
-                  marginHorizontal: 30,
-                  marginTop: 10,
-                  marginBottom: 30,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#3C6AA8",
-                    fontSize: 20,
-                    fontWeight: "600",
-                    marginBottom: 10,
-                  }}
-                >
-                  Users
-                </Text>
-                {users.map((user, index) => {
-                  return (
-                    <View
-                      key={index}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        backgroundColor: "#3C6AA8",
-                        paddingHorizontal: 20,
-                        borderRadius: 10,
-                        paddingVertical: 5,
-                        borderWidth: 1,
-                        marginTop: index === 0 ? 0 : 10,
-                      }}
-                    >
-                      <Avatar
-                        rounded
-                        source={{
-                          uri: user.avatar,
-                        }}
-                      />
-                      <Text
-                        style={{
-                          marginLeft: 20,
-                          fontSize: 18,
-                          fontWeight: "500",
-                          color: "white",
-                        }}
-                      >
-                        {user.name}
-                      </Text>
-                    </View>
-                  );
-                })}
+              <View style={styles.usersContainer}>
+                <Text style={styles.usersContainerText}>Users</Text>
+                {userRoom.users
+                  .slice()
+                  // Gets all users in the room except the main user
+                  .filter((user) => user.id !== userProfile.ID)
+                  // Sorts the users by their name
+                  .sort((a, b) =>
+                    a.username === b.username
+                      ? 0
+                      : a.username < b.username
+                      ? -1
+                      : 1
+                  )
+                  .map((user, index) => {
+                    return (
+                      <View key={index} style={styles.userItem}>
+                        <Image
+                          source={getUserImage(user.image)}
+                          style={styles.userImage}
+                        />
+                        <Text numberOfLines={1} style={styles.userName}>
+                          {user.username}
+                        </Text>
+                      </View>
+                    );
+                  })}
               </View>
-              <View
-                style={{
-                  marginHorizontal: 30,
-                  marginTop: 10,
-                  marginBottom: 30,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#3C6AA8",
-                    fontSize: 20,
-                    fontWeight: "600",
-                  }}
-                >
-                  Images
-                </Text>
+              <View style={styles.imagesMainContainer}>
+                <Text style={styles.imagesMainContainerText}>Images</Text>
                 <View
                   onLayout={(e) => {
                     setViewWidth(e.nativeEvent.layout.width / 2 - 10);
                   }}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    // backgroundColor: "#3C6AA8",
-                    borderRadius: 10,
-                    paddingVertical: 5,
-                    // borderWidth: 1,
-                    marginTop: 10,
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
+                  style={styles.imagesContainer}
                 >
-                  {messagesWithImages.map((message, index) => {
+                  {userRoomImages.map((message, index) => {
                     return (
-                      <TouchableOpacity
+                      <TouchableHighlight
                         onPress={() => setShowImageViewer(true)}
                         key={index}
+                        underlayColor="none"
                       >
                         <Image
-                          source={{ uri: message.url }}
+                          source={{ uri: message.image }}
                           style={{
+                            ...styles.imagesContainerImage,
                             width: viewWidth
                               ? Math.min(viewWidth, minImageWidthAndHeight)
                               : minImageWidthAndHeight,
                             height: viewWidth
                               ? Math.min(viewWidth, minImageWidthAndHeight)
                               : minImageWidthAndHeight,
-                            margin: 5,
-                            borderRadius: 10,
-                            borderWidth: 1,
-                            borderColor: "#3C6AA8",
                           }}
                         />
-                      </TouchableOpacity>
+                      </TouchableHighlight>
                     );
                   })}
                 </View>
               </View>
             </View>
-            {/* <ImageViewer imageUrls={messagesWithImages} /> */}
           </ScrollView>
         </TouchableWithoutFeedback>
       </Modal>
@@ -236,5 +160,66 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     paddingVertical: 5,
+  },
+  usersContainer: {
+    marginHorizontal: 30,
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  usersContainerText: {
+    color: "#3C6AA8",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  userItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#3C6AA8",
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    marginTop: 10,
+  },
+  userImage: {
+    width: 36,
+    height: 36,
+    tintColor: "#014983",
+    backgroundColor: "white",
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: "#014983",
+  },
+  userName: {
+    marginLeft: 20,
+    fontSize: 20,
+    fontWeight: "500",
+    color: "white",
+    flex: 1,
+  },
+  imagesMainContainer: {
+    marginHorizontal: 30,
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  imagesMainContainerText: {
+    color: "#3C6AA8",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  imagesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
+    paddingVertical: 5,
+    marginTop: 10,
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
+  imagesContainerImage: {
+    margin: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#3C6AA8",
   },
 });

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
-import {
-  getMessages,
-  getMainUser,
-  sendMessage,
-} from "../../../Services/Messages";
-import { StyleSheet, View, LayoutAnimation, Keyboard } from "react-native";
+import { getSelectedRoomID } from "../../../store/ui/chat";
+import { getUserInfo, getUserImage } from "../../../store/entities/profile";
+import { getUserMessagesByID, sendMessage } from "../../../store/entities/chat";
+import { useDispatch, useSelector } from "react-redux";
+import { StyleSheet, View, LayoutAnimation } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
@@ -23,15 +22,29 @@ import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
-import AsyncStorage from "@react-native-community/async-storage";
 
 export const ChatView = (props) => {
+  // Redux Dispatch
+  const dispatch = useDispatch();
+  // The selected room's ID
+  const roomID = useSelector(getSelectedRoomID);
+  // The selected room's messages
+  const userMessages = useSelector(getUserMessagesByID(roomID));
+  // The user's profile
+  const userProfile = useSelector(getUserInfo);
+  // The user's image
+  const userImage = useSelector(getUserImage);
+  // GiftedChat's user format
+  const user = {
+    _id: userProfile.ID,
+    avatar: userImage,
+    name: `${userProfile.FirstName} ${userProfile.LastName}`,
+  };
+
   // The current text inside the input toolbar
   const [text, setText] = useState("");
   // The list of messages for the chat
   const [messages, setMessages] = useState([]);
-  // The user that's currently signed in
-  const [user, setUser] = useState(null);
   // The list of images the user has selected
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
   // Determines if the actions buttons of the input toolbar should display
@@ -52,89 +65,9 @@ export const ChatView = (props) => {
    */
   LayoutAnimation.easeInEaseOut();
 
-  /**
-   * Gets the current user and the chat messages
-   */
-  useEffect(() => {
-    getUser();
-    getMessageData();
-  }, []);
-
-  /**
-   * Gets the messages based upon the room ID
-   */
-  async function getMessageData() {
-    let messages = await getMessages(props.route.params.roomProp._id);
-    if (messages.length > 0) setMessages(messages);
-    else {
-      // This disables a chat room from being opened if the messages failed to load
-      props.navigation.pop();
-      props.navigation.navigate("Rooms", { error: "Failed to load messages" });
-    }
-  }
-
-  /**
-   * Gets the user from local storage
-   */
-  async function getUser() {
-    await getMainUser().then((data) => {
-      setUser(data);
-    });
-  }
-
+  // Sends the user's message
   const onSend = async (text) => {
-    // Adds the selected image to the text
-    // text[0].image = selectedImages; // COME BACK AND EDIT THIS TO BE ABLE TO SEND IMAGES
-
-    // Shows the text message as pending until the database recevies the message
-    text[0].pending = true;
-    // Creates a copy of the  message list
-    let oldMessageList = [...messages];
-    // Adds the new text to the beginning of the list
-    oldMessageList.splice(0, 0, text[0]);
-    setMessages(oldMessageList);
-
-    // Saves the message list to storage
-    await AsyncStorage.setItem(
-      `room:${props.route.params.roomProp._id}`,
-      JSON.stringify(oldMessageList)
-    );
-    // Updates the rooms list to display the new last text message
-    props.route.params.updateRooms(false); // False disables the function from fetching and saving the messages for each room
-    // Sends the message to the database
-    await sendMessage(text[0], props.route.params.roomProp._id)
-      .then(async (wasSubmitted) => {
-        // If the database received the message
-        if (wasSubmitted) {
-          // Since the database received the text, the message is no longer pending
-          text[0].pending = false;
-          let newMessageList = [...oldMessageList];
-          // Replaces the original message that was pending with the new message that's not pending
-          newMessageList.splice(0, 1, text[0]);
-          setMessages(newMessageList);
-          // Saves the message list to storage
-          await AsyncStorage.setItem(
-            `room:${props.route.params.roomProp._id}`,
-            JSON.stringify(newMessageList)
-          );
-          // Updates the rooms list to display the new last text message
-          props.route.params.updateRooms(false); // False disables the function from fetching and saving the messages for each room
-        } else {
-          /**
-           * Since the database failed to save the message, let the user
-           * know that sending the text failed and give them a chance to either
-           * retry or cancel the text
-           */
-        }
-      })
-      // If the fetch fails
-      .catch(() => {
-        /**
-         * Since adding the message to the database failed, let the user
-         * know that sending the text failed and give them a chance to either
-         * retry or cancel the text
-         */
-      });
+    dispatch(sendMessage(text[0]));
   };
 
   /**
@@ -169,7 +102,8 @@ export const ChatView = (props) => {
     return minHeight;
   };
 
-  if (messages && user)
+  // if (messages && user)
+  if (userMessages)
     return (
       <View style={{ flex: 1 }}>
         <AppBar {...props} />
@@ -178,7 +112,7 @@ export const ChatView = (props) => {
           alwaysShowSend
           bottomOffset={getBottomSpace()}
           isCustomViewBottom
-          messages={messages}
+          messages={userMessages}
           messagesContainerStyle={styles.messagesContainer}
           minInputToolbarHeight={minInputToolbarHeight()}
           onInputTextChanged={setText}

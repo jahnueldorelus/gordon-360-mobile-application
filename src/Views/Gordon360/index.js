@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { View, StyleSheet, LayoutAnimation } from "react-native";
 import { WebView } from "react-native-webview";
 import AsyncStorage from "@react-native-community/async-storage";
@@ -7,11 +7,15 @@ import { CustomLoader } from "../../Components/CustomLoader";
 import { AppBar } from "../../Components/AppBar";
 import { OfflineMessage } from "./Components/OfflineMessage";
 import { WebViewError } from "./Components/WebViewError";
+import { getToken } from "../../store/entities/auth";
+import { useSelector } from "react-redux";
 
 export const Gordon360 = (props) => {
   const web = useRef(null);
 
-  const [token, setToken] = useState(null);
+  // The user's token
+  const token = useSelector(getToken);
+
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,19 +24,6 @@ export const Gordon360 = (props) => {
 
   // Configures the animation for the progress bar
   LayoutAnimation.easeInEaseOut();
-
-  /**
-   * Saves the user's token
-   */
-  useEffect(() => {
-    // Saves the user's token
-    getToken();
-  }, []);
-
-  // Gets the user's token
-  async function getToken() {
-    setToken(JSON.parse(await AsyncStorage.getItem("token")));
-  }
 
   /**
    * Received function from online.

@@ -9,16 +9,14 @@ const apiSource = "https://360apitrain.gordon.edu/api/";
  * @param url The URL of the request
  * @returns Response if available, otherwise false if the request failed
  */
-export async function get(url) {
+export async function get(url, state) {
   // If the request is authenticated
-  if (isAuthenticated()) {
+  if (isAuthenticated(state)) {
     const data = await fetch(apiSource + url, {
       method: "GET",
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${JSON.parse(
-          await AsyncStorage.getItem("token")
-        )}`,
+        Authorization: `Bearer ${state.entities.auth.token.data}`,
         "Content-Type": "application/json",
       },
     })
@@ -46,16 +44,14 @@ export async function get(url) {
  * @param body The data to send along with the request
  * @returns Response if available, otherwise an error if the fetch failed
  */
-export async function put(url, body) {
+export async function put(url, body, state) {
   // If the request is authenticated
-  if (isAuthenticated()) {
+  if (isAuthenticated(state)) {
     const data = await fetch(apiSource + url, {
       method: "PUT",
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${JSON.parse(
-          await AsyncStorage.getItem("token")
-        )}`,
+        Authorization: `Bearer ${state.entities.auth.token.data}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
@@ -80,7 +76,10 @@ export async function put(url, body) {
  * Checks to see if a token is saved in storage
  * @returns A boolean determining if a token is available
  */
-async function isAuthenticated() {
-  const token = JSON.parse(await AsyncStorage.getItem("token"));
-  return token && token.length > 0 ? true : false;
+async function isAuthenticated(state) {
+  if (state) {
+    const token = state.entities.auth.token.data;
+    return token && token.length > 0 ? true : false;
+  }
+  return false;
 }

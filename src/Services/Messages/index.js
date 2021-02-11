@@ -7,8 +7,8 @@ import moment from "moment";
  * @param updateMessages Boolean that determines if the messages for each room
  *                        should be fetched and stored. Default is true
  */
-export async function getRooms(updateMessages = true) {
-  let roomIDList = get("dm/rooms");
+export async function getRooms(state, updateMessages = true) {
+  let roomIDList = get("dm/rooms", state);
   /**
    * Checks to make sure that the object returned is a list and is not
    * null or undefined
@@ -38,7 +38,7 @@ export async function getRooms(updateMessages = true) {
         });
 
         // Retrieves and saves all messages associated with the specified room
-        if (updateMessages) await saveMessages(room[0]._id);
+        if (updateMessages) await saveMessages(room[0]._id, state);
 
         // Creates the last message of the room
         room[0].lastMessage = await getLastMessageFromRoom(room[0]._id);
@@ -65,8 +65,8 @@ export async function getRooms(updateMessages = true) {
  * Retrieves and save the list of messages associated with a specified room id
  * @param {number} room_ID The ID of a room
  */
-async function saveMessages(room_ID) {
-  let messagesList = put("dm/messages", room_ID);
+async function saveMessages(room_ID, state) {
+  let messagesList = put("dm/messages", room_ID, state);
   messagesList.then(async (data) => {
     // Checks to see if the data is an array. The data should be an array of messages
     if (Array.isArray(data)) {
@@ -144,12 +144,60 @@ export async function getLastMessageFromRoom(room_ID) {
 }
 
 /**
- * (For the Room Screen) Returns the name of the room. If the room name is not available,
+ * Returns the main user's info
+ */
+export async function getMainUser(state) {
+  let user = {};
+  user.id = state.entities.profile.userInfo.data.ID;
+  user.name =
+    state.entities.profile.userInfo.data.FirstName +
+    "." +
+    state.entities.profile.userInfo.data.LastName;
+  user.avatar = state.entities.profile.image.data;
+  return user;
+}
+
+/**
+ * Returns all the images in a room
+ * @param {Array} messages The list of messages
+ */
+export const getRoomChatImages = (messages) => {
+  let images = [];
+  if (messages.length > 0)
+    images = messages
+      .slice()
+      // Filters out all message objects that doesn't contain an image
+      .filter((text) => text.createdAt && text.image)
+      // Sorts the list of message objects by date of creation from newest to oldest
+      .sort((a, b) => moment(a.createdAt) - moment(b.createdAt));
+  return images;
+};
+
+/**
+ * Returns the image of the room
+ * @param {*} roomImage The image of the room
+ */
+export const getRoomImage = (roomImage) =>
+  roomImage ? { uri: roomImage } : require("./Images/default-chat-image.png");
+
+/**
+ * Returns the image of the user
+ * @param {*} userImage The image of the user
+ */
+export const getUserImage = (userImage) =>
+  userImage ? { uri: userImage } : require("./Images/default-user-image.png");
+
+/**
+ * Gets the name of the room. If the room name is not available,
  * the names of users in the room is returned
  * @param {JSON} room The room to be parsed through
- * @param {JSON} mainUser The main user
+ * @param {JSON} userProfile The profile of the user
+ * @return {String} The name of the room
  */
-export function getRoomName(room, mainUser) {
+export const getRoomName = (room, userProfile) => {
+  // The main user's ID
+  const { ID: mainUserID } = userProfile;
+
   // If the room is a group
   if (room.group) {
     // If the group has a name, then it's returned
@@ -159,10 +207,10 @@ export function getRoomName(room, mainUser) {
       let names = "";
       room.users.forEach((user, index, arr) => {
         // Checks to make sure that the main user's name is not shown
-        if (user._id != mainUser._id) {
+        if (user.id != mainUserID) {
           // Adds a comma to a user's name except for the last user
-          if (index !== arr.length - 1) names += `${user.name}, `;
-          else names += user.name;
+          if (index !== arr.length - 1) names += `${user.username}, `;
+          else names += user.username;
         }
       });
       return names;
@@ -172,9 +220,9 @@ export function getRoomName(room, mainUser) {
      * Since the room is not a group (2 users only), the name of the other user
      * (not the main user), is returned
      */
-    return room.users.filter((user) => user._id !== mainUser._id)[0].name;
+    return room.users.filter((user) => user.id !== mainUserID)[0].username;
   }
-}
+};
 
 /**
  * (For the Chat Screen) Returns the name of the chat. If the chat name is not available,
@@ -182,9 +230,12 @@ export function getRoomName(room, mainUser) {
  * returned. If the chat is not a group (only has 2 users), then the other user that's
  * not the main user is returned.
  * @param {JSON} room The room to be parsed through
- * @param {JSON} mainUser The main user
+ * @param {JSON} userProfile The profile of the user
  */
-export function getChatName(room, mainUser) {
+export function getChatName(room, userProfile) {
+  // The main user's ID
+  const { ID: mainUserID } = userProfile;
+
   // If the room is a group
   if (room.group) {
     // If the group has a name, then it's returned
@@ -192,44 +243,13 @@ export function getChatName(room, mainUser) {
     // Since there's no group name, the number of people in the group is returned
     else {
       // One person is removed from the length of users because of those users is the main user
-      return `${getNumOfUsers(room) - 1} People`;
+      return `${room.users.length - 1} People`;
     }
   } else {
     /**
      * Since the room is not a group (2 users only), the name of the other user
      * (not the main user), is returned
      */
-    return room.users.filter((user) => user._id !== mainUser._id)[0].name;
+    return room.users.filter((user) => user.id !== mainUserID)[0].username;
   }
-}
-
-/**
- * Returns the number of users in a room.
- * @param {JSON} room The room to be parsed through
- */
-export function getNumOfUsers(room) {
-  return room.users.length;
-}
-
-/**
- * Returns the main user's info
- */
-export async function getMainUser() {
-  let user = JSON.parse(await AsyncStorage.getItem("user"));
-  return user;
-}
-
-/**
- * Returns all the images in a room
- * @param {number} room_ID The ID of a room
- */
-export async function getImages(room_ID) {
-  let messageData = await getMessages(room_ID);
-  let images = [];
-  if (messageData)
-    // Filters out all message objects that doesn't contain an image
-    images = messageData.filter(
-      (message) => message.createdAt && message.image
-    );
-  return images;
 }

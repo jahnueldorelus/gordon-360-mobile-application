@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { getUserSchedule } from "../../../../Services/Profile";
 import moment from "moment";
+import { useSelector } from "react-redux";
+import { getUserSchedule } from "../../../../store/entities/profile";
 
-export const Schedule = (props) => {
+export const Schedule = () => {
+  // User's schedule
+  const userSchedule = useSelector(getUserSchedule);
+
   const [days, setDays] = useState();
   const [selectedDate, setSelectedDate] = useState();
   const [events, setEvents] = useState();
@@ -27,15 +31,15 @@ export const Schedule = (props) => {
       daysOfTheWeek.push(dateObject);
     });
     setDays(daysOfTheWeek);
-  }, []);
+  }, [userSchedule]);
 
   // Creates the events objects
   useEffect(() => {
-    async function getSchedule() {
+    // If the user's schedule is available
+    if (userSchedule) {
       let allEvents = [];
-      let events = await getUserSchedule();
 
-      events.forEach((event) => {
+      userSchedule.forEach((event) => {
         let eventObject = {};
         // Creates a new event object to work alongside Moment date objects
         eventObject.startTime = event.BEGIN_TIME.trim();
@@ -62,9 +66,7 @@ export const Schedule = (props) => {
       });
       setEvents(allEvents);
     }
-
-    getSchedule();
-  }, []);
+  }, [userSchedule]);
 
   const defaultFontSize = 18;
   const styles = StyleSheet.create({
@@ -143,6 +145,8 @@ export const Schedule = (props) => {
     noEventsText: {
       fontSize: defaultFontSize,
     },
+    scheduleTitle: { fontSize: 24, marginBottom: 5, color: "#014983" },
+    noScheduleText: { fontSize: 18 },
   });
 
   // Gets the days of the week to display
@@ -319,12 +323,32 @@ export const Schedule = (props) => {
     }
   };
 
-  if (days && selectedDate && events) {
-    return (
-      <View style={styles.mainContainer}>
-        {getDays()}
-        {getEvents()}
-      </View>
-    );
-  } else return <></>;
+  // Gets the schedule content
+  const getContent = () => {
+    // Schedule title
+    const title = <Text style={styles.scheduleTitle}>Schedule</Text>;
+
+    if (days && selectedDate && events) {
+      // If the user's schedule is available
+      return (
+        <View style={styles.mainContainer}>
+          {title}
+          {getDays()}
+          {getEvents()}
+        </View>
+      );
+    } else {
+      // If the user's schedule is not available
+      return (
+        <View style={styles.mainContainer}>
+          {title}
+          <Text style={styles.noScheduleText}>
+            Schedule is currently unavailable.
+          </Text>
+        </View>
+      );
+    }
+  };
+
+  return getContent();
 };

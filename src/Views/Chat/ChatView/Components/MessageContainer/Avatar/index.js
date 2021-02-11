@@ -9,6 +9,9 @@ export const renderAvatar = (props) => (
   <Avatar
     {...props}
     // containerStyle={{ left: { borderWidth: 3, borderColor: "red" }, right: {} }}
-    // imageStyle={{ left: { borderWidth: 2, borderColor: "#014983" }, right: {} }}
-  />
+    imageStyle={{
+      left: { borderWidth: 1, borderColor: "#014983" },
+      right: {},
+    }}
+  ></Avatar>
 );

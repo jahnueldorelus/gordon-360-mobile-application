@@ -79,12 +79,12 @@ const slice = createSlice({
           // Adds the message object to the object of messages
           messages[text.message_id] = {
             ...text,
-            image: "https://placeimg.com/140/140/any",
+            image: text.image,
             _id: text.message_id,
             user: {
               _id: text.user.user_id,
               name: text.user.user_name,
-              avatar: "https://placeimg.com/140/140/any",
+              avatar: "https://placeimg.com/140/140/animals",
             },
           };
           // Adds the message's ID and date to a list for sorting
@@ -124,10 +124,10 @@ const slice = createSlice({
       const roomMessages = state.messages[roomID];
       const roomMessagesSorted = state.messageSort[roomID];
       // Adds the message to the room's object of messages
-      roomMessages[messageObj.id] = messageObj;
+      roomMessages[messageObj._id] = messageObj;
       // Adds the message to the room's sorted message list (at the beginning)
       roomMessagesSorted.splice(0, 0, {
-        _id: messageObj.id,
+        _id: messageObj._id,
         createdAt: messageObj.createdAt,
       });
     },
@@ -278,9 +278,6 @@ export const sendMessage = (message) => (dispatch, getState) => {
   const roomID = getState().ui.chat.selectedRoomID;
   // Reformats the message object for the back-end to parse correctly
   const newMessage = {
-    id: message._id,
-    _id: message._id,
-    room_id: roomID,
     text: message.text,
     user: message.user,
     createdAt: moment(message.createdAt).format("YYYY-MM-DDTHH:mm:ss.SSS"),
@@ -289,21 +286,35 @@ export const sendMessage = (message) => (dispatch, getState) => {
     video: message.video ? message.video : null,
     system: message.system ? message.system : false,
     received: message.received ? message.received : false,
-    pending: true,
+    pending: false,
   };
 
+  // Formatted message for the back-end to parse
+  const backEndMessage = {
+    ...newMessage,
+    id: message._id,
+    room_id: roomID,
+  };
+  // Formatted message for Redux to parse
+  const stateMessage = { ...newMessage, _id: message._id, pending: true };
+
   // Adds the message to the state
-  dispatch(slice.actions.addMessage({ roomID, messageObj: newMessage }));
+  dispatch(
+    slice.actions.addMessage({
+      roomID,
+      messageObj: stateMessage,
+    })
+  );
 
   // Sends the message to the back-end
   dispatch(
     apiRequested({
       url: "/dm/text",
       method: "put",
-      data: newMessage,
+      data: backEndMessage,
       useEndpoint: true,
       onSuccess: slice.actions.updateMessagePending.type,
-      passedData: { roomID, messageObj: newMessage },
+      passedData: { roomID, messageObj: backEndMessage },
     })
   );
 };

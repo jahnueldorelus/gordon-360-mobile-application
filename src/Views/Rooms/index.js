@@ -22,7 +22,6 @@ import { getUserInfo } from "../../store/entities/profile";
 import { getToken } from "../../store/entities/auth";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
-import { LinearGradient } from "expo-linear-gradient";
 import { setRoomID } from "../../store/ui/chat";
 
 const deviceHeight = Dimensions.get("window").height;
@@ -92,94 +91,81 @@ export const RoomsList = (props) => {
 
   if (rooms && userProfile)
     return (
-      <LinearGradient
-        // Background Linear Gradient
-        colors={["#014983", "#FFFAFF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.gradient}
-      >
-        <FlatList
-          style={styles.room}
-          data={rooms}
-          keyExtractor={(item, index) => index.toString()}
-          refreshControl={
-            <RefreshControl
-              refreshing={dataLoading}
-              onRefresh={() => {
-                /**
-                 * Fetching the messages is not necessary as useEffect
-                 * will fetch the messages after the rooms are fetched
-                 */
-                dispatch(fetchRooms());
+      <FlatList
+        style={styles.room}
+        data={rooms}
+        keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl
+            refreshing={dataLoading}
+            onRefresh={() => {
+              /**
+               * Fetching the messages is not necessary as useEffect
+               * will fetch the messages after the rooms are fetched
+               */
+              dispatch(fetchRooms());
+            }}
+          />
+        }
+        renderItem={(room) => {
+          return (
+            <ListItem
+              containerStyle={{
+                ...styles.listItemContainer,
+                // Adds a bottom margin to the last item in the list
+                marginBottom: room.index === rooms.length - 1 ? 15 : 0,
               }}
-              tintColor={"white"}
-            />
-          }
-          renderItem={(room) => {
-            return (
-              <ListItem
-                containerStyle={{
-                  ...styles.listItemContainer,
-                  // Adds a bottom margin to the last item in the list
-                  marginBottom: room.index === rooms.length - 1 ? 15 : 0,
-                }}
-                key={room.index}
-                underlayColor="none"
-                onPress={() => {
-                  // Sets the user's selected room ID
-                  dispatch(setRoomID(room.item.id));
-                  // Navigates to the chat screen with a specified room id
-                  props.navigation.navigate("Chat", {
-                    roomProp: {},
-                  });
-                }}
-              >
-                <Image
-                  source={getRoomImage(room.item.image)}
-                  style={styles.listItemImage}
-                />
-                <ListItem.Content>
-                  <ListItem.Title
-                    numberOfLines={1}
-                    style={styles.listItemTitle}
-                  >
-                    {getRoomName(room.item, userProfile)}
-                  </ListItem.Title>
-                  <ListItem.Subtitle numberOfLines={2}>
-                    {room.item.lastMessage}
-                  </ListItem.Subtitle>
-                  <ListItem.Subtitle
-                    numberOfLines={1}
-                    style={styles.listSubTitleDate}
-                  >
-                    {getRoomDate(room.item.lastUpdated)}
-                  </ListItem.Subtitle>
-                </ListItem.Content>
-                <ListItem.Chevron />
-              </ListItem>
-            );
-          }}
-          ListEmptyComponent={() => (
-            <View>
-              <Text style={styles.emptyList}>
-                No Chats Available. Start a new one!
-              </Text>
-            </View>
-          )}
-        />
-      </LinearGradient>
+              key={room.index}
+              underlayColor="none"
+              onPress={() => {
+                // Sets the user's selected room ID
+                dispatch(setRoomID(room.item.id));
+                // Navigates to the chat screen with a specified room id
+                props.navigation.navigate("Chat", {
+                  roomProp: {},
+                });
+              }}
+            >
+              <Image
+                source={getRoomImage(room.item.image)}
+                style={styles.listItemImage}
+              />
+              <ListItem.Content>
+                <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+                  {getRoomName(room.item, userProfile)}
+                </ListItem.Title>
+                <ListItem.Subtitle numberOfLines={2}>
+                  {room.item.lastMessage}
+                </ListItem.Subtitle>
+                <ListItem.Subtitle
+                  numberOfLines={1}
+                  style={styles.listSubTitleDate}
+                >
+                  {getRoomDate(room.item.lastUpdated)}
+                </ListItem.Subtitle>
+              </ListItem.Content>
+              <ListItem.Chevron />
+            </ListItem>
+          );
+        }}
+        ListEmptyComponent={() => (
+          <View>
+            <Text style={styles.emptyList}>
+              No Chats Available. Start a new one!
+            </Text>
+          </View>
+        )}
+      />
     );
   else return <CustomLoader />;
 };
 
 const styles = StyleSheet.create({
-  gradient: { flex: 1 },
   room: {
     flex: 1,
+    backgroundColor: "#FFFAFF",
   },
   listItemContainer: {
-    // backgroundColor: "transparent",
     margin: 15,
     borderRadius: 10,
     shadowColor: "#000",

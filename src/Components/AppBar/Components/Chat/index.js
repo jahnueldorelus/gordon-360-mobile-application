@@ -47,9 +47,7 @@ export const AppbarChat = (props) => {
             color="white"
             size={30}
             onPress={() => {
-              modalInfoVisible
-                ? setModaInfoVisible(false)
-                : setModaInfoVisible(true);
+              setModaInfoVisible(true);
             }}
           />
         </View>

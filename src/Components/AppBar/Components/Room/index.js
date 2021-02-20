@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
+import { NewChat } from "../../../../Views/Chat/NewChat";
 
 export const AppbarRoom = (props) => {
+  // Modal's visibility
+  const [modalInfoVisible, setModaInfoVisible] = useState(false);
   return (
     <View style={styles.appBarContainer}>
       <TouchableOpacity
@@ -16,12 +19,32 @@ export const AppbarRoom = (props) => {
         <Icon name="bars" type="font-awesome-5" color="white" size={28} />
         <Text style={styles.navigationButtonText}>Messages</Text>
       </TouchableOpacity>
+      <View style={styles.newChat}>
+        <Icon
+          name="user-edit"
+          type="font-awesome-5"
+          color="white"
+          size={25}
+          onPress={() => {
+            setModaInfoVisible(true);
+          }}
+        />
+      </View>
+      <NewChat
+        {...props}
+        visible={modalInfoVisible}
+        setVisible={setModaInfoVisible}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  appBarContainer: { flexDirection: "row", alignItems: "center" },
+  appBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   navigationButton: {
     marginHorizontal: 10,
     flexDirection: "row",
@@ -33,4 +56,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
+  newChat: { marginRight: 10 },
 });

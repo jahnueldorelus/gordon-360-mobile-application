@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Modal,
-  TouchableWithoutFeedback,
   TouchableOpacity,
   TouchableHighlight,
   Image,
@@ -38,107 +37,86 @@ export const ChatInfo = (props) => {
   // User's selected room images
   const userRoomImages = getRoomChatImages(userRoomMessages);
 
-  /**
-   * DO NOT REMOVE TOUCHABLE FEEDBACK. ALSO, DON'T USE THE COMPONENT BUTTON
-   * IN THIS MODAL. USE TOUCHABLEOPACITY INSTEAD. THIS FIXES A BUG WITHIN REACT NATIVE.
-   * SEE DOCUMENTATION FOR BUG "Modal_Closing_State_Unchanged"
-   */
   if (userRoom && userProfile && userRoomImages) {
     return (
       <Modal
         visible={props.visible}
         presentationStyle="pageSheet"
         animationType="slide"
-        onRequestClose={() => props.setVisible(false)}
-        onDismiss={() => props.setVisible(false)}
       >
-        <TouchableWithoutFeedback
-          onPressOut={(e) => {
-            if (e.nativeEvent.locationY < 0) {
-              props.setVisible(false);
-            }
-          }}
-          style={styles.touchableWithout}
-        >
+        <View style={styles.touchableWithout}>
+          <View style={styles.title}>
+            <Text style={styles.titleText}>Chat Details</Text>
+            <TouchableOpacity
+              title="Close Modal"
+              onPress={() => props.setVisible(false)}
+            >
+              <Icon name="close" type="material" color="#002F64" size={30} />
+            </TouchableOpacity>
+          </View>
           <ScrollView style={{ flex: 1 }}>
-            <View style={styles.touchableWithout}>
-              <View style={styles.title}>
-                <Text style={styles.titleText}>Chat Details</Text>
-                <TouchableOpacity
-                  title="Close Modal"
-                  onPress={() => props.setVisible(false)}
-                >
-                  <Icon
-                    name="close"
-                    type="material"
-                    color="#002F64"
-                    size={30}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.usersContainer}>
-                <Text style={styles.usersContainerText}>Users</Text>
-                {userRoom.users
-                  .slice()
-                  // Gets all users in the room except the main user
-                  .filter((user) => user.id !== userProfile.ID)
-                  // Sorts the users by their name
-                  .sort((a, b) =>
-                    a.username === b.username
-                      ? 0
-                      : a.username < b.username
-                      ? -1
-                      : 1
-                  )
-                  .map((user, index) => {
-                    return (
-                      <View key={index} style={styles.userItem}>
-                        <Image
-                          source={getUserImage(user.image)}
-                          style={styles.userImage}
-                        />
-                        <Text numberOfLines={1} style={styles.userName}>
-                          {user.username}
-                        </Text>
-                      </View>
-                    );
-                  })}
-              </View>
-              <View style={styles.imagesMainContainer}>
-                <Text style={styles.imagesMainContainerText}>Images</Text>
-                <View
-                  onLayout={(e) => {
-                    setViewWidth(e.nativeEvent.layout.width / 2 - 10);
-                  }}
-                  style={styles.imagesContainer}
-                >
-                  {userRoomImages.map((message, index) => {
-                    return (
-                      <TouchableHighlight
-                        onPress={() => setShowImageViewer(true)}
-                        key={index}
-                        underlayColor="none"
-                      >
-                        <Image
-                          source={{ uri: message.image }}
-                          style={{
-                            ...styles.imagesContainerImage,
-                            width: viewWidth
-                              ? Math.min(viewWidth, minImageWidthAndHeight)
-                              : minImageWidthAndHeight,
-                            height: viewWidth
-                              ? Math.min(viewWidth, minImageWidthAndHeight)
-                              : minImageWidthAndHeight,
-                          }}
-                        />
-                      </TouchableHighlight>
-                    );
-                  })}
-                </View>
+            <View style={styles.usersContainer}>
+              <Text style={styles.usersContainerText}>Users</Text>
+              {userRoom.users
+                .slice()
+                // Gets all users in the room except the main user
+                .filter((user) => user.id !== userProfile.ID)
+                // Sorts the users by their name
+                .sort((a, b) =>
+                  a.username === b.username
+                    ? 0
+                    : a.username < b.username
+                    ? -1
+                    : 1
+                )
+                .map((user, index) => {
+                  return (
+                    <View key={index} style={styles.userItem}>
+                      <Image
+                        source={getUserImage(user.image)}
+                        style={styles.userImage}
+                      />
+                      <Text numberOfLines={1} style={styles.userName}>
+                        {user.username}
+                      </Text>
+                    </View>
+                  );
+                })}
+            </View>
+            <View style={styles.imagesMainContainer}>
+              <Text style={styles.imagesMainContainerText}>Images</Text>
+              <View
+                onLayout={(e) => {
+                  setViewWidth(e.nativeEvent.layout.width / 2 - 10);
+                }}
+                style={styles.imagesContainer}
+              >
+                {userRoomImages.map((message, index) => {
+                  return (
+                    <TouchableHighlight
+                      onPress={() => setShowImageViewer(true)}
+                      key={index}
+                      underlayColor="none"
+                    >
+                      <Image
+                        source={{ uri: message.image }}
+                        style={{
+                          ...styles.imagesContainerImage,
+                          width: viewWidth
+                            ? Math.min(viewWidth, minImageWidthAndHeight)
+                            : minImageWidthAndHeight,
+                          height: viewWidth
+                            ? Math.min(viewWidth, minImageWidthAndHeight)
+                            : minImageWidthAndHeight,
+                        }}
+                      />
+                    </TouchableHighlight>
+                  );
+                })}
               </View>
             </View>
           </ScrollView>
-        </TouchableWithoutFeedback>
+        </View>
       </Modal>
     );
   } else return <></>;

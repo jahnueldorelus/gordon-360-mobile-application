@@ -13,5 +13,5 @@ export const renderAvatar = (props) => (
       left: { borderWidth: 1, borderColor: "#014983" },
       right: {},
     }}
-  ></Avatar>
+  />
 );

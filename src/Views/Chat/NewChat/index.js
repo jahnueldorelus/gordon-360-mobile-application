@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  StyleSheet,
-  LayoutAnimation,
-  Modal,
-  SafeAreaView,
-} from "react-native";
+import { View, StyleSheet, Modal, SafeAreaView } from "react-native";
 import { getUserImage } from "../../../Services/Messages/index";
 import {
   getPeopleSearchResults,
@@ -14,23 +8,25 @@ import {
 import { SearchHeader } from "./Components/SearchHeader";
 import { SelectedUsers } from "./Components/SelectedUsers/index";
 import { SearchResults } from "./Components/SearchResults/index";
-import { Tooltip } from "./Components/Tooltip/index";
+import { SearchFilter } from "./Components/SearchFilter/index";
+import { SearchTooltip } from "./Components/SearchTooltip/index";
 import { useSelector } from "react-redux";
 
 export const NewChat = (props) => {
   // The user's search text
   const [searchedText, setSearchedText] = useState("");
-  // List of selected users
+
+  // Object of selected users
   const [selectedUsers, setSelectedUsers] = useState({});
+
+  // People Search filter visibility
+  const [filterVisible, setFilterVisible] = useState(true);
 
   // The people search's result
   const searchResult = useSelector(getPeopleSearchResults);
 
   // The people search's loading status
   const searchResultLoading = useSelector(getPeopleSearchLoading);
-
-  // Configures the animation for the entire component
-  LayoutAnimation.easeInEaseOut();
 
   /**
    * Gets the user's full name including their nick name
@@ -111,6 +107,11 @@ export const NewChat = (props) => {
     }
   };
 
+  /**
+   * Do not move this code to the beginning of the file. The
+   * code uses "sortUsersAlphabetically" whose function is
+   * required to be defined before being used.
+   */
   // The search results of users sorted in alphabetical order
   const searchResultList = sortUsersAlphabetically(searchResult);
   // The list of selected users
@@ -132,7 +133,7 @@ export const NewChat = (props) => {
         setVisible={props.setVisible}
       />
       <View style={styles.modal}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#015483" }}>
+        <SafeAreaView style={{ flex: 1 }}>
           <SelectedUsers
             handleSelected={handleSelected}
             getUserFullName={getUserFullName}
@@ -149,10 +150,12 @@ export const NewChat = (props) => {
               handleSelected={handleSelected}
             />
           ) : (
-            <Tooltip selectedUsers={selectedUsersList} />
+            <SearchTooltip selectedUsers={selectedUsersList} />
           )}
         </SafeAreaView>
       </View>
+
+      <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
     </Modal>
   );
 };

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 
-export const Tooltip = (props) => {
+export const SearchTooltip = (props) => {
   return (
     <View style={styles.tooltipContainer}>
       <Image

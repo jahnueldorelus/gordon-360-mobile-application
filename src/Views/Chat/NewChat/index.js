@@ -20,7 +20,7 @@ export const NewChat = (props) => {
   const [selectedUsers, setSelectedUsers] = useState({});
 
   // People Search filter visibility
-  const [filterVisible, setFilterVisible] = useState(true);
+  const [filterVisible, setFilterVisible] = useState(false);
 
   // The people search's result
   const searchResult = useSelector(getPeopleSearchResults);
@@ -69,7 +69,10 @@ export const NewChat = (props) => {
         ? // Sorts by last name since they're not equal
           a.LastName.localeCompare(b.LastName)
         : // Sorts by nick name (if both users have one)
-        a.NickName !== a.FirstName && b.NickName !== b.FirstName
+        a.NickName &&
+          a.NickName !== a.FirstName &&
+          b.NickName &&
+          b.NickName !== b.FirstName
         ? a.NickName.localeCompare(b.NickName)
         : // If user A has a nick name and user B doesn't, user A
         // goes after user B
@@ -131,15 +134,17 @@ export const NewChat = (props) => {
         setSelectedUsers={setSelectedUsers}
         searchResultList={searchResultList}
         setVisible={props.setVisible}
+        filterVisible={filterVisible}
+        setFilterVisible={setFilterVisible}
       />
       <View style={styles.modal}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.safeAreaView}>
           <SelectedUsers
             handleSelected={handleSelected}
             getUserFullName={getUserFullName}
             selectedUsers={selectedUsersList}
           />
-          {searchedText.length > 1 ? (
+          {searchedText.length >= 2 ? (
             <SearchResults
               searchedText={searchedText}
               searchResultList={searchResultList}
@@ -162,4 +167,5 @@ export const NewChat = (props) => {
 
 const styles = StyleSheet.create({
   modal: { flex: 1 },
+  safeAreaView: { flex: 1, backgroundColor: "#014983" },
 });

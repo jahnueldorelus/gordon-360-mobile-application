@@ -96,7 +96,7 @@ export const SearchResults = (props) => {
         );
       }}
       ListEmptyComponent={() =>
-        !props.resultLoading ? (
+        !props.resultLoading && props.searchResultList.length === 0 ? (
           <View style={styles.emptyListItem}>
             <Image
               source={require("../../Images/empty-list.png")}

@@ -25,15 +25,25 @@ export const SelectedUsers = (props) => {
 
   return (
     <View style={styles.mainContainer}>
+      {props.selectedUsers.length > 0 && (
+        <Text style={styles.tooltipText}>
+          {showUserScrollTooltip
+            ? "Scroll to view all selected users"
+            : "Selected Users"}
+        </Text>
+      )}
       <FlatList
         ref={usersSelectedScrollRef}
         data={props.selectedUsers}
         keyExtractor={(item, index) => index.toString()}
         showsHorizontalScrollIndicator
         horizontal
-        contentContainerStyle={{
-          padding: props.selectedUsers.length > 0 ? 10 : 0,
-        }}
+        contentContainerStyle={[
+          {
+            padding: props.selectedUsers.length > 0 ? 10 : 0,
+            paddingBottom: props.selectedUsers.length > 0 ? 15 : 0,
+          },
+        ]}
         onContentSizeChange={(width) => {
           const newWidth = width - 20; // 20 is subtracted to exclude horizontal padding
           /**
@@ -97,9 +107,7 @@ export const SelectedUsers = (props) => {
           );
         }}
       />
-      {props.selectedUsers.length > 0 && showUserScrollTooltip && (
-        <Text style={styles.tooltipText}>Scroll to view selected users</Text>
-      )}
+
       {props.selectedUsers.length > 0 && <View style={styles.bottomBorder} />}
     </View>
   );
@@ -128,12 +136,18 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     padding: 1,
   },
-  tooltipText: { textAlign: "center", fontSize: 15, marginBottom: 5 },
+  tooltipText: {
+    textAlign: "center",
+    fontSize: 15,
+    marginTop: 10,
+    fontWeight: "bold",
+    color: "#014983",
+    marginHorizontal: 10,
+  },
   bottomBorder: {
     borderColor: "#0a5289",
     borderBottomWidth: 1,
     width: "100%",
     alignSelf: "center",
-    marginBottom: 5,
   },
 });

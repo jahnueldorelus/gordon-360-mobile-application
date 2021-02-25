@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   Dimensions,
-  LayoutAnimation,
   Platform,
   StatusBar,
 } from "react-native";
@@ -17,8 +16,6 @@ export const CustomModal = (props) => {
     !props.coverScreen ? true : props.containInView
   );
   const deviceHeight = Dimensions.get("window").height;
-
-  LayoutAnimation.easeInEaseOut();
 
   // Gets the height of the modal by ratio of the given height
   const getViewHeight = () => {
@@ -46,15 +43,13 @@ export const CustomModal = (props) => {
 
   useEffect(() => {
     if (props.visible) {
-      // Displays opening animation
+      // Sets UI data and opens the modal
       setViewHeight(getViewHeight());
       setVisible(true);
     } else {
-      // Displays closing animation of the modal if it was opened
+      // Resets UI data and closes modal
       setViewHeight(null);
-      setTimeout(() => {
-        setVisible(false);
-      }, 300);
+      setVisible(false);
     }
   }, [props.visible]);
 
@@ -62,7 +57,7 @@ export const CustomModal = (props) => {
   if (visible) {
     const styles = StyleSheet.create({
       container: {
-        flex: 1,
+        flex: props.coverScreen ? 1 : 0,
         backgroundColor: "white",
         // If the screen will not be covered, then it will appear in the same view
         // currently displayed and not on top of it

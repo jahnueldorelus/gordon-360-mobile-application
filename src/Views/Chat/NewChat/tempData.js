@@ -1,5 +1,5 @@
 export const data = {
-  academic: {
+  academics: {
     major: {
       selected: "Test",
       filterName: "Major",
@@ -366,9 +366,9 @@ export const data = {
         "Theatre",
       ],
     },
-    building: {
+    dormitory: {
       selected: null,
-      filterName: "Building",
+      filterName: "Dormitory",
       data: [
         "Bromley Hall",
         "Chase Hall",

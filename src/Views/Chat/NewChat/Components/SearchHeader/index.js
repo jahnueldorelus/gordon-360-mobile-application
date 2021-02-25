@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Keyboard,
+} from "react-native";
 import {
   searchForPeople,
   resetSearchList,
@@ -11,6 +17,44 @@ import { useDispatch } from "react-redux";
 export const SearchHeader = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
+
+  /**
+   * Determines if users can be searched.
+   * Users can be searched only if the length of the text
+   * in the search bar is at least 2
+   */
+  const canSearchUsers = () => {
+    return props.searchedText.length >= 2;
+  };
+
+  /**
+   * Searched the users based upon the name and filters applied
+   * if users can be searched.
+   */
+  const searchUsers = () => {
+    if (canSearchUsers()) {
+      // Splits the search bar's text to retrieve first and last name
+      const name = props.searchedText.split(" ");
+
+      // Dispatches the search
+      dispatch(
+        searchForPeople({
+          includeAlumni: false,
+          firstName: name[0] ? name[0] : "",
+          lastName: name[1] ? name[1] : "",
+          major: "",
+          minor: "",
+          hall: "",
+          classType: "",
+          homeCity: "",
+          state: "",
+          country: "",
+          department: "",
+          building: "",
+        })
+      );
+    }
+  };
 
   return (
     <LinearGradient
@@ -39,43 +83,71 @@ export const SearchHeader = (props) => {
       <View style={styles.searchBar}>
         <SearchBar
           placeholder="Search People Here..."
-          onChangeText={(text) => {
-            props.setSearchedText(text);
-            // Does a search if the text length is greater than 1
-            if (text.length > 1) {
-              const name = text.split(" ");
-              dispatch(
-                searchForPeople({
-                  includeAlumni: false,
-                  firstName: name[0] ? name[0] : "",
-                  lastName: name[1] ? name[1] : "",
-                  major: "",
-                  minor: "",
-                  hall: "",
-                  classType: "",
-                  homeCity: "",
-                  state: "",
-                  country: "",
-                  department: "",
-                  building: "",
-                })
-              );
-            }
-            // Resets the search results if the text length is less than 2
-            else {
-              if (props.searchResultList.length > 0)
-                dispatch(resetSearchList());
-            }
-          }}
+          onFocus={() => props.setFilterVisible(false)}
           value={props.searchedText}
           round
           lightTheme
           containerStyle={styles.searchBarContainer}
           platform="ios"
+          onChangeText={(text) => {
+            props.setSearchedText(text);
+            dispatch(resetSearchList());
+          }}
+          onSubmitEditing={() => {
+            searchUsers();
+          }}
           inputContainerStyle={styles.searchBarInputContainer}
           inputStyle={styles.searchBarInput}
           cancelButtonProps={{ buttonTextStyle: styles.searchBarCancelButton }}
         />
+        <View style={styles.filterAndSearchContainer}>
+          <TouchableOpacity
+            underlayColor="none"
+            onPress={() => {
+              props.setFilterVisible(!props.filterVisible);
+              Keyboard.dismiss();
+            }}
+            containerStyle={styles.filterButtonContainer}
+          >
+            <View style={styles.filterButton}>
+              <Icon
+                name={props.filterVisible ? "remove" : "add"}
+                type="material"
+                color="white"
+                size={25}
+                containerStyle={styles.filterButtonIcon}
+              />
+              <Text style={styles.filterButtonText}>
+                {props.filterVisible ? "Close Filters" : "Show Filters"}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            underlayColor="none"
+            disabled={!canSearchUsers()}
+            onPress={() => {
+              Keyboard.dismiss();
+              searchUsers();
+            }}
+            containerStyle={styles.searchButtonContainer}
+          >
+            <View
+              style={[
+                styles.searchButton,
+                { opacity: canSearchUsers() ? 1 : 0.15 },
+              ]}
+            >
+              <Icon
+                name={"search"}
+                type="font-awesome-5"
+                color="#014983"
+                size={16}
+                containerStyle={styles.searchButtonIcon}
+              />
+              <Text style={styles.searchButtonText}>Search</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -98,6 +170,38 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     paddingVertical: 5,
   },
+  filterAndSearchContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 8,
+    alignItems: "center",
+  },
+  filterButtonContainer: { alignSelf: "flex-start" },
+  filterButton: { flexDirection: "row", alignItems: "center" },
+  filterButtonText: {
+    color: "white",
+    fontSize: 17,
+    fontWeight: "bold",
+    paddingVertical: 5,
+  },
+  filterButtonIcon: { marginRight: 5 },
+  searchButtonContainer: { alignSelf: "flex-end" },
+  searchButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    marginBottom: 3,
+  },
+  searchButtonText: {
+    color: "#014983",
+    fontSize: 17,
+    fontWeight: "bold",
+    paddingVertical: 5,
+  },
+  searchButtonIcon: { marginRight: 5 },
   searchBar: {
     marginHorizontal: 30,
     marginTop: 10,

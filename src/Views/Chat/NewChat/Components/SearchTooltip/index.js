@@ -10,7 +10,7 @@ export const SearchTooltip = (props) => {
       />
       <Text style={styles.tooltipText}>
         {props.selectedUsers.length > 0
-          ? "Select more people or click create to start a new chat!"
+          ? "Search and select more people or click create to start a new chat!"
           : "Search and select people above to chat with!"}
       </Text>
     </View>
@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "white",
     flexGrow: 1,
+    overflow: "hidden",
   },
   tooltipImage: {
     width: 150,

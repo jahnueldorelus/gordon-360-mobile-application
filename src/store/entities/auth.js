@@ -11,7 +11,7 @@ const slice = createSlice({
       loading: false,
       fetchError: false,
     },
-    api: "https://360apitrain.gordon.edu",
+    api: "https://360api.gordon.edu",
     apiEndpoint: "/api",
   },
   reducers: {

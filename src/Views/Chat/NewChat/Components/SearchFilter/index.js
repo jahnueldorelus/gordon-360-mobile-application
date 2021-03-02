@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,37 +9,60 @@ import {
   TouchableHighlight,
 } from "react-native";
 import { CustomModal } from "../../../../../Components/CustomModal/index";
-import { ButtonGroup, Icon, Button } from "react-native-elements";
+import { ButtonGroup, Icon } from "react-native-elements";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { data } from "../../tempData";
 import { FlatList } from "react-native-gesture-handler";
+import {
+  fetchFilterData,
+  getFilterNames,
+  getSelectedFilterIndex,
+  setSelectedFilterIndex,
+  getSelectedFilterName,
+  getFilterObject,
+  getSelectedFilterSectionName,
+  setSelectedFilterSectionName,
+  getSelectedFilterSectionData,
+  getSelectedFilterSectionItem,
+  setSelectedFilterSectionItem,
+  resetSelectedFilterSectionItem,
+} from "../../../../../store/ui/peopleSearchFilter";
+import { useDispatch, useSelector } from "react-redux";
 
 export const SearchFilter = (props) => {
+  // Redux Dispatch
+  const dispatch = useDispatch();
+
   // The Safe Area Insets for Apple devices with safe area views
   const insets = useSafeAreaInsets();
 
   // List of filters
-  const filters = ["Academics", "Home", "Office"];
+  const filters = useSelector(getFilterNames);
 
   // Decides which filter is selected
-  const [selectedFilterIndex, setSelectedFilterIndex] = useState(0);
+  const selectedFilterIndex = useSelector(getSelectedFilterIndex);
 
-  // Text Input
-  const [textInput, setTextInput] = useState({});
+  // The selected filter's name
+  const filterName = useSelector(getSelectedFilterName);
 
-  // Text Input Placeholder
-  const [placeholder, setPlaceholder] = useState("Tap here to type...");
+  // The selected filter's selected section's name
+  const sectionName = useSelector(getSelectedFilterSectionName);
+
+  // The data of the selected section in the selected filter
+  const sectionData = useSelector(getSelectedFilterSectionData);
+
+  // The selected item of the selected section in the selected filter
+  const sectionSelectedItem = useSelector(getSelectedFilterSectionItem);
+
+  // The selected filter object containing its sections
+  const selectedFilterObj = useSelector(getFilterObject);
 
   // Show filter list picker
   const [listPickerVisible, setListPickerVisible] = useState(false);
 
-  // Show filter list picker
-  const [selectedFilter, setSelectedFilter] = useState({
-    filterSection: null,
-    filterName: null,
-    filterData: null,
-    filterSelected: null,
-  });
+  useEffect(() => {
+    // Fetches the filter's data for each section
+    dispatch(fetchFilterData);
+  }, []);
 
   /**
    * Creates the header content of the filter
@@ -48,7 +71,7 @@ export const SearchFilter = (props) => {
     return (
       <View style={styles.filterGroup}>
         <ButtonGroup
-          onPress={(index) => setSelectedFilterIndex(index)}
+          onPress={(index) => dispatch(setSelectedFilterIndex(index))}
           selectedIndex={selectedFilterIndex}
           buttons={filters}
           containerStyle={styles.filterGroupButtonsContainer}
@@ -56,10 +79,10 @@ export const SearchFilter = (props) => {
           selectedButtonStyle={styles.filterGroupButtonStyle}
         />
         <Icon
-          name="close"
-          type="material"
+          name="filter-remove"
+          type="material-community"
           color="white"
-          size={35}
+          size={30}
           onPress={() => props.setVisible(false)}
         />
       </View>
@@ -67,70 +90,14 @@ export const SearchFilter = (props) => {
   };
 
   /**
-   * Creates the submit button of the filter
-   */
-  const getFilterSubmit = () => {
-    return (
-      <Button
-        icon={
-          <Icon name="filter" type="font-awesome-5" color="#c0cce6" size={17} />
-        }
-        title="Apply Filters"
-        containerStyle={{
-          alignSelf: "flex-end",
-          marginRight: 20,
-          shadowColor: "black",
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.29,
-          shadowRadius: 5,
-          elevation: 7,
-        }}
-        buttonStyle={{
-          borderRadius: 50,
-          paddingVertical: 10,
-          paddingHorizontal: 15,
-          margin: 10,
-          backgroundColor: "#224d85",
-        }}
-        titleStyle={{ marginLeft: 5, fontSize: 17 }}
-      />
-    );
-  };
-
-  /**
    * Creates the content of each search filter section
    */
-  const getFilterContent = () => {
-    // Gets the correct data to parse
-    const content =
-      filters[selectedFilterIndex] === "Academics"
-        ? data.academics
-        : filters[selectedFilterIndex] === "Home"
-        ? data.home
-        : data.office;
-
-    return Object.values(content).map((section, index) => {
+  const getFilterContent = () =>
+    Object.values(selectedFilterObj).map((section, index) => {
       // Section name
       const sectionName = section.filterName;
       // Section selected item
       const itemSelected = section.selected;
-      // Section selected item's data
-      const itemSelectedData = section.data;
-
-      // If the section has no data, a text holder is saved
-      // in the state for the section
-      if (!section.data && !textInput[sectionName]) {
-        /**
-         * Checks to see if the text is an empty string. This prevents
-         * an infinite render since a non-defined section and a defined
-         * section with an empty string returns as false in logic comparison
-         */
-        if (textInput[sectionName] !== "")
-          setTextInput({ ...textInput, [sectionName]: "" });
-      }
 
       return (
         <View
@@ -139,7 +106,7 @@ export const SearchFilter = (props) => {
             styles.filterContentContainer,
             {
               borderBottomWidth:
-                Object.values(content).length - 1 !== index ? 1 : 0,
+                Object.values(selectedFilterObj).length - 1 !== index ? 1 : 0,
             },
           ]}
         >
@@ -159,16 +126,17 @@ export const SearchFilter = (props) => {
             </Text>
           ) : (
             <TextInput
-              placeholder={placeholder}
+              placeholder="Tap here to type..."
               placeholderTextColor="#5072ba"
               selectTextOnFocus
               style={styles.filterContentSectionSelectedItemInput}
-              value={textInput[sectionName]}
+              value={itemSelected}
               onChangeText={(text) =>
-                setTextInput({ ...textInput, [sectionName]: text })
+                // Saves the new text to redux
+                dispatch(
+                  setSelectedFilterSectionItem(filterName, sectionName, text)
+                )
               }
-              onFocus={() => setPlaceholder("")}
-              onBlur={() => setPlaceholder("Tap here to type...")}
             />
           )}
           {section.data ? (
@@ -180,12 +148,7 @@ export const SearchFilter = (props) => {
                 size={20}
                 onPress={() => {
                   setListPickerVisible(true);
-                  setSelectedFilter({
-                    filterSection: sectionName,
-                    filterName: filters[selectedFilterIndex],
-                    filterData: itemSelectedData,
-                    filterSelected: itemSelected,
-                  });
+                  dispatch(setSelectedFilterSectionName(sectionName));
                 }}
                 containerStyle={[
                   styles.filterContentSectionActionsAddEdit,
@@ -199,33 +162,36 @@ export const SearchFilter = (props) => {
                   color="#224d85"
                   size={20}
                   onPress={() => {
-                    // Filter name
-                    const filterName = selectedFilter.filterName.toLowerCase();
-                    // Filter section
-                    const filterSection = selectedFilter.filterSection.toLowerCase();
-                    // Changes the data to the selected
-                    data[filterName][filterSection].selected = null;
+                    // Resets the selected filter's selected section's selected item
+                    dispatch(
+                      resetSelectedFilterSectionItem(filterName, sectionName)
+                    );
                   }}
                   containerStyle={styles.filterContentSectionActionsTrash}
                 />
               )}
             </View>
-          ) : textInput[sectionName] && textInput[sectionName] !== "" ? (
+          ) : (
             <Icon
+              disabled={!itemSelected}
               name={"times-circle"}
               type="font-awesome-5"
               color="#224d85"
               size={20}
-              onPress={() => setTextInput({ ...textInput, [sectionName]: "" })}
+              onPress={() =>
+                dispatch(
+                  resetSelectedFilterSectionItem(filterName, sectionName)
+                )
+              }
               containerStyle={styles.filterContentSectionActionsRemoveInput}
+              disabledStyle={
+                styles.filterContentSectionActionsRemoveInputDisabled
+              }
             />
-          ) : (
-            <></>
           )}
         </View>
       );
     });
-  };
 
   return (
     <CustomModal
@@ -236,7 +202,6 @@ export const SearchFilter = (props) => {
         <View style={{ paddingBottom: insets.bottom }}>
           {getFilterHeader()}
           {getFilterContent()}
-          {getFilterSubmit()}
 
           {/* CODE BELOW WILL BE PLACED IN ANOTHER COMPONENT */}
           <Modal
@@ -272,7 +237,7 @@ export const SearchFilter = (props) => {
                       maxWidth: "85%",
                     }}
                   >
-                    {`Filter: ${selectedFilter.filterName} by ${selectedFilter.filterSection}`}
+                    {`Filter - ${filterName} by ${sectionName}`}
                   </Text>
                   <Icon
                     name="close"
@@ -288,7 +253,7 @@ export const SearchFilter = (props) => {
                     }}
                   />
                 </View>
-                {selectedFilter.filterSelected && (
+                {sectionSelectedItem && (
                   <Text
                     style={{
                       fontSize: 16,
@@ -297,24 +262,23 @@ export const SearchFilter = (props) => {
                       marginBottom: 10,
                     }}
                   >
-                    {`Currently Selected: ${selectedFilter.filterSelected}`}
+                    {`Currently Selected - ${sectionSelectedItem}`}
                   </Text>
                 )}
-                {selectedFilter.filterSection && (
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      marginTop: 10,
-                      fontSize: 16,
-                      color: "white",
-                    }}
-                  >{`Select a ${
-                    selectedFilter.filterSelected ? "new " : ""
-                  }${selectedFilter.filterSection.toLowerCase()} below`}</Text>
-                )}
+
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 10,
+                    fontSize: 16,
+                    color: "white",
+                  }}
+                >{`Select a ${sectionSelectedItem ? "new " : ""}${
+                  sectionName ? sectionName.toLowerCase() : ""
+                } below`}</Text>
               </View>
               <FlatList
-                data={selectedFilter.filterData}
+                data={sectionData}
                 keyExtractor={(item, index) => index.toString()}
                 showsVerticalScrollIndicators
                 renderItem={({ item, index }) => {
@@ -327,17 +291,17 @@ export const SearchFilter = (props) => {
                           paddingVertical: 12,
                           borderBottomColor: "#224d85",
                           borderBottomWidth:
-                            selectedFilter.filterData.length - 1 === index
-                              ? 0
-                              : 1,
+                            sectionData.length - 1 === index ? 0 : 1,
                         }}
                         onPress={() => {
-                          // Filter name
-                          const filterName = selectedFilter.filterName.toLowerCase();
-                          // Filter section
-                          const filterSection = selectedFilter.filterSection.toLowerCase();
-                          // Changes the data to the selected
-                          data[filterName][filterSection].selected = item;
+                          // Sets the selected filter's selected section selected item
+                          dispatch(
+                            setSelectedFilterSectionItem(
+                              filterName,
+                              sectionName,
+                              item
+                            )
+                          );
                           // Exits out the filter section picker modal
                           setListPickerVisible(false);
                         }}
@@ -370,9 +334,8 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderRadius: 50,
     marginLeft: 0,
-    marginRight: 20,
     flex: 1,
-    marginRight: 10,
+    marginRight: 15,
   },
   filterGroupButtonsText: { fontSize: 15, color: "#5072ba" },
   filterGroupButtonStyle: { backgroundColor: "#5072ba" },
@@ -413,5 +376,9 @@ const styles = StyleSheet.create({
   filterContentSectionActionsRemoveInput: {
     marginLeft: 20,
     padding: 5,
+  },
+  filterContentSectionActionsRemoveInputDisabled: {
+    backgroundColor: "transparent",
+    opacity: 0.2,
   },
 });

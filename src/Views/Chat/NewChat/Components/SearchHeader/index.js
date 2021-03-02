@@ -9,14 +9,18 @@ import {
 import {
   searchForPeople,
   resetSearchList,
-} from "../../../../../store/entities/peopleSearch";
+} from "../../../../../store/ui/peopleSearch";
+import { getSelectedItemsAndNames } from "../../../../../store/ui/peopleSearchFilter";
 import { Icon, SearchBar } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export const SearchHeader = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
+
+  // The object of seleced filters
+  const selectedFilterData = useSelector(getSelectedItemsAndNames);
 
   /**
    * Determines if users can be searched.
@@ -42,15 +46,7 @@ export const SearchHeader = (props) => {
           includeAlumni: false,
           firstName: name[0] ? name[0] : "",
           lastName: name[1] ? name[1] : "",
-          major: "",
-          minor: "",
-          hall: "",
-          classType: "",
-          homeCity: "",
-          state: "",
-          country: "",
-          department: "",
-          building: "",
+          ...selectedFilterData.items,
         })
       );
     }
@@ -100,6 +96,28 @@ export const SearchHeader = (props) => {
           inputStyle={styles.searchBarInput}
           cancelButtonProps={{ buttonTextStyle: styles.searchBarCancelButton }}
         />
+        {selectedFilterData.names.length > 0 && (
+          <Text
+            style={{
+              marginHorizontal: 14,
+              color: "white",
+              marginBottom: 10,
+              fontWeight: "bold",
+            }}
+          >
+            Filtering By:{" "}
+            {selectedFilterData.names.map((name, index) => (
+              <Text
+                key={index}
+                style={{ fontWeight: "normal", fontStyle: "italic" }}
+              >
+                {index !== selectedFilterData.names.length - 1
+                  ? `${name},${" "}`
+                  : name}
+              </Text>
+            ))}
+          </Text>
+        )}
         <View style={styles.filterAndSearchContainer}>
           <TouchableOpacity
             underlayColor="none"
@@ -111,14 +129,14 @@ export const SearchHeader = (props) => {
           >
             <View style={styles.filterButton}>
               <Icon
-                name={props.filterVisible ? "remove" : "add"}
-                type="material"
+                name={"filter"}
+                type="material-community"
                 color="white"
                 size={25}
                 containerStyle={styles.filterButtonIcon}
               />
               <Text style={styles.filterButtonText}>
-                {props.filterVisible ? "Close Filters" : "Show Filters"}
+                {props.filterVisible ? "Close Filters" : "Open Filters"}
               </Text>
             </View>
           </TouchableOpacity>
@@ -126,6 +144,7 @@ export const SearchHeader = (props) => {
             underlayColor="none"
             disabled={!canSearchUsers()}
             onPress={() => {
+              props.setFilterVisible(false);
               Keyboard.dismiss();
               searchUsers();
             }}
@@ -184,7 +203,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     paddingVertical: 5,
   },
-  filterButtonIcon: { marginRight: 5 },
+  filterButtonIcon: { marginRight: 2 },
   searchButtonContainer: { alignSelf: "flex-end" },
   searchButton: {
     flexDirection: "row",

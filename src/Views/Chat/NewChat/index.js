@@ -4,7 +4,7 @@ import { getUserImage } from "../../../Services/Messages/index";
 import {
   getPeopleSearchResults,
   getPeopleSearchLoading,
-} from "../../../store/entities/peopleSearch";
+} from "../../../store/ui/peopleSearch";
 import { SearchHeader } from "./Components/SearchHeader";
 import { SelectedUsers } from "./Components/SelectedUsers/index";
 import { SearchResults } from "./Components/SearchResults/index";
@@ -137,7 +137,10 @@ export const NewChat = (props) => {
         filterVisible={filterVisible}
         setFilterVisible={setFilterVisible}
       />
-      <View style={styles.modal}>
+      <View
+        pointerEvents={filterVisible ? "none" : "auto"}
+        style={[styles.modal, { opacity: filterVisible ? 0.15 : 1 }]}
+      >
         <SafeAreaView style={styles.safeAreaView}>
           <SelectedUsers
             handleSelected={handleSelected}

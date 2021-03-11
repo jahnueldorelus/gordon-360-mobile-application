@@ -7,6 +7,7 @@ import {
   Modal,
   SafeAreaView,
   TouchableHighlight,
+  Alert,
 } from "react-native";
 import { CustomModal } from "../../../../../Components/CustomModal/index";
 import { ButtonGroup, Icon } from "react-native-elements";
@@ -19,12 +20,14 @@ import {
   setSelectedFilterIndex,
   getSelectedFilterName,
   getFilterObject,
+  getSelectedItemsAndNames,
   getSelectedFilterSectionName,
   setSelectedFilterSectionName,
   getSelectedFilterSectionData,
   getSelectedFilterSectionItem,
   setSelectedFilterSectionItem,
   resetSelectedFilterSectionItem,
+  resetAllFilters,
 } from "../../../../../store/ui/peopleSearchFilter";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -56,12 +59,16 @@ export const SearchFilter = (props) => {
   // The selected filter object containing its sections
   const selectedFilterObj = useSelector(getFilterObject);
 
+  // The object of seleced filters
+  const selectedFilterData = useSelector(getSelectedItemsAndNames);
+
   // Show filter list picker
   const [listPickerVisible, setListPickerVisible] = useState(false);
 
   useEffect(() => {
     // Fetches the filter's data for each section
     dispatch(fetchFilterData);
+    dispatch(resetAllFilters);
   }, []);
 
   /**
@@ -83,7 +90,25 @@ export const SearchFilter = (props) => {
           type="material-community"
           color="white"
           size={30}
-          onPress={() => props.setVisible(false)}
+          disabled={selectedFilterData.names.length === 0}
+          disabledStyle={styles.filterGroupButtonReset}
+          onPress={() => {
+            Alert.alert(
+              "Resetting All Filters",
+              "Are you sure you want to reset all filters?",
+              [
+                {
+                  text: "Reset All",
+                  onPress: () => dispatch(resetAllFilters),
+                },
+                {
+                  text: "Cancel",
+                  onPress: () => {}, // Does nothing
+                  style: "cancel",
+                },
+              ]
+            );
+          }}
         />
       </View>
     );
@@ -211,109 +236,111 @@ export const SearchFilter = (props) => {
             onRequestClose={() => setListPickerVisible(false)}
             onDismiss={() => setListPickerVisible(false)}
           >
-            <SafeAreaView style={{ flex: 1 }}>
-              <View
-                style={{
-                  padding: 20,
-                  backgroundColor: "#224d85",
-                }}
-              >
+            <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+              <View style={{ flex: 1, backgroundColor: "white" }}>
                 <View
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    borderBottomColor: "white",
-                    borderBottomWidth: 1,
-                    paddingBottom: 10,
-                    marginBottom: 10,
+                    padding: 20,
+                    backgroundColor: "#224d85",
                   }}
                 >
-                  <Text
+                  <View
                     style={{
-                      fontSize: 20,
-                      color: "white",
-                      fontWeight: "bold",
-                      maxWidth: "85%",
-                    }}
-                  >
-                    {`Filter - ${filterName} by ${sectionName}`}
-                  </Text>
-                  <Icon
-                    name="close"
-                    type="material"
-                    color="white"
-                    size={35}
-                    onPress={() => {
-                      // Exits out the filter section picker modal
-                      setListPickerVisible(false);
-                    }}
-                    containerStyle={{
-                      marginHorizontal: 5,
-                    }}
-                  />
-                </View>
-                {sectionSelectedItem && (
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: "white",
-                      fontWeight: "bold",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      borderBottomColor: "white",
+                      borderBottomWidth: 1,
+                      paddingBottom: 10,
                       marginBottom: 10,
                     }}
                   >
-                    {`Currently Selected - ${sectionSelectedItem}`}
-                  </Text>
-                )}
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        color: "white",
+                        fontWeight: "bold",
+                        maxWidth: "85%",
+                      }}
+                    >
+                      {`Filter - ${filterName} by ${sectionName}`}
+                    </Text>
+                    <Icon
+                      name="close"
+                      type="material"
+                      color="white"
+                      size={35}
+                      onPress={() => {
+                        // Exits out the filter section picker modal
+                        setListPickerVisible(false);
+                      }}
+                      containerStyle={{
+                        marginHorizontal: 5,
+                      }}
+                    />
+                  </View>
+                  {sectionSelectedItem && (
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: "white",
+                        fontWeight: "bold",
+                        marginBottom: 10,
+                      }}
+                    >
+                      {`Currently Selected - ${sectionSelectedItem}`}
+                    </Text>
+                  )}
 
-                <Text
-                  style={{
-                    textAlign: "center",
-                    marginTop: 10,
-                    fontSize: 16,
-                    color: "white",
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      marginTop: 10,
+                      fontSize: 16,
+                      color: "white",
+                    }}
+                  >{`Select a ${sectionSelectedItem ? "new " : ""}${
+                    sectionName ? sectionName.toLowerCase() : ""
+                  } below`}</Text>
+                </View>
+                <FlatList
+                  data={sectionData}
+                  keyExtractor={(item, index) => index.toString()}
+                  showsVerticalScrollIndicators
+                  renderItem={({ item, index }) => {
+                    return (
+                      <View key={index}>
+                        <TouchableHighlight
+                          underlayColor="none"
+                          style={{
+                            paddingHorizontal: 20,
+                            paddingVertical: 12,
+                            borderBottomColor: "#224d85",
+                            borderBottomWidth:
+                              sectionData.length - 1 === index ? 0 : 1,
+                          }}
+                          onPress={() => {
+                            // Sets the selected filter's selected section selected item
+                            dispatch(
+                              setSelectedFilterSectionItem(
+                                filterName,
+                                sectionName,
+                                item
+                              )
+                            );
+                            // Exits out the filter section picker modal
+                            setListPickerVisible(false);
+                          }}
+                        >
+                          <Text style={{ fontSize: 18, color: "#224d85" }}>
+                            {item}
+                          </Text>
+                        </TouchableHighlight>
+                      </View>
+                    );
                   }}
-                >{`Select a ${sectionSelectedItem ? "new " : ""}${
-                  sectionName ? sectionName.toLowerCase() : ""
-                } below`}</Text>
+                />
               </View>
-              <FlatList
-                data={sectionData}
-                keyExtractor={(item, index) => index.toString()}
-                showsVerticalScrollIndicators
-                renderItem={({ item, index }) => {
-                  return (
-                    <View key={index}>
-                      <TouchableHighlight
-                        underlayColor="none"
-                        style={{
-                          paddingHorizontal: 20,
-                          paddingVertical: 12,
-                          borderBottomColor: "#224d85",
-                          borderBottomWidth:
-                            sectionData.length - 1 === index ? 0 : 1,
-                        }}
-                        onPress={() => {
-                          // Sets the selected filter's selected section selected item
-                          dispatch(
-                            setSelectedFilterSectionItem(
-                              filterName,
-                              sectionName,
-                              item
-                            )
-                          );
-                          // Exits out the filter section picker modal
-                          setListPickerVisible(false);
-                        }}
-                      >
-                        <Text style={{ fontSize: 18, color: "#224d85" }}>
-                          {item}
-                        </Text>
-                      </TouchableHighlight>
-                    </View>
-                  );
-                }}
-              />
             </SafeAreaView>
           </Modal>
         </View>
@@ -339,6 +366,7 @@ const styles = StyleSheet.create({
   },
   filterGroupButtonsText: { fontSize: 15, color: "#5072ba" },
   filterGroupButtonStyle: { backgroundColor: "#5072ba" },
+  filterGroupButtonReset: { backgroundColor: "transparent", opacity: 0.3 },
   filterContentContainer: {
     paddingHorizontal: 20,
     flexDirection: "row",

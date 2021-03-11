@@ -13,6 +13,9 @@ export const SearchResults = (props) => {
   // The reference to the scrollview that handles the people search results
   const searchResultsScrollRef = useRef();
 
+  // A reference to the previous last searched text
+  const previousLastSearchedText = useRef(props.lastSearchedText);
+
   /**
    * Determines if a user has already been selected
    * @param {String} userFullName The user's full name
@@ -34,12 +37,19 @@ export const SearchResults = (props) => {
         props.searchResultList.length ? null : { justifyContent: "center" },
       ]}
       onContentSizeChange={() => {
-        // Scrolls all the way back to the top of the list
-        // when new search results are given
-        searchResultsScrollRef.current.scrollToOffset({
-          animated: true,
-          offset: 0,
-        });
+        /**
+         * Scrolls all the way back to the top of the list
+         * when new search results are given
+         */
+        if (previousLastSearchedText.current !== props.lastSearchedText) {
+          searchResultsScrollRef.current.scrollToOffset({
+            animated: true,
+            offset: 0,
+          });
+
+          // Updates the new previous last searched text
+          previousLastSearchedText.current = props.lastSearchedText;
+        }
       }}
       renderItem={({ item, index }) => {
         // Determines if a user is selected
@@ -106,7 +116,7 @@ export const SearchResults = (props) => {
               No results found for '
               {
                 <Text style={styles.emptyListItemTextTwo}>
-                  {props.searchedText}
+                  {props.lastSearchedText}
                 </Text>
               }
               '.

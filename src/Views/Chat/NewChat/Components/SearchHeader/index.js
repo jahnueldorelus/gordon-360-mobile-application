@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Keyboard,
+  LayoutAnimation,
 } from "react-native";
 import {
   searchForPeople,
@@ -16,11 +17,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
 
 export const SearchHeader = (props) => {
+  // Configures the animation for the component
+  LayoutAnimation.easeInEaseOut();
+
   // Redux Dispatch
   const dispatch = useDispatch();
 
   // The object of seleced filters
   const selectedFilterData = useSelector(getSelectedItemsAndNames);
+
+  // The user's search text
+  const [searchedText, setSearchedText] = useState("");
 
   /**
    * Determines if users can be searched.
@@ -28,7 +35,7 @@ export const SearchHeader = (props) => {
    * in the search bar is at least 2
    */
   const canSearchUsers = () => {
-    return props.searchedText.length >= 2;
+    return searchedText.length >= 2;
   };
 
   /**
@@ -38,7 +45,7 @@ export const SearchHeader = (props) => {
   const searchUsers = () => {
     if (canSearchUsers()) {
       // Splits the search bar's text to retrieve first and last name
-      const name = props.searchedText.split(" ");
+      const name = searchedText.split(" ");
 
       // Dispatches the search
       dispatch(
@@ -67,8 +74,11 @@ export const SearchHeader = (props) => {
           onPress={() => {
             // Resets the saved states
             props.setSelectedUsers({});
-            props.setSearchedText("");
+            setSearchedText("");
+            props.setLastSearchedText("");
             dispatch(resetSearchList());
+            // Ensures the filters are closed
+            props.setFilterVisible(false);
             // Closes out the Modal
             props.setVisible(false);
           }}
@@ -80,14 +90,13 @@ export const SearchHeader = (props) => {
         <SearchBar
           placeholder="Search People Here..."
           onFocus={() => props.setFilterVisible(false)}
-          value={props.searchedText}
+          value={searchedText}
           round
           lightTheme
           containerStyle={styles.searchBarContainer}
           platform="ios"
           onChangeText={(text) => {
-            props.setSearchedText(text);
-            dispatch(resetSearchList());
+            setSearchedText(text);
           }}
           onSubmitEditing={() => {
             searchUsers();
@@ -144,11 +153,16 @@ export const SearchHeader = (props) => {
             underlayColor="none"
             disabled={!canSearchUsers()}
             onPress={() => {
+              // Closes filter if opened
               props.setFilterVisible(false);
+              // Dismisses the Keyboard if opened
               Keyboard.dismiss();
+              // Saves the searched text as the last searched text
+              props.setLastSearchedText(searchedText);
+              // Searches for people based upon the user's search text
               searchUsers();
             }}
-            containerStyle={styles.searchButtonContainer}
+            style={styles.searchButtonContainer}
           >
             <View
               style={[

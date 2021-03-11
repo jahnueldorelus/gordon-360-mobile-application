@@ -103,6 +103,26 @@ const slice = createSlice({
       state[filterName][sectionName].selected = null;
     },
 
+    // Resets all filters
+    resetAllFilters: (state, action) => {
+      // Changes the current filter to back to the default
+      state.filter.selectedFilterIndex = 0;
+      // Gets the names of the filters
+      const filterNames = getFilterNames(action.payload.state);
+      // Parses through each filter
+      filterNames.forEach((filter) => {
+        // Gets the filter's object
+        const filterState = state[getNameForObjectParsing(filter)];
+        // Gets the filter's sections
+        const filterSections = Object.values(filterState);
+        // Parses through each section of the filter
+        filterSections.forEach((section) => {
+          // Resets the selected item of the section
+          if (section.selected) section.selected = null;
+        });
+      });
+    },
+
     /**
      * ACADEMICS SECTION
      */
@@ -331,6 +351,16 @@ export const resetSelectedFilterSectionItem = (filterName, sectionName) => (
   dispatch({
     type: slice.actions.resetFilterSectionSelected.type,
     payload: { filterName, sectionName },
+  });
+};
+
+/**
+ * Resets all filters
+ */
+export const resetAllFilters = (dispatch, getState) => {
+  dispatch({
+    type: slice.actions.resetAllFilters.type,
+    payload: { state: getState() },
   });
 };
 

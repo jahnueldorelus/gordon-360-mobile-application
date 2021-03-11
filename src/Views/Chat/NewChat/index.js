@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Modal, SafeAreaView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
+import { Icon } from "react-native-elements";
 import { getUserImage } from "../../../Services/Messages/index";
 import {
   getPeopleSearchResults,
@@ -13,8 +20,8 @@ import { SearchTooltip } from "./Components/SearchTooltip/index";
 import { useSelector } from "react-redux";
 
 export const NewChat = (props) => {
-  // The user's search text
-  const [searchedText, setSearchedText] = useState("");
+  // The user's previous search text
+  const [lastSearchedText, setLastSearchedText] = useState(null);
 
   // Object of selected users
   const [selectedUsers, setSelectedUsers] = useState({});
@@ -110,11 +117,6 @@ export const NewChat = (props) => {
     }
   };
 
-  /**
-   * Do not move this code to the beginning of the file. The
-   * code uses "sortUsersAlphabetically" whose function is
-   * required to be defined before being used.
-   */
   // The search results of users sorted in alphabetical order
   const searchResultList = sortUsersAlphabetically(searchResult);
   // The list of selected users
@@ -129,39 +131,69 @@ export const NewChat = (props) => {
       onDismiss={() => props.setVisible(false)}
     >
       <SearchHeader
-        searchedText={searchedText}
-        setSearchedText={setSearchedText}
+        setLastSearchedText={setLastSearchedText}
         setSelectedUsers={setSelectedUsers}
         searchResultList={searchResultList}
         setVisible={props.setVisible}
         filterVisible={filterVisible}
         setFilterVisible={setFilterVisible}
       />
-      <View
+      <SafeAreaView
         pointerEvents={filterVisible ? "none" : "auto"}
-        style={[styles.modal, { opacity: filterVisible ? 0.15 : 1 }]}
+        style={[styles.safeAreaView, { opacity: filterVisible ? 0.15 : 1 }]}
       >
-        <SafeAreaView style={styles.safeAreaView}>
-          <SelectedUsers
-            handleSelected={handleSelected}
+        <SelectedUsers
+          handleSelected={handleSelected}
+          getUserFullName={getUserFullName}
+          selectedUsers={selectedUsersList}
+        />
+        {searchResultList && lastSearchedText ? (
+          <SearchResults
+            lastSearchedText={lastSearchedText}
+            searchResultList={searchResultList}
+            resultLoading={searchResultLoading}
+            selectedUsers={selectedUsers}
+            getUserImage={getUserImage}
             getUserFullName={getUserFullName}
-            selectedUsers={selectedUsersList}
+            handleSelected={handleSelected}
           />
-          {searchedText.length >= 2 ? (
-            <SearchResults
-              searchedText={searchedText}
-              searchResultList={searchResultList}
-              resultLoading={searchResultLoading}
-              selectedUsers={selectedUsers}
-              getUserImage={getUserImage}
-              getUserFullName={getUserFullName}
-              handleSelected={handleSelected}
-            />
-          ) : (
-            <SearchTooltip selectedUsers={selectedUsersList} />
-          )}
-        </SafeAreaView>
-      </View>
+        ) : (
+          <SearchTooltip />
+        )}
+        {selectedUsersList.length > 0 && (
+          <View>
+            <TouchableOpacity
+              underlayColor="none"
+              onPress={() => {}}
+              style={{
+                position: "absolute",
+                bottom: 25,
+                right: 25,
+                backgroundColor: "#2f3d49",
+                borderRadius: 50,
+                paddingVertical: 10,
+                paddingHorizontal: 15,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Icon
+                name={"comments"}
+                type="font-awesome-5"
+                color="white"
+                size={25}
+                containerStyle={{ marginRight: 10 }}
+              />
+              <Icon
+                name={"chevron-right"}
+                type="font-awesome-5"
+                color="white"
+                size={20}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
 
       <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
     </Modal>
@@ -169,6 +201,5 @@ export const NewChat = (props) => {
 };
 
 const styles = StyleSheet.create({
-  modal: { flex: 1 },
-  safeAreaView: { flex: 1, backgroundColor: "#014983" },
+  safeAreaView: { flex: 1, backgroundColor: "black" },
 });

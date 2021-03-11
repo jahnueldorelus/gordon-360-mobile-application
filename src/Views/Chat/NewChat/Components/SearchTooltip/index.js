@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 
-export const SearchTooltip = (props) => {
+export const SearchTooltip = () => {
   return (
     <View style={styles.tooltipContainer}>
       <Image
@@ -9,9 +9,7 @@ export const SearchTooltip = (props) => {
         style={styles.tooltipImage}
       />
       <Text style={styles.tooltipText}>
-        {props.selectedUsers.length > 0
-          ? "Search and select more people or click create to start a new chat!"
-          : "Search and select people above to chat with!"}
+        Search and select people above to chat with!
       </Text>
     </View>
   );

@@ -25,27 +25,30 @@ const slice = createSlice({
       // Goes through the list of rooms and modifies its properties
       action.payload.forEach((obj) => {
         const room = obj[0];
-        // Adds room data to the sort list
-        newSortList.push({
-          id: room.room_id,
-          lastUpdated: room.lastUpdated,
-        });
-        // Adds the room to the rooms object
-        state.rooms[room.room_id] = {
-          image: room.roomImage,
-          id: room.room_id,
-          name: room.name,
-          group: room.group,
-          createdAt: room.createdAt,
-          lastUpdated: room.lastUpdated,
-          users: room.users.map((user) => {
-            return {
-              id: user.user_id,
-              username: user.user_name,
-              image: user.user_avatar,
-            };
-          }),
-        };
+        // Checks to make sure the room object is existent
+        if (room) {
+          // Adds room data to the sort list
+          newSortList.push({
+            id: room.room_id,
+            lastUpdated: room.lastUpdated,
+          });
+          // Adds the room to the rooms object
+          state.rooms[room.room_id] = {
+            image: room.roomImage,
+            id: room.room_id,
+            name: room.name,
+            group: room.group,
+            createdAt: room.createdAt,
+            lastUpdated: room.lastUpdated,
+            users: room.users.map((user) => {
+              return {
+                id: user.user_id,
+                username: user.user_name,
+                image: user.user_avatar,
+              };
+            }),
+          };
+        }
       });
 
       // Sorts the list in order by the last updated date

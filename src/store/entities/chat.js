@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
 import moment from "moment";
+import { invokeNewMessage } from "../../Services/WebSocket/index";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -123,6 +124,7 @@ const slice = createSlice({
       const { roomID, messageObj } = action.payload;
       const roomMessages = state.messages[roomID];
       const roomMessagesSorted = state.messageSort[roomID];
+      console.log("MESSAGE:\n\n", messageObj);
       // Adds the message to the room's object of messages
       roomMessages[messageObj._id] = messageObj;
       // Adds the message to the room's sorted message list (at the beginning)
@@ -298,6 +300,9 @@ export const sendMessage = (message) => (dispatch, getState) => {
   // Formatted message for Redux to parse
   const stateMessage = { ...newMessage, _id: message._id, pending: true };
 
+  // Invokes the back-end to broadcast the message to all users in the room
+  invokeNewMessage(backEndMessage, dispatch, getState);
+
   // Adds the message to the state
   dispatch(
     slice.actions.addMessage({
@@ -317,6 +322,33 @@ export const sendMessage = (message) => (dispatch, getState) => {
       passedData: { roomID, messageObj: backEndMessage },
     })
   );
+};
+
+/**
+ * Updates the user's messages
+ * @param {Object} messageObj The message object to add to the state
+ * @param {string} messageUserID The user ID of the message
+ * @returns An action of updating the user's messages
+ */
+export const liveMessageUpdate = (messageObj, messageUserID) => (
+  dispatch,
+  getState
+) => {
+  // The message's room ID
+  const roomID = messageObj.room_id;
+  // The room object
+  const room = getUserRoomByID(roomID)(getState());
+  // Message's user object
+  const messageUserObj = room.users.filter(
+    (user) => user.id === messageUserID
+  )[0];
+  // Modifies the message object to correct properties names
+  messageObj._id = messageObj.id;
+  delete messageObj.id;
+  messageObj.user = messageUserObj;
+
+  // Dispatches the update
+  dispatch({ type: slice.actions.addMessage, payload: { roomID, messageObj } });
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/

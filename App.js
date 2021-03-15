@@ -22,9 +22,6 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { startWebConnection } from "./src/Services/WebSocket";
 
-// Makes a live connection to the back-end with a web socket
-// startWebConnection();
-
 export default function App() {
   // Navigators
   const Drawer = createDrawerNavigator();
@@ -90,6 +87,10 @@ export default function App() {
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor} loading={null}>
+        {
+          // Makes a live connection to the back-end with a web socket
+          startWebConnection(store)
+        }
         <NetworkProvider pingServerUrl="https://360train.gordon.edu">
           <SafeAreaProvider>
             <View style={styles.screenView}>

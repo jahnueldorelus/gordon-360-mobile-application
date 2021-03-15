@@ -1,24 +1,55 @@
 import signalr from "react-native-signalr";
+import { getUserInfo } from "../../store/entities/profile";
+import { getSelectedRoomID } from "../../store/ui/chat";
+import { getUserRoomByID } from "../../store/entities/chat";
+import { apiRequested } from "../../store/middleware/api";
+import { liveMessageUpdate } from "../../store/entities/chat";
 
-export function startWebConnection() {
-  // Creates the url connecton to the server
-  const connection = signalr.hubConnection("https://360apitrain.gordon.edu");
+// Creates the url connecton to the server
+const connection = signalr.hubConnection("https://360apitrain.gordon.edu");
+// const connection = signalr.hubConnection("http://172.27.40.154:45455");
 
-  // Allows for console logging of SignalR background processes
-  connection.logging = true;
+// Allows for console logging of SignalR background processes
+connection.logging = true;
 
-  // Connects to the chat hub on the server
-  const proxy = connection.createHubProxy("chatHub");
+// Connects to the chat hub on the server
+const proxy = connection.createHubProxy("chatHub");
+
+/**
+ * Starts the web socket connection with the server
+ * @param {Object} store The redux store
+ */
+export function startWebConnection(store) {
+  // The main user
+  const mainUser = getUserInfo(store.getState());
 
   /**
    * Handles the request from the server on the hub "chatHub"
    * with message type of "broadcastMessage"
    */
-  // proxy.on("broadcastMessage", (name, message) => {
-  //   console.log(`Message from ${name}: ${message}`);
-  // });
-  proxy.on("test", (message) => {
-    console.log(`Message from server: ${message}`);
+  proxy.on("broadcastMessage", (message) => {
+    // If connected to server
+    if (message == "connectedToServer") {
+      proxy.invoke("saveConnection", mainUser.ID);
+    }
+    // else if (message == "connectedToServer") {
+    //   // proxy.invoke("saveConnection", mainUser.ID);
+    // }
+    else console.log(`Message:  ${message}`);
+  });
+
+  proxy.on("sendAsync", (message, userId) => {
+    // If connected to server
+    if (connection.id) {
+      console.log(
+        `Message:  ${JSON.stringify(message)}` +
+          ` UserId:  ${JSON.stringify(userId)}`
+      );
+      console.log("MAIN USER:", store.getState().entities.profile.userInfo);
+
+      // Updates the user's messages
+      store.dispatch(liveMessageUpdate(message, userId));
+    }
   });
 
   // Starts the connection with the server
@@ -28,17 +59,6 @@ export function startWebConnection() {
     // After the connection to the server is successful
     .done(() => {
       console.log("Now connected, connection ID=" + connection.id);
-
-      // // Sends a message to the "chathub" hub
-      // proxy
-      //   .invoke("send", "Server", "Hey Server! How's it going?")
-      //   // If the messge send to the "chathub" hub fails
-      //   .fail(() => {
-      //     console.warn(
-      //       "Something went wrong when sending a message to the server. Are you connected to it? If so, are you parameters in a correct format?"
-      //     );
-      //   });
-      // proxy.invoke("test");
     })
 
     // If connecting to the server fails
@@ -70,4 +90,37 @@ export function startWebConnection() {
     }
     console.debug("SignalR error: " + errorMessage, detailedError);
   });
+}
+
+/**
+ *
+ * @param {Object} message The message object to send to the server
+ * @param {Array} usersList The list of user IDs in the room
+ * @param {Object} state The redux store state
+ */
+export function invokeNewMessage(message, dispatch, getState) {
+  // The main user
+  const mainUser = getUserInfo(getState());
+
+  // The selected room ID
+  let roomID = getSelectedRoomID(getState());
+  // The selected room Object
+  let roomObject = getUserRoomByID(roomID)(getState());
+  // List of user IDs in the room (apart from the main user)
+  let userIDs = [];
+  let currentUser;
+
+  // Parses through the list of users to retrieve all users
+  // except for the main user who sent the message
+  roomObject.users.forEach((user) => {
+    if (user.id !== mainUser.ID) {
+      userIDs.push(user.id);
+    } else {
+      currentUser = user.id;
+    }
+  });
+
+  console.log("Users:", userIDs);
+
+  proxy.invoke("refreshMessages", userIDs, message, currentUser);
 }

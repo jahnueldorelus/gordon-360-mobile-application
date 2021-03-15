@@ -6,8 +6,8 @@ import { apiRequested } from "../../store/middleware/api";
 import { liveMessageUpdate } from "../../store/entities/chat";
 
 // Creates the url connecton to the server
-// const connection = signalr.hubConnection("https://360apitrain.gordon.edu");
-const connection = signalr.hubConnection("http://172.27.40.154:45455");
+const connection = signalr.hubConnection("https://360apitrain.gordon.edu");
+// const connection = signalr.hubConnection("http://172.27.40.154:45455");
 
 // Allows for console logging of SignalR background processes
 connection.logging = true;

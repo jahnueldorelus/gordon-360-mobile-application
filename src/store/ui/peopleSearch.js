@@ -107,7 +107,7 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
 /**
  * Resets the people search results
  */
-export const resetSearchList = () => (dispatch, getState) => {
+export const resetSearchList = (dispatch, getState) => {
   dispatch({ type: slice.actions.peopleSearchReset.type });
 };
 

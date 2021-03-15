@@ -120,10 +120,8 @@ export const RoomsList = (props) => {
               onPress={() => {
                 // Sets the user's selected room ID
                 dispatch(setRoomID(room.item.id));
-                // Navigates to the chat screen with a specified room id
-                props.navigation.navigate("Chat", {
-                  roomProp: {},
-                });
+                // Navigates to the chat screen
+                props.navigation.navigate("Chat");
               }}
             >
               <Image

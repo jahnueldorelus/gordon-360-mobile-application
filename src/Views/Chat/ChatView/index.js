@@ -43,8 +43,6 @@ export const ChatView = (props) => {
 
   // The current text inside the input toolbar
   const [text, setText] = useState("");
-  // The list of messages for the chat
-  const [messages, setMessages] = useState([]);
   // The list of images the user has selected
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
   // Determines if the actions buttons of the input toolbar should display
@@ -116,13 +114,11 @@ export const ChatView = (props) => {
           messagesContainerStyle={styles.messagesContainer}
           minInputToolbarHeight={minInputToolbarHeight()}
           onInputTextChanged={setText}
-          // onPressAvatar={console.log}
           onSend={onSend}
           parsePatterns={(linkStyle) => [
             {
               pattern: /#(\w+)/,
               style: linkStyle,
-              onPress: (tag) => console.log(`Pressed on hashtag: ${tag}`),
             },
           ]}
           renderActions={(props) => {

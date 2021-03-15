@@ -17,6 +17,7 @@ import { SelectedUsers } from "./Components/SelectedUsers/index";
 import { SearchResults } from "./Components/SearchResults/index";
 import { SearchFilter } from "./Components/SearchFilter/index";
 import { SearchTooltip } from "./Components/SearchTooltip/index";
+import { RoomMessage } from "./Components/RoomMessage/index";
 import { useSelector } from "react-redux";
 
 export const NewChat = (props) => {
@@ -28,6 +29,9 @@ export const NewChat = (props) => {
 
   // People Search filter visibility
   const [filterVisible, setFilterVisible] = useState(false);
+
+  // People Search filter visibility
+  const [roomMessageVisible, setRoomMessageVisible] = useState(false);
 
   // The people search's result
   const searchResult = useSelector(getPeopleSearchResults);
@@ -117,6 +121,15 @@ export const NewChat = (props) => {
     }
   };
 
+  // Returns the JSX of the selected users
+  const getSelectedUsers = () => (
+    <SelectedUsers
+      handleSelected={handleSelected}
+      getUserFullName={getUserFullName}
+      selectedUsers={selectedUsersList}
+    />
+  );
+
   // The search results of users sorted in alphabetical order
   const searchResultList = sortUsersAlphabetically(searchResult);
   // The list of selected users
@@ -130,72 +143,79 @@ export const NewChat = (props) => {
       onRequestClose={() => props.setVisible(false)}
       onDismiss={() => props.setVisible(false)}
     >
-      <SearchHeader
-        setLastSearchedText={setLastSearchedText}
-        setSelectedUsers={setSelectedUsers}
-        searchResultList={searchResultList}
-        setVisible={props.setVisible}
-        filterVisible={filterVisible}
-        setFilterVisible={setFilterVisible}
-      />
-      <SafeAreaView
-        pointerEvents={filterVisible ? "none" : "auto"}
-        style={[styles.safeAreaView, { opacity: filterVisible ? 0.15 : 1 }]}
-      >
-        <SelectedUsers
-          handleSelected={handleSelected}
-          getUserFullName={getUserFullName}
-          selectedUsers={selectedUsersList}
+      <SafeAreaView style={styles.safeAreaView}>
+        <SearchHeader
+          setLastSearchedText={setLastSearchedText}
+          setSelectedUsers={setSelectedUsers}
+          searchResultList={searchResultList}
+          setVisible={props.setVisible}
+          filterVisible={filterVisible}
+          setFilterVisible={setFilterVisible}
         />
-        {searchResultList && lastSearchedText ? (
-          <SearchResults
-            lastSearchedText={lastSearchedText}
-            searchResultList={searchResultList}
-            resultLoading={searchResultLoading}
-            selectedUsers={selectedUsers}
-            getUserImage={getUserImage}
-            getUserFullName={getUserFullName}
-            handleSelected={handleSelected}
-          />
-        ) : (
-          <SearchTooltip />
-        )}
-        {selectedUsersList.length > 0 && (
-          <View>
-            <TouchableOpacity
-              underlayColor="none"
-              onPress={() => {}}
-              style={{
-                position: "absolute",
-                bottom: 25,
-                right: 25,
-                backgroundColor: "#2f3d49",
-                borderRadius: 50,
-                paddingVertical: 10,
-                paddingHorizontal: 15,
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              <Icon
-                name={"comments"}
-                type="font-awesome-5"
-                color="white"
-                size={25}
-                containerStyle={{ marginRight: 10 }}
-              />
-              <Icon
-                name={"chevron-right"}
-                type="font-awesome-5"
-                color="white"
-                size={20}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      </SafeAreaView>
+        <View
+          pointerEvents={filterVisible ? "none" : "auto"}
+          style={[styles.safeAreaView, { opacity: filterVisible ? 0.6 : 1 }]}
+        >
+          {getSelectedUsers()}
+          {searchResultList && lastSearchedText ? (
+            <SearchResults
+              lastSearchedText={lastSearchedText}
+              searchResultList={searchResultList}
+              resultLoading={searchResultLoading}
+              selectedUsers={selectedUsers}
+              getUserImage={getUserImage}
+              getUserFullName={getUserFullName}
+              handleSelected={handleSelected}
+            />
+          ) : (
+            <SearchTooltip />
+          )}
 
-      <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
+          {selectedUsersList.length > 0 && (
+            <View>
+              <TouchableOpacity
+                underlayColor="none"
+                onPress={() => setRoomMessageVisible(true)}
+                style={{
+                  position: "absolute",
+                  bottom: 25,
+                  right: 25,
+                  backgroundColor: "#2f3d49",
+                  borderRadius: 50,
+                  paddingVertical: 10,
+                  paddingHorizontal: 15,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Icon
+                  name={"comments"}
+                  type="font-awesome-5"
+                  color="white"
+                  size={25}
+                  containerStyle={{ marginRight: 10 }}
+                />
+                <Icon
+                  name={"chevron-right"}
+                  type="font-awesome-5"
+                  color="white"
+                  size={20}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
+        <RoomMessage
+          visible={roomMessageVisible}
+          setVisible={setRoomMessageVisible}
+          selectedUsers={getSelectedUsers()}
+          selectedUsersList={selectedUsersList}
+          setNewChatModalVisible={props.setVisible}
+          setSelectedUsers={setSelectedUsers}
+          setLastSearchedText={setLastSearchedText}
+        />
+      </SafeAreaView>
     </Modal>
   );
 };

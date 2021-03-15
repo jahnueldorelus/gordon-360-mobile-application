@@ -2,30 +2,67 @@ import { createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
 
+/**
+ * How to add a new filter or filter section
+ *
+ * To add a filter, add the filter's name to the list 'filterNames'.
+ * Afterwards, create a new empty filter object with the filter's name in lowercase
+ * form inside the 'initialState' object. For example, if adding the filter
+ * 'Employment', you would add 'Employment' to the list 'filterNames' and then
+ * create the object 'employment: {}' inside of the object 'initialState'
+ *
+ * Example of creating a new filter called 'Employment':
+ * initialState: {
+ *    filterNames: ['Employment']   <-- There are more filter names; this is for simplicity
+ *    employment: {}                <-- An empty object with the filter name in lowercase form
+ * }
+ *
+ * To add a filter section, make sure that the filter object has already been
+ * created. For example, to add a section to the filter "Employement", the object
+ * 'employment: {}' (notice how it's in lowercase form) must be present in the object
+ * 'initialState'. Afterwards, add the section object (in lowercase form)
+ * inside the filter object with the properties 'selected, sectionName, data'.
+ * Using these properties will vary depending on the filter section type. There
+ * are 2 different types of filter sections. A list and text input. If the section
+ * is a list, the 'data' property must be present. Otherwise, it is omitted.
+ *
+ * Example of adding a filter section called 'job' in the filter 'Employement':
+ * initialState: {
+ *    employment: {
+ *        job: {
+ *            selected: null    <-- This is always null
+ *            sectionName: ""   <-- The name of the filter in lowercase form
+ *            data: []          <-- This is either an empty list or if the section is a
+ *                                  text input, this property is not present at all
+ *        }
+ *    }
+ * }
+ */
+
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
   name: "peopleSearchFilter",
   initialState: {
     filter: {
       filterNames: ["Academics", "Home", "Office"],
-      selectedFilterIndex: 0, // Starts with Academics
+      selectedFilterIndex: 0, // Starts with Academics (index in sync with indices of list, 'filterNames')
       selectedFilterName: "Academics", // Starts with Academics
       selectedFilterSectionName: null,
     },
     academics: {
       major: {
         selected: null,
-        filterName: "Major",
+        sectionName: "Major",
         data: [],
       },
       minor: {
         selected: null,
-        filterName: "Minor",
+        sectionName: "Minor",
         data: [],
       },
       class: {
         selected: null,
-        filterName: "Class",
+        sectionName: "Class",
         data: [
           "Freshman",
           "Sophomore",
@@ -39,27 +76,27 @@ const slice = createSlice({
       },
     },
     home: {
-      city: { selected: null, filterName: "City" },
+      city: { selected: null, sectionName: "City" },
       state: {
         selected: null,
-        filterName: "State",
+        sectionName: "State",
         data: [],
       },
       country: {
         selected: null,
-        filterName: "Country",
+        sectionName: "Country",
         data: [],
       },
     },
     office: {
       department: {
         selected: null,
-        filterName: "Department",
+        sectionName: "Department",
         data: [],
       },
       dormitory: {
         selected: null,
-        filterName: "Dormitory",
+        sectionName: "Dormitory",
         data: [],
       },
     },
@@ -107,6 +144,7 @@ const slice = createSlice({
     resetAllFilters: (state, action) => {
       // Changes the current filter to back to the default
       state.filter.selectedFilterIndex = 0;
+      state.filter.selectedFilterName = "Academics";
       // Gets the names of the filters
       const filterNames = getFilterNames(action.payload.state);
       // Parses through each filter
@@ -277,11 +315,11 @@ export const getSelectedItemsAndNames = (state) => {
     // Iterates through the filter's sections to retrieve the selected items
     Object.values(filterObject).forEach((section) => {
       // Saves the section's selected item
-      selected.items[correctSectionName(section.filterName)] = section.selected
+      selected.items[correctSectionName(section.sectionName)] = section.selected
         ? section.selected
         : "";
       // Saves the section's name if the section has a selected item
-      if (section.selected) selected.names.push(section.filterName);
+      if (section.selected) selected.names.push(section.sectionName);
     });
   });
 

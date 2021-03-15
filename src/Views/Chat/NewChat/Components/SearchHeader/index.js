@@ -59,6 +59,17 @@ export const SearchHeader = (props) => {
     }
   };
 
+  const submitSearch = () => {
+    // Closes filter if opened
+    props.setFilterVisible(false);
+    // Dismisses the Keyboard if opened
+    Keyboard.dismiss();
+    // Saves the searched text as the last searched text
+    props.setLastSearchedText(searchedText);
+    // Searches for people based upon the user's search text
+    searchUsers();
+  };
+
   return (
     <LinearGradient
       // Background Linear Gradient
@@ -76,7 +87,7 @@ export const SearchHeader = (props) => {
             props.setSelectedUsers({});
             setSearchedText("");
             props.setLastSearchedText("");
-            dispatch(resetSearchList());
+            dispatch(resetSearchList);
             // Ensures the filters are closed
             props.setFilterVisible(false);
             // Closes out the Modal
@@ -99,7 +110,7 @@ export const SearchHeader = (props) => {
             setSearchedText(text);
           }}
           onSubmitEditing={() => {
-            searchUsers();
+            submitSearch();
           }}
           inputContainerStyle={styles.searchBarInputContainer}
           inputStyle={styles.searchBarInput}
@@ -153,14 +164,7 @@ export const SearchHeader = (props) => {
             underlayColor="none"
             disabled={!canSearchUsers()}
             onPress={() => {
-              // Closes filter if opened
-              props.setFilterVisible(false);
-              // Dismisses the Keyboard if opened
-              Keyboard.dismiss();
-              // Saves the searched text as the last searched text
-              props.setLastSearchedText(searchedText);
-              // Searches for people based upon the user's search text
-              searchUsers();
+              submitSearch();
             }}
             style={styles.searchButtonContainer}
           >

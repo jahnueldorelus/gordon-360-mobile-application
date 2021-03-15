@@ -59,7 +59,7 @@ export default slice.reducer;
  * Returns the result of the people search
  */
 export const getPeopleSearchResults = createSelector(
-  (state) => state.entities.peopleSearch,
+  (state) => state.ui.peopleSearch,
   (peopleSearch) => Object.values(peopleSearch.data)
 );
 
@@ -67,7 +67,7 @@ export const getPeopleSearchResults = createSelector(
  * Returns the people search's loading status
  */
 export const getPeopleSearchLoading = createSelector(
-  (state) => state.entities.peopleSearch,
+  (state) => state.ui.peopleSearch,
   (peopleSearch) => peopleSearch.loading
 );
 
@@ -107,7 +107,7 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
 /**
  * Resets the people search results
  */
-export const resetSearchList = () => (dispatch, getState) => {
+export const resetSearchList = (dispatch, getState) => {
   dispatch({ type: slice.actions.peopleSearchReset.type });
 };
 
@@ -154,13 +154,7 @@ const correctSearchParams = ({
   /**
    * Converts the major parameter
    */
-  if (
-    major &&
-    (major.includes("&") ||
-      major.includes("-") ||
-      major.includes(":") ||
-      major.includes("/"))
-  ) {
+  if (major) {
     major = major.replace("&", "_");
     major = major.replace("-", "dash");
     major = major.replace(":", "colon");
@@ -172,7 +166,7 @@ const correctSearchParams = ({
   /**
    * Converts the minor parameter
    */
-  minor = minor & minor.includes("&") ? minor.replace("&", "_") : nullParam;
+  minor = minor ? minor.replace("&", "_") : nullParam;
 
   /**
    * Converts the hall parameter
@@ -182,10 +176,35 @@ const correctSearchParams = ({
 
   /**
    * Converts the class type parameter
-   * 0 = Unassigned, 1 = Freshman, 2 = Sophomore, 3 = Junior, 4 = Senior,
-   * 5 = Graduate Student, 6 = Undegraduate Conferred, 7 = Graduate Conferred
    */
-  if (!classType) classType = nullParam;
+  switch (classType) {
+    case "Unassigned":
+      classType = 0;
+      break;
+    case "Freshman":
+      classType = 1;
+      break;
+    case "Sophomore":
+      classType = 2;
+      break;
+    case "Junior":
+      classType = 3;
+      break;
+    case "Senior":
+      classType = 4;
+      break;
+    case "Graduate Student":
+      classType = 5;
+      break;
+    case "Undegraduate Conferred":
+      classType = 6;
+      break;
+    case "Graduate Conferred":
+      classType = 7;
+      break;
+    default:
+      classType = nullParam;
+  }
 
   /**
    * Converts the home city parameter
@@ -207,10 +226,7 @@ const correctSearchParams = ({
    * Converts the department parameter
    * The department where faculty/staff work
    */
-  department =
-    department && department.includes("&")
-      ? department.replace("&", "_")
-      : nullParam;
+  department = department ? department.replace("&", "_") : nullParam;
 
   /**
    * Converts the building parameter

@@ -3,14 +3,12 @@ import {
   View,
   StyleSheet,
   Dimensions,
-  LayoutAnimation,
   Platform,
   StatusBar,
 } from "react-native";
 import PropTypes from "prop-types";
 
 export const CustomModal = (props) => {
-  const [viewHeight, setViewHeight] = useState(0);
   const [visible, setVisible] = useState(null);
   // Checks to see if the prop coverScreen is enabled. If not, the prop
   // containInView is automatically enabled. This prevents the modal from not displaying
@@ -19,39 +17,11 @@ export const CustomModal = (props) => {
   );
   const deviceHeight = Dimensions.get("window").height;
 
-  useEffect(() => {
-    if (props.visible) {
-      // Displays opening animation
-      /**
-       * Creates the animation of the modal coming up from the bottom
-       * The set timeout is IMPORTANT. Do not remove it. Still not sure why this
-       * is but without it (even though its timeout is set to 0ms), the animation
-       * does not occur. Instead of the modal coming up from the bottom, it fades in
-       * (iOS)
-       *
-       * On Android, it fades in no matter what. Not sure why that happens
-       */
-      setTimeout(() => {
-        LayoutAnimation.easeInEaseOut();
-        setViewHeight(getViewHeight());
-      }, 0);
-
-      setVisible(true);
-    } else {
-      // Displays closing animation of the modal if it was opened
-      LayoutAnimation.easeInEaseOut();
-      setViewHeight("0%");
-      setTimeout(() => {
-        setVisible(false);
-      }, 300);
-    }
-  }, [props.visible]);
-
   // Gets the height of the modal by ratio of the given height
   const getViewHeight = () => {
-    // If the height given is 0, then the modal's height is based off the height
-    // of the content provided.
-    if (props.height === 0) {
+    // If the height given is 0 or no height is given at all, then
+    // the modal's height is based off the height of the content provided.
+    if (!props.height || props.height === 0) {
       return "auto";
     }
     // If the height given is not 0, then a percentage of the height is calculated
@@ -68,10 +38,26 @@ export const CustomModal = (props) => {
     }
   };
 
+  // The view height of the modal
+  const [viewHeight, setViewHeight] = useState(getViewHeight());
+
+  useEffect(() => {
+    if (props.visible) {
+      // Sets UI data and opens the modal
+      setViewHeight(getViewHeight());
+      setVisible(true);
+    } else {
+      // Resets UI data and closes modal
+      setViewHeight(null);
+      setVisible(false);
+    }
+  }, [props.visible]);
+
   // If visible, show the modal. Otherwise, return nothing
   if (visible) {
     const styles = StyleSheet.create({
       container: {
+        flex: props.coverScreen ? 1 : 0,
         backgroundColor: "white",
         // If the screen will not be covered, then it will appear in the same view
         // currently displayed and not on top of it
@@ -85,6 +71,8 @@ export const CustomModal = (props) => {
         width: "100%",
         bottom: 0,
         overflow: "hidden",
+        borderTopRightRadius: props.roundedCorners ? 30 : 0,
+        borderTopLeftRadius: props.roundedCorners ? 30 : 0,
         ...props.styles,
       },
       view: {
@@ -93,15 +81,13 @@ export const CustomModal = (props) => {
       },
       content: {
         flex: 1,
-        borderTopRightRadius: props.roundedCorners ? 15 : 0,
-        borderTopLeftRadius: props.roundedCorners ? 15 : 0,
         overflow: "hidden",
       },
     });
 
     return (
       <View style={styles.container}>
-        <View style={[styles.view]}>
+        <View style={styles.view}>
           <View style={styles.content}>{props.content}</View>
         </View>
       </View>
@@ -112,7 +98,6 @@ export const CustomModal = (props) => {
 };
 
 CustomModal.propTypes = {
-  backgroundColor: PropTypes.string,
   content: PropTypes.object.isRequired,
   coverScreen: PropTypes.bool,
   containInView: PropTypes.bool,

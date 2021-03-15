@@ -19,6 +19,35 @@ const slice = createSlice({
     /**
      * ROOM REDUCERS
      */
+    addRoom: (state, action) => {
+      /**
+       * Adds room data to the sort list and sorts the list in
+       * order by the last updated date
+       */
+      let newSortRoomList = [...state.sortRoomList];
+      /**
+       * Checks to make sure there's not a duplicate room. If there is,
+       * the newer room object is not saved
+       */
+      if (
+        newSortRoomList.filter((room) => room.id === action.payload.room_id)
+          .length === 0
+      ) {
+        newSortRoomList.push({
+          id: action.payload.room_id,
+          lastUpdated: action.payload.lastUpdated,
+        });
+      }
+      // Sorts the room list to be listed in the correct order by date
+      newSortRoomList = newSortRoomList.sort(
+        (a, b) => moment(a.lastUpdated) - moment(b.lastUpdated)
+      );
+      state.sortRoomList = newSortRoomList;
+
+      // Adds the room to the rooms object
+      state.rooms[action.payload.room_id] = correctedRoomObject(action.payload);
+    },
+
     // Adds the list of rooms
     userRoomsAdded: (state, action) => {
       // New sort list
@@ -26,27 +55,16 @@ const slice = createSlice({
       // Goes through the list of rooms and modifies its properties
       action.payload.forEach((obj) => {
         const room = obj[0];
-        // Adds room data to the sort list
-        newSortList.push({
-          id: room.room_id,
-          lastUpdated: room.lastUpdated,
-        });
-        // Adds the room to the rooms object
-        state.rooms[room.room_id] = {
-          image: room.roomImage,
-          id: room.room_id,
-          name: room.name,
-          group: room.group,
-          createdAt: room.createdAt,
-          lastUpdated: room.lastUpdated,
-          users: room.users.map((user) => {
-            return {
-              id: user.user_id,
-              username: user.user_name,
-              image: user.user_avatar,
-            };
-          }),
-        };
+        // Checks to make sure the room object is existent
+        if (room) {
+          // Adds room data to the sort list
+          newSortList.push({
+            id: room.room_id,
+            lastUpdated: room.lastUpdated,
+          });
+          // Adds the room to the rooms object
+          state.rooms[room.room_id] = correctedRoomObject(room);
+        }
       });
 
       // Sorts the list in order by the last updated date
@@ -122,9 +140,17 @@ const slice = createSlice({
     // Adds a message to the user's messsages based on room id
     addMessage: (state, action) => {
       const { roomID, messageObj } = action.payload;
+      /**
+       * Checks to see if the room has messages. If not, new objects are
+       * created to add messages to
+       */
+      if (!state.messages[roomID]) {
+        state.messages[roomID] = {};
+        state.messageSort[roomID] = [];
+      }
       const roomMessages = state.messages[roomID];
       const roomMessagesSorted = state.messageSort[roomID];
-      console.log("MESSAGE:\n\n", messageObj);
+
       // Adds the message to the room's object of messages
       roomMessages[messageObj._id] = messageObj;
       // Adds the message to the room's sorted message list (at the beginning)
@@ -279,17 +305,7 @@ export const sendMessage = (message) => (dispatch, getState) => {
   // User selected room id
   const roomID = getState().ui.chat.selectedRoomID;
   // Reformats the message object for the back-end to parse correctly
-  const newMessage = {
-    text: message.text,
-    user: message.user,
-    createdAt: moment(message.createdAt).format("YYYY-MM-DDTHH:mm:ss.SSS"),
-    image: message.image ? message.image : null,
-    audio: message.audio ? message.audio : null,
-    video: message.video ? message.video : null,
-    system: message.system ? message.system : false,
-    received: message.received ? message.received : false,
-    pending: false,
-  };
+  const newMessage = correctedMessageObject(message);
 
   // Formatted message for the back-end to parse
   const backEndMessage = {
@@ -320,6 +336,32 @@ export const sendMessage = (message) => (dispatch, getState) => {
       useEndpoint: true,
       onSuccess: slice.actions.updateMessagePending.type,
       passedData: { roomID, messageObj: backEndMessage },
+    })
+  );
+};
+
+/**
+ * Creates a new room
+ * @param {Object} room The room object to save
+ * @param {string} message The message object to save
+ */
+export const createNewRoom = (room, message) => (dispatch, getState) => {
+  // The room's ID
+  const roomID = room.room_id;
+
+  // Corrects the message object
+  const newMessage = correctedMessageObject(message);
+  // Formatted message for Redux to parse
+  const stateMessage = { ...newMessage, _id: message._id, pending: true };
+
+  // Adds the room to the state
+  dispatch(slice.actions.addRoom(room));
+
+  // Adds the message to the state
+  dispatch(
+    slice.actions.addMessage({
+      roomID,
+      messageObj: stateMessage,
     })
   );
 };
@@ -369,4 +411,48 @@ const getListMessagesByID = (chat, id) => {
    * Conversion: { _id, createdAt } -> { _id, text, user_id, user, image, etc. }
    */
   return messages.map((text) => chat.messages[id][text._id]);
+};
+
+/**
+ * Parses and corrects the room object
+ * @param {Object} room The room object
+ * @returns {Object} The corrected room object
+ */
+const correctedRoomObject = (room) => {
+  return {
+    image: room.roomImage,
+    id: room.room_id,
+    name: room.name,
+    group: room.group,
+    createdAt: room.createdAt,
+    lastUpdated: room.lastUpdated,
+    lastMessage: room.lastMessage,
+    users: room.users.map((user) => {
+      return {
+        id: user.user_id,
+        username: user.user_name,
+        image: user.user_avatar,
+      };
+    }),
+  };
+};
+
+/**
+ * Parses and corrects the message object
+ * @param {Object} message The message object
+ * @returns {Object} The corrected message object
+ */
+const correctedMessageObject = (message) => {
+  // Reformats the message object for the back-end to parse correctly
+  return {
+    text: message.text,
+    user: message.user,
+    createdAt: moment(message.createdAt).format("YYYY-MM-DDTHH:mm:ss.SSS"),
+    image: message.image ? message.image : null,
+    audio: message.audio ? message.audio : null,
+    video: message.video ? message.video : null,
+    system: message.system ? message.system : false,
+    received: message.received ? message.received : false,
+    pending: false,
+  };
 };

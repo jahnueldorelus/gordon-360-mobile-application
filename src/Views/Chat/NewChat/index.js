@@ -2,35 +2,42 @@ import React, { useState } from "react";
 import {
   View,
   StyleSheet,
-  LayoutAnimation,
   Modal,
+  TouchableOpacity,
   SafeAreaView,
 } from "react-native";
+import { Icon } from "react-native-elements";
 import { getUserImage } from "../../../Services/Messages/index";
 import {
   getPeopleSearchResults,
   getPeopleSearchLoading,
-} from "../../../store/entities/peopleSearch";
+} from "../../../store/ui/peopleSearch";
 import { SearchHeader } from "./Components/SearchHeader";
 import { SelectedUsers } from "./Components/SelectedUsers/index";
 import { SearchResults } from "./Components/SearchResults/index";
-import { Tooltip } from "./Components/Tooltip/index";
+import { SearchFilter } from "./Components/SearchFilter/index";
+import { SearchTooltip } from "./Components/SearchTooltip/index";
+import { RoomMessage } from "./Components/RoomMessage/index";
 import { useSelector } from "react-redux";
 
 export const NewChat = (props) => {
-  // The user's search text
-  const [searchedText, setSearchedText] = useState("");
-  // List of selected users
+  // The user's previous search text
+  const [lastSearchedText, setLastSearchedText] = useState(null);
+
+  // Object of selected users
   const [selectedUsers, setSelectedUsers] = useState({});
+
+  // People Search filter visibility
+  const [filterVisible, setFilterVisible] = useState(false);
+
+  // People Search filter visibility
+  const [roomMessageVisible, setRoomMessageVisible] = useState(false);
 
   // The people search's result
   const searchResult = useSelector(getPeopleSearchResults);
 
   // The people search's loading status
   const searchResultLoading = useSelector(getPeopleSearchLoading);
-
-  // Configures the animation for the entire component
-  LayoutAnimation.easeInEaseOut();
 
   /**
    * Gets the user's full name including their nick name
@@ -73,7 +80,10 @@ export const NewChat = (props) => {
         ? // Sorts by last name since they're not equal
           a.LastName.localeCompare(b.LastName)
         : // Sorts by nick name (if both users have one)
-        a.NickName !== a.FirstName && b.NickName !== b.FirstName
+        a.NickName &&
+          a.NickName !== a.FirstName &&
+          b.NickName &&
+          b.NickName !== b.FirstName
         ? a.NickName.localeCompare(b.NickName)
         : // If user A has a nick name and user B doesn't, user A
         // goes after user B
@@ -111,6 +121,15 @@ export const NewChat = (props) => {
     }
   };
 
+  // Returns the JSX of the selected users
+  const getSelectedUsers = () => (
+    <SelectedUsers
+      handleSelected={handleSelected}
+      getUserFullName={getUserFullName}
+      selectedUsers={selectedUsersList}
+    />
+  );
+
   // The search results of users sorted in alphabetical order
   const searchResultList = sortUsersAlphabetically(searchResult);
   // The list of selected users
@@ -124,23 +143,23 @@ export const NewChat = (props) => {
       onRequestClose={() => props.setVisible(false)}
       onDismiss={() => props.setVisible(false)}
     >
-      <SearchHeader
-        searchedText={searchedText}
-        setSearchedText={setSearchedText}
-        setSelectedUsers={setSelectedUsers}
-        searchResultList={searchResultList}
-        setVisible={props.setVisible}
-      />
-      <View style={styles.modal}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#015483" }}>
-          <SelectedUsers
-            handleSelected={handleSelected}
-            getUserFullName={getUserFullName}
-            selectedUsers={selectedUsersList}
-          />
-          {searchedText.length > 1 ? (
+      <SafeAreaView style={styles.safeAreaView}>
+        <SearchHeader
+          setLastSearchedText={setLastSearchedText}
+          setSelectedUsers={setSelectedUsers}
+          searchResultList={searchResultList}
+          setVisible={props.setVisible}
+          filterVisible={filterVisible}
+          setFilterVisible={setFilterVisible}
+        />
+        <View
+          pointerEvents={filterVisible ? "none" : "auto"}
+          style={[styles.safeAreaView, { opacity: filterVisible ? 0.6 : 1 }]}
+        >
+          {getSelectedUsers()}
+          {searchResultList && lastSearchedText ? (
             <SearchResults
-              searchedText={searchedText}
+              lastSearchedText={lastSearchedText}
               searchResultList={searchResultList}
               resultLoading={searchResultLoading}
               selectedUsers={selectedUsers}
@@ -149,14 +168,58 @@ export const NewChat = (props) => {
               handleSelected={handleSelected}
             />
           ) : (
-            <Tooltip selectedUsers={selectedUsersList} />
+            <SearchTooltip />
           )}
-        </SafeAreaView>
-      </View>
+
+          {selectedUsersList.length > 0 && (
+            <View>
+              <TouchableOpacity
+                underlayColor="none"
+                onPress={() => setRoomMessageVisible(true)}
+                style={{
+                  position: "absolute",
+                  bottom: 25,
+                  right: 25,
+                  backgroundColor: "#2f3d49",
+                  borderRadius: 50,
+                  paddingVertical: 10,
+                  paddingHorizontal: 15,
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Icon
+                  name={"comments"}
+                  type="font-awesome-5"
+                  color="white"
+                  size={25}
+                  containerStyle={{ marginRight: 10 }}
+                />
+                <Icon
+                  name={"chevron-right"}
+                  type="font-awesome-5"
+                  color="white"
+                  size={20}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
+        <RoomMessage
+          visible={roomMessageVisible}
+          setVisible={setRoomMessageVisible}
+          selectedUsers={getSelectedUsers()}
+          selectedUsersList={selectedUsersList}
+          setNewChatModalVisible={props.setVisible}
+          setSelectedUsers={setSelectedUsers}
+          setLastSearchedText={setLastSearchedText}
+        />
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modal: { flex: 1 },
+  safeAreaView: { flex: 1, backgroundColor: "black" },
 });

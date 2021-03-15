@@ -150,7 +150,7 @@ const slice = createSlice({
       }
       const roomMessages = state.messages[roomID];
       const roomMessagesSorted = state.messageSort[roomID];
-      console.log("MESSAGE:\n\n", messageObj);
+
       // Adds the message to the room's object of messages
       roomMessages[messageObj._id] = messageObj;
       // Adds the message to the room's sorted message list (at the beginning)

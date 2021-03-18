@@ -12,6 +12,7 @@ import {
   getPeopleSearchResults,
   getPeopleSearchLoading,
 } from "../../../store/ui/peopleSearch";
+import { getSelectedItemsAndNames } from "../../../store/ui/peopleSearchFilter";
 import { SearchHeader } from "./Components/SearchHeader";
 import { SelectedUsers } from "./Components/SelectedUsers/index";
 import { SearchResults } from "./Components/SearchResults/index";
@@ -22,7 +23,7 @@ import { useSelector } from "react-redux";
 
 export const NewChat = (props) => {
   // The user's previous search text
-  const [lastSearchedText, setLastSearchedText] = useState(null);
+  const [lastSearchedText, setLastSearchedText] = useState("");
 
   // Object of selected users
   const [selectedUsers, setSelectedUsers] = useState({});
@@ -38,6 +39,9 @@ export const NewChat = (props) => {
 
   // The people search's loading status
   const searchResultLoading = useSelector(getPeopleSearchLoading);
+
+  // The object of seleced filters
+  const selectedFilterData = useSelector(getSelectedItemsAndNames);
 
   /**
    * Gets the user's full name including their nick name
@@ -157,19 +161,17 @@ export const NewChat = (props) => {
           style={[styles.safeAreaView, { opacity: filterVisible ? 0.6 : 1 }]}
         >
           {getSelectedUsers()}
-          {searchResultList && lastSearchedText ? (
-            <SearchResults
-              lastSearchedText={lastSearchedText}
-              searchResultList={searchResultList}
-              resultLoading={searchResultLoading}
-              selectedUsers={selectedUsers}
-              getUserImage={getUserImage}
-              getUserFullName={getUserFullName}
-              handleSelected={handleSelected}
-            />
-          ) : (
-            <SearchTooltip />
-          )}
+
+          <SearchResults
+            lastSearchedText={lastSearchedText}
+            searchResultList={searchResultList}
+            resultLoading={searchResultLoading}
+            selectedUsers={selectedUsers}
+            setSelectedUsers={setSelectedUsers}
+            getUserImage={getUserImage}
+            getUserFullName={getUserFullName}
+            handleSelected={handleSelected}
+          />
 
           {selectedUsersList.length > 0 && (
             <View>

@@ -281,7 +281,7 @@ export const getSelectedItemsAndNames = (state) => {
   // The selected items of each filter section and selected section names
   let selected = {
     items: {},
-    names: [],
+    nameAndItem: [],
   };
   // Gets the names of each filter to parse through each section
   const filterNames = getFilterNames(state);
@@ -319,7 +319,11 @@ export const getSelectedItemsAndNames = (state) => {
         ? section.selected
         : "";
       // Saves the section's name if the section has a selected item
-      if (section.selected) selected.names.push(section.sectionName);
+      if (section.selected)
+        selected.nameAndItem.push({
+          name: section.sectionName,
+          item: section.selected,
+        });
     });
   });
 

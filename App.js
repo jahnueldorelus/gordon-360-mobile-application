@@ -89,7 +89,7 @@ export default function App() {
       <PersistGate persistor={persistor} loading={null}>
         {
           // Makes a live connection to the back-end with a web socket
-          startWebConnection(store)
+          // startWebConnection(store)
         }
         <NetworkProvider pingServerUrl="https://360train.gordon.edu">
           <SafeAreaProvider>

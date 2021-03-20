@@ -230,7 +230,9 @@ export const SearchResults = (props) => {
         ListEmptyComponent={() => {
           // If the search result data isn't loading
           if (!props.resultLoading) {
-            const lastSearchedText = props.lastSearchedText.trim();
+            const lastSearchedText = props.lastSearchedText
+              ? props.lastSearchedText.trim()
+              : "";
 
             /**
              * If there's searched text, the searched text is displayed

@@ -9,6 +9,9 @@ const slice = createSlice({
     createRoomLoading: false,
   },
   reducers: {
+    /**
+     *  SELECTED ROOM REDUCERS
+     */
     // Sets the user selected room ID to view its messages
     selectedRoom: (state, action) => {
       state.selectedRoomID = action.payload;
@@ -16,6 +19,15 @@ const slice = createSlice({
 
     setCreateRoomLoading: (state, action) => {
       state.createRoomLoading = action.payload;
+    },
+
+    /**
+     * STATE RESET REDUCER
+     */
+    // Resets all the state's data
+    resetState: (state, action) => {
+      state.selectedRoomID = null;
+      state.createRoomLoading = false;
     },
   },
 });
@@ -59,4 +71,11 @@ export const setCreateRoomLoading = (dispatch, getState) => {
  */
 export const resetCreateRoomLoading = (dispatch, getState) => {
   dispatch({ type: slice.actions.setCreateRoomLoading.type, payload: false });
+};
+
+/**
+ * Resets all the state's data
+ */
+export const ui_ChatResetState = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetState.type, payload: null });
 };

@@ -13,6 +13,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { ChatView } from "./src/Views/Chat/ChatView";
 import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
+import { AppSettings } from "./src/Views/AppSettings";
 import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -65,6 +66,15 @@ export default function App() {
     );
   }
 
+  function Settings({ navigation }) {
+    return (
+      <View style={styles.screenView}>
+        <AppBar navigation={navigation} />
+        <AppSettings />
+      </View>
+    );
+  }
+
   // User Profile Screen
   function ProfilePage({ navigation }) {
     return (
@@ -111,6 +121,7 @@ export default function App() {
                     options={{ swipeEnabled: false }}
                   />
                   <Drawer.Screen name="Messages" component={Messages} />
+                  <Drawer.Screen name="Settings" component={Settings} />
                   <Drawer.Screen
                     name="Login"
                     component={LoginPage}

@@ -15,6 +15,9 @@ const slice = createSlice({
     apiEndpoint: "/api",
   },
   reducers: {
+    /**
+     * TOKEN REDUCERS
+     */
     // Adds the user token
     tokenAdded: ({ token }, action) => {
       token.data = action.payload.access_token;
@@ -40,6 +43,18 @@ const slice = createSlice({
     // User's token error removed
     tokenErrorReset: ({ token }, action) => {
       token.fetchError = false;
+    },
+
+    /**
+     * STATE RESET REDUCER
+     */
+    // Resets all the state's data
+    resetState: (state, action) => {
+      state.token = {
+        data: null,
+        loading: false,
+        fetchError: false,
+      };
     },
   },
 });
@@ -118,4 +133,11 @@ export const fetchToken = (username = "", password = "") => (
  */
 export const resetTokenError = () => (dispatch, getState) => {
   dispatch({ type: slice.actions.tokenErrorReset.type });
+};
+
+/**
+ * Resets all the state's data
+ */
+export const ent_AuthResetState = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetState.type, payload: null });
 };

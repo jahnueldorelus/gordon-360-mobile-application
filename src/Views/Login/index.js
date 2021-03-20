@@ -14,9 +14,6 @@ import {
 import { Button } from "react-native-elements";
 import { Input } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
-import AsyncStorage from "@react-native-community/async-storage";
-import { get } from "../../Services/HTTP/";
-import { getUserImage } from "../../Services/Profile";
 import { ScrollView } from "react-native-gesture-handler";
 import {
   fetchToken,
@@ -25,7 +22,7 @@ import {
   getTokenLoading,
 } from "../../store/entities/auth";
 import { fetchProfile } from "../../store/entities/profile";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { resetTokenError } from "../../store/entities/auth";
 
 export const Login = (props) => {
@@ -41,7 +38,6 @@ export const Login = (props) => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [loginFailedText, setLoginFailedText] = useState(null);
   const [loginDisabled, setLoginDisabled] = useState(true);
   const [usernameHighlighted, setUsernameHighlighted] = useState(false);
@@ -164,9 +160,6 @@ export const Login = (props) => {
    * Gets the token from the back-end
    */
   const getAuthorized = () => {
-    // Makes the login button show a loader
-    setLoading(true);
-
     dispatch(fetchToken(username, password));
   };
 
@@ -329,7 +322,7 @@ export const Login = (props) => {
                   titleStyle={styles.loginButtonTextStyle}
                   buttonStyle={styles.loginButtonEnabled}
                   disabledStyle={styles.loginButtonDisabled}
-                  loading={loading}
+                  loading={tokenLoading}
                   onPress={getAuthorized}
                   disabled={loginDisabled}
                 />

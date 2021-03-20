@@ -10,6 +10,9 @@ const slice = createSlice({
     loading: false,
   },
   reducers: {
+    /**
+     * PEOPLE SEARCH REDUCERS
+     */
     // Adds the result of the people search
     personAdded: (state, action) => {
       // If there are people in the result list
@@ -46,6 +49,15 @@ const slice = createSlice({
 
     // People Search request ended
     peopleReqEnded: (state, action) => {
+      state.loading = false;
+    },
+
+    /**
+     * STATE RESET REDUCER
+     */
+    // Resets all the state's data
+    resetState: (state, action) => {
+      state.data = {};
       state.loading = false;
     },
   },
@@ -109,6 +121,13 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
  */
 export const resetSearchList = (dispatch, getState) => {
   dispatch({ type: slice.actions.peopleSearchReset.type });
+};
+
+/**
+ * Resets all the state's data
+ */
+export const ui_PeopleSearchResetState = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetState.type, payload: null });
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/

@@ -35,7 +35,7 @@ export const SearchHeader = (props) => {
    * in the search bar is at least 2
    */
   const canSearchUsers = () => {
-    return searchedText.length >= 2;
+    return searchedText.length > 0 || selectedFilterData.nameAndItem.length > 0;
   };
 
   /**
@@ -116,7 +116,7 @@ export const SearchHeader = (props) => {
           inputStyle={styles.searchBarInput}
           cancelButtonProps={{ buttonTextStyle: styles.searchBarCancelButton }}
         />
-        {selectedFilterData.names.length > 0 && (
+        {selectedFilterData.nameAndItem.length > 0 && (
           <Text
             style={{
               marginHorizontal: 14,
@@ -126,14 +126,14 @@ export const SearchHeader = (props) => {
             }}
           >
             Filtering By:{" "}
-            {selectedFilterData.names.map((name, index) => (
+            {selectedFilterData.nameAndItem.map((filter, index) => (
               <Text
                 key={index}
                 style={{ fontWeight: "normal", fontStyle: "italic" }}
               >
-                {index !== selectedFilterData.names.length - 1
-                  ? `${name},${" "}`
-                  : name}
+                {index !== selectedFilterData.nameAndItem.length - 1
+                  ? `${filter.name},${" "}`
+                  : filter.name}
               </Text>
             ))}
           </Text>

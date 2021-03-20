@@ -332,7 +332,7 @@ export const RoomMessage = (props) => {
             }}
           >
             <Image
-              source={require("./Images/mascot.png")}
+              source={require("../Images/mascot.png")}
               style={styles.loadingImage}
             />
             <Text style={styles.loadingText}>Creating Room...</Text>

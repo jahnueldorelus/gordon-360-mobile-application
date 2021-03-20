@@ -149,6 +149,20 @@ const slice = createSlice({
     schedReqEnded: ({ schedule }, action) => {
       schedule.loading = false;
     },
+
+    /**
+     * STATE RESET REDUCER
+     */
+    // Resets all the state's data
+    resetState: (state, action) => {
+      state.image = { ...template };
+      state.dining = { ...template };
+      state.chapel = { ...template };
+      state.involvements = { ...template };
+      state.userInfo = { ...template };
+      state.schedule = { ...template };
+      state.advisors = { ...template };
+    },
   },
 });
 
@@ -340,6 +354,13 @@ export const fetchAdvisors = (username) => (dispatch, getState) => {
       })
     );
   }
+};
+
+/**
+ * Resets all the state's data
+ */
+export const ent_ProfileResetState = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetState.type, payload: null });
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/

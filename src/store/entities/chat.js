@@ -188,6 +188,19 @@ const slice = createSlice({
     dataLoadingEnded: (state, action) => {
       state.dataLoading = false;
     },
+
+    /**
+     * STATE RESET REDUCER
+     */
+    // Resets all the state's data
+    resetState: (state, action) => {
+      state.rooms = {};
+      state.sortRoomList = [];
+      state.messages = {};
+      state.messageSort = {};
+      state.dataLoading = false;
+      state.fetchRoomsError = false;
+    },
   },
 });
 
@@ -391,6 +404,13 @@ export const liveMessageUpdate = (messageObj, messageUserID) => (
 
   // Dispatches the update
   dispatch({ type: slice.actions.addMessage, payload: { roomID, messageObj } });
+};
+
+/**
+ * Resets all the state's data
+ */
+export const ent_ChatResetState = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetState.type, payload: null });
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/

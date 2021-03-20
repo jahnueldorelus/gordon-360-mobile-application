@@ -38,7 +38,7 @@ export const FilterHeader = () => {
         type="material-community"
         color="white"
         size={30}
-        disabled={selectedFilterData.names.length === 0}
+        disabled={selectedFilterData.nameAndItem.length === 0}
         disabledStyle={styles.filterGroupButtonReset}
         onPress={() => {
           Alert.alert(

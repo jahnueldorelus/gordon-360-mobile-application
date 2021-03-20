@@ -1,11 +1,5 @@
-import React, { useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  LayoutAnimation,
-} from "react-native";
+import React, { useRef, useState, useCallback } from "react";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import { Icon } from "react-native-elements";
 
 export const SelectedUsers = (props) => {
@@ -17,11 +11,40 @@ export const SelectedUsers = (props) => {
   const [initialViewWidth, setInitialViewWidth] = useState(null);
   const usersSelectedScrollRef = useRef();
   const oldViewWidthRef = useRef(0);
+  const numOfUsers = useRef(props.selectedUsers.length);
   // Determines if the helper tool for scrolling the users should appear
   const [showUserScrollTooltip, setShowUserScrollTooltip] = useState(false);
 
-  // Configures the animation for the component
-  LayoutAnimation.easeInEaseOut();
+  /**
+   * Renders an item of the list of selected users
+   * Do not move this into Flatlist. With it being separate
+   * and the use of useCallback, this creates a performance boost
+   */
+  const renderItem = useCallback(
+    ({ item, index }) => {
+      return (
+        <View
+          style={[
+            styles.itemContainer,
+            {
+              marginRight: index !== props.selectedUsers.length - 1 ? 10 : 0,
+            },
+          ]}
+        >
+          <Text style={styles.itemTitle}>{props.getUserFullName(item)}</Text>
+          <Icon
+            name="close"
+            type="material"
+            color="white"
+            size={20}
+            containerStyle={styles.itemIcon}
+            onPress={() => props.handleSelected(item)}
+          />
+        </View>
+      );
+    },
+    [props.selectedUsers]
+  );
 
   return (
     <View style={styles.mainContainer}>
@@ -38,6 +61,7 @@ export const SelectedUsers = (props) => {
         keyExtractor={(item, index) => index.toString()}
         showsHorizontalScrollIndicator
         horizontal
+        initialNumToRender={70}
         contentContainerStyle={[
           {
             padding: props.selectedUsers.length > 0 ? 10 : 0,
@@ -46,6 +70,7 @@ export const SelectedUsers = (props) => {
         ]}
         onContentSizeChange={(width) => {
           const newWidth = width - 20; // 20 is subtracted to exclude horizontal padding
+
           /**
            * Scrolls to the end of the list only if a new user has been added.
            * This is done by evaluating the new width. If the new width is greater
@@ -55,12 +80,24 @@ export const SelectedUsers = (props) => {
            */
           if (
             newWidth > initialViewWidth &&
-            newWidth > oldViewWidthRef.current
+            newWidth > oldViewWidthRef.current &&
+            props.selectedUsers.length > numOfUsers.current
           ) {
+            // Scrolls to the end of the list
             usersSelectedScrollRef.current.scrollToEnd({
-              animated: true,
+              // If the width changes by more than 1024 pixels, then no animation is done
+              // for faster performance
+              animated:
+                Math.abs(
+                  Math.abs(newWidth) - Math.abs(oldViewWidthRef.current)
+                ) > 1024
+                  ? false
+                  : true,
             });
           }
+
+          // Sets the new number of users ref
+          numOfUsers.current = props.selectedUsers.length;
 
           // Sets the visibility of the selected user list scroll tooltip
           newWidth > initialViewWidth
@@ -81,31 +118,7 @@ export const SelectedUsers = (props) => {
           if (oldViewWidthRef.current === 0)
             oldViewWidthRef.current = nativeEvent.layout.width;
         }}
-        renderItem={({ item, index }) => {
-          return (
-            <View
-              style={[
-                styles.itemContainer,
-                {
-                  marginRight:
-                    index !== props.selectedUsers.length - 1 ? 10 : 0,
-                },
-              ]}
-            >
-              <Text style={styles.itemTitle}>
-                {props.getUserFullName(item)}
-              </Text>
-              <Icon
-                name="close"
-                type="material"
-                color="white"
-                size={20}
-                containerStyle={styles.itemIcon}
-                onPress={() => props.handleSelected(item)}
-              />
-            </View>
-          );
-        }}
+        renderItem={renderItem}
       />
 
       {props.selectedUsers.length > 0 && <View style={styles.bottomBorder} />}

@@ -196,6 +196,29 @@ const slice = createSlice({
     saveDormitoryList: (state, action) => {
       state.office.dormitory.data = action.payload;
     },
+
+    /**
+     * STATE RESET REDUCER
+     */
+    // Resets all the state's data
+    resetState: (state, action) => {
+      // Gets the names of each filter to parse through each section
+      const filterNames = state.filter.filterNames;
+
+      // Removes the last filter selected section
+      state.filter.selectedFilterSectionName = null;
+
+      // Iterates throuch each filter type
+      filterNames.forEach((name) => {
+        // Gets the filter's section data
+        const filterObject = state[name.toLowerCase()];
+        // Iterates through the filter's sections
+        Object.values(filterObject).forEach((section) => {
+          // Deletes the section's selected data
+          section.selected = null;
+        });
+      });
+    },
   },
 });
 
@@ -281,32 +304,10 @@ export const getSelectedItemsAndNames = (state) => {
   // The selected items of each filter section and selected section names
   let selected = {
     items: {},
-    names: [],
+    nameAndItem: [],
   };
   // Gets the names of each filter to parse through each section
   const filterNames = getFilterNames(state);
-
-  // Corrects the section name for the back-end to parse correctly
-  const correctSectionName = (oldSectionName) => {
-    // The section name
-    let newSectionName;
-    // Sets the correct section property name
-    switch (oldSectionName) {
-      case "Class":
-        newSectionName = "classType";
-        break;
-      case "City":
-        newSectionName = "homeCity";
-        break;
-      case "Dormitory":
-        newSectionName = "building";
-        break;
-      default:
-        newSectionName = oldSectionName.toLowerCase();
-    }
-
-    return newSectionName;
-  };
 
   // Iterates throuch each filter type
   filterNames.forEach((name) => {
@@ -319,7 +320,11 @@ export const getSelectedItemsAndNames = (state) => {
         ? section.selected
         : "";
       // Saves the section's name if the section has a selected item
-      if (section.selected) selected.names.push(section.sectionName);
+      if (section.selected)
+        selected.nameAndItem.push({
+          name: section.sectionName,
+          item: section.selected,
+        });
     });
   });
 
@@ -456,6 +461,13 @@ export const fetchFilterData = (dispatch, getState) => {
   );
 };
 
+/**
+ * Resets all the state's data
+ */
+export const ui_PeopleSearchFilterResetState = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetState.type, payload: null });
+};
+
 /*********************************** HELPER FUNCTIONS ***********************************/
 /**
  * Takes a filter or section name and returns a lowercased version
@@ -463,4 +475,26 @@ export const fetchFilterData = (dispatch, getState) => {
  */
 const getNameForObjectParsing = (name) => {
   return name ? name.toLowerCase() : null;
+};
+
+// Corrects the section name for accessing data from the state
+const correctSectionName = (oldSectionName) => {
+  // The section name
+  let newSectionName;
+  // Sets the correct section property name
+  switch (oldSectionName) {
+    case "Class":
+      newSectionName = "classType";
+      break;
+    case "City":
+      newSectionName = "homeCity";
+      break;
+    case "Dormitory":
+      newSectionName = "building";
+      break;
+    default:
+      newSectionName = oldSectionName.toLowerCase();
+  }
+
+  return newSectionName;
 };

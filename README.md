@@ -7,13 +7,13 @@
 
 ## 📜&nbsp;&nbsp;&nbsp;Design Document
 
-- https://docs.google.com/document/d/19ZKxjMTd3x-V4B5TIUYO3TishPf5Bvb245_4jhe7xGs/edit?usp=sharing.
+- https://docs.google.com/document/d/19ZKxjMTd3x-V4B5TIUYO3TishPf5Bvb245_4jhe7xGs/edit?usp=sharing
 
 <br/>
 
 ## 📜&nbsp;&nbsp;&nbsp;User Stories
 
-- https://drive.google.com/file/d/192zBSbFHV8dkPMFZv7GNuCI4L0jPgu6s/view?usp=sharing.
+- https://drive.google.com/file/d/192zBSbFHV8dkPMFZv7GNuCI4L0jPgu6s/view?usp=sharing
 
 <br/>
 
@@ -25,7 +25,7 @@
 
 ## 👥&nbsp;&nbsp;&nbsp;Lofi User Study
 
-- https://drive.google.com/file/d/12QNG491fKHFfJucT3vYGnumR7fiu1lyG/view?usp=sharing.
+- https://drive.google.com/file/d/12QNG491fKHFfJucT3vYGnumR7fiu1lyG/view?usp=sharing
 
 <br/>
 
@@ -37,7 +37,13 @@
 
 ## 🤔&nbsp;&nbsp;&nbsp;Problem Statement
 
-- https://docs.google.com/presentation/d/1KAvq2Z2kaWoHd6xHDp5utLFS6qgmR5O2uCL2YME8aqc/edit?usp=sharing`.
+- https://docs.google.com/presentation/d/1KAvq2Z2kaWoHd6xHDp5utLFS6qgmR5O2uCL2YME8aqc/edit?usp=sharing
+
+<br/>
+
+## 💿&nbsp;&nbsp;&nbsp;API - How the back-end is setup
+
+- https://github.com/gordon-cs/gordon-360-api
 
 <br/>
 
@@ -80,9 +86,9 @@
      - Install React Native AsyncStorage using any of the following commands.
        - `npm i @react-native-community/async-storage`
        - `yarn add @react-native-community/async-storage`
-     - Install React Native Image-Viewer using any of the following commands.
+       <!-- - Install React Native Image-Viewer using any of the following commands.
        - `npm i react-native-image-zoom-viewer`
-       - `yarn add react-native-image-zoom-viewer`
+       - `yarn add react-native-image-zoom-viewer` -->
      - Install Moment (Used for Date) using any of the following commands.
        - `npm i moment`
        - `yarn add moment`

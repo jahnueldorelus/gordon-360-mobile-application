@@ -38,17 +38,11 @@ export function startWebConnection(store) {
     else console.log(`Message:  ${message}`);
   });
 
-  proxy.on("sendAsync", (message, userId) => {
-    // If connected to server
-    if (connection.id) {
-      console.log(
-        `Message:  ${JSON.stringify(message)}` +
-          ` UserId:  ${JSON.stringify(userId)}`
-      );
-      console.log("MAIN USER:", store.getState().entities.profile.userInfo);
-
+  proxy.on("sendAsync", (message, userID) => {
+    // If a message was returned
+    if (message && userID) {
       // Updates the user's messages
-      store.dispatch(liveMessageUpdate(message, userId));
+      store.dispatch(liveMessageUpdate(message, userID));
     }
   });
 
@@ -99,28 +93,25 @@ export function startWebConnection(store) {
  * @param {Object} state The redux store state
  */
 export function invokeNewMessage(message, dispatch, getState) {
-  // The main user
-  const mainUser = getUserInfo(getState());
+  if (connection.id) {
+    // The main user
+    const mainUser = getUserInfo(getState());
 
-  // The selected room ID
-  let roomID = getSelectedRoomID(getState());
-  // The selected room Object
-  let roomObject = getUserRoomByID(roomID)(getState());
-  // List of user IDs in the room (apart from the main user)
-  let userIDs = [];
-  let currentUser;
+    // The selected room ID
+    let roomID = getSelectedRoomID(getState());
+    // The selected room Object
+    let roomObject = getUserRoomByID(roomID)(getState());
+    // List of user IDs in the room (apart from the main user)
+    let userIDs = [];
 
-  // Parses through the list of users to retrieve all users
-  // except for the main user who sent the message
-  roomObject.users.forEach((user) => {
-    if (user.id !== mainUser.ID) {
-      userIDs.push(user.id);
-    } else {
-      currentUser = user.id;
-    }
-  });
+    // Parses through the list of users to retrieve all users
+    // except for the main user who sent the message
+    roomObject.users.forEach((user) => {
+      if (user.id !== mainUser.ID) {
+        userIDs.push(user.id);
+      }
+    });
 
-  console.log("Users:", userIDs);
-
-  proxy.invoke("refreshMessages", userIDs, message, currentUser);
+    proxy.invoke("refreshMessages", userIDs, message, mainUser.ID);
+  }
 }

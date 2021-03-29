@@ -20,15 +20,19 @@ import {
 } from "../../store/entities/chat";
 import { getUserInfo } from "../../store/entities/profile";
 import { getToken } from "../../store/entities/auth";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import moment from "moment";
 import { setRoomID } from "../../store/ui/chat";
+import { startWebConnection } from "../../../src/Services/WebSocket";
 
 const deviceHeight = Dimensions.get("window").height;
 
 export const RoomsList = (props) => {
   // Redux Dispath
   const dispatch = useDispatch();
+  // Redux Store
+  const store = useStore();
+
   // The user's token
   const token = useSelector(getToken);
   // The user's list of rooms
@@ -39,6 +43,18 @@ export const RoomsList = (props) => {
   const userProfile = useSelector(getUserInfo);
   // The user's chat loading status
   const dataLoading = useSelector(getUserChatLoading);
+
+  /**
+   * Connects to the server through the WebSocket
+   * If the user made it to this screen, then that means they have loogged in and
+   * that their user profile information is available. If the user info is not
+   * available, a websocket connection isn't established.
+   */
+  useEffect(() => {
+    if (userProfile)
+      // Makes a live connection to the back-end with a web socket
+      startWebConnection(store);
+  }, [userProfile]);
 
   // Gets the rooms of the main user and the main user's information
   useEffect(() => {

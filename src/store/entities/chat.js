@@ -341,16 +341,16 @@ export const sendMessage = (message) => (dispatch, getState) => {
   );
 
   // Sends the message to the back-end
-  dispatch(
-    apiRequested({
-      url: "/dm/text",
-      method: "put",
-      data: backEndMessage,
-      useEndpoint: true,
-      onSuccess: slice.actions.updateMessagePending.type,
-      passedData: { roomID, messageObj: backEndMessage },
-    })
-  );
+  // dispatch(
+  //   apiRequested({
+  //     url: "/dm/text",
+  //     method: "put",
+  //     data: backEndMessage,
+  //     useEndpoint: true,
+  //     onSuccess: slice.actions.updateMessagePending.type,
+  //     passedData: { roomID, messageObj: backEndMessage },
+  //   })
+  // );
 };
 
 /**
@@ -397,10 +397,16 @@ export const liveMessageUpdate = (messageObj, messageUserID) => (
   const messageUserObj = room.users.filter(
     (user) => user.id === messageUserID
   )[0];
-  // Modifies the message object to correct properties names
+
+  // Add the message's owner to the message object
+  messageObj.user = {
+    _id: messageUserObj.id,
+    name: messageUserObj.username,
+    avatar: messageUserObj.image,
+  };
+
+  // Corrects the ID property of the message object
   messageObj._id = messageObj.id;
-  delete messageObj.id;
-  messageObj.user = messageUserObj;
 
   // Dispatches the update
   dispatch({ type: slice.actions.addMessage, payload: { roomID, messageObj } });

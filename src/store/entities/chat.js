@@ -151,13 +151,20 @@ const slice = createSlice({
       const roomMessages = state.messages[roomID];
       const roomMessagesSorted = state.messageSort[roomID];
 
-      // Adds the message to the room's object of messages
-      roomMessages[messageObj._id] = messageObj;
-      // Adds the message to the room's sorted message list (at the beginning)
-      roomMessagesSorted.splice(0, 0, {
-        _id: messageObj._id,
-        createdAt: messageObj.createdAt,
-      });
+      /**
+       * Checks to see if a message with the same ID is already saved.
+       * If so, the message is not saved to prevent past messages from being
+       * overwritten.
+       */
+      if (!roomMessages[messageObj._id]) {
+        // Adds the message to the room's object of messages
+        roomMessages[messageObj._id] = messageObj;
+        // Adds the message to the room's sorted message list (at the beginning)
+        roomMessagesSorted.splice(0, 0, {
+          _id: messageObj._id,
+          createdAt: messageObj.createdAt,
+        });
+      }
     },
 
     // Updates the pending status of a message

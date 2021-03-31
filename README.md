@@ -5,6 +5,10 @@
   <img alt="Supports Expo Android" longdesc="Supports Expo Android" src="https://img.shields.io/badge/Android-4630EB.svg?style=flat-square&logo=ANDROID&labelColor=A4C639&logoColor=fff" />
 </p>
 
+## 👷&nbsp;&nbsp;&nbsp;Purpose
+
+- Chris Carlson who’s our customer is the Dean of Student Success. He oversees operations and resources that would promote a student’s involvement and success while attending Gordon College. While there are many information-based Gordon websites currently accessible to students, it's a known fact that a student's primary resource for information is their smartphone. Mobile apps power our daily lives. Gordon 360 is one of Gordon’s web platforms that was made by students, for students. It's a central place for students to view personal information, join new clubs, and find activities throughout campus. Our goal is to use this platform to allow students and faculty to connect as we've become more socially distant due to Covid-19. As Gordon 360's environment exists solely on the web, there are many limitations put into place for mobile devices. We intend to create a mobile application that would help individuals stay in touch while incorporating Gordon 360's current web ecosystem.
+
 ## 📜&nbsp;&nbsp;&nbsp;Design Document
 
 - https://docs.google.com/document/d/19ZKxjMTd3x-V4B5TIUYO3TishPf5Bvb245_4jhe7xGs/edit?usp=sharing
@@ -48,15 +52,32 @@
 <br/>
 
 ## ![icons8-redux](https://user-images.githubusercontent.com/47061482/112046016-e2c9f500-8b21-11eb-96e8-413f4d4e1cdb.png)&nbsp;&nbsp;&nbsp;Redux
+
 - This application uses Redux alongside React to manage the state. You can learn more about redux <a href="https://redux.js.org/tutorials/fundamentals/part-1-overview">here<a/>.
 - Some actions that are used with Redux is from Redux's Toolkit. You can learn more about these actions <a href="https://redux-toolkit.js.org/introduction/getting-started#whats-included">here</a>.
-- You can debug the application through Redux using React Native Debugger. You can find the instructions on how to install it on your machine <a href="https://medium.com/@tetsuyahasegawa/how-to-integrate-react-native-debugger-to-your-expo-react-native-project-db1d631fad02">here</a>. Skip steps 4 and 5 as they have already been completed in the application. Make sure to install all dependencies below as a few of them are required for Redux and React Native Debugger to work. After following the steps, you will be able to debug the application using the Redux and React Dev Tools that come along with it. When connecting the application to the React Native Debugger, you must make sure that you are using the correct port number. The default is "19001". However, if you see a new tab open up in your browser instead of connecting to React Native Debugger, make sure to look at the port number of the tab's URL. In the example of, "http://localhost:19000/debugger-ui/", we can see that the debug port number is "19000". Therefore, we  must open a new window in React Native Debugger and set the port number as "19000". After doing so, reload the application and it should connected to React Native Debugger successfully.
+- You can debug the application through Redux using React Native Debugger. You can find the instructions on how to install it on your machine <a href="https://medium.com/@tetsuyahasegawa/how-to-integrate-react-native-debugger-to-your-expo-react-native-project-db1d631fad02">here</a>. Skip steps 4 and 5 as they have already been completed in the application. Make sure to install all dependencies below as a few of them are required for Redux and React Native Debugger to work. After following the steps, you will be able to debug the application using the Redux and React Dev Tools that come along with it. When connecting the application to the React Native Debugger, you must make sure that you are using the correct port number. The default is "19001". However, if you see a new tab open up in your browser instead of connecting to React Native Debugger, make sure to look at the port number of the tab's URL. In the example of, "http://localhost:19000/debugger-ui/", we can see that the debug port number is "19000". Therefore, we must open a new window in React Native Debugger and set the port number as "19000". After doing so, reload the application and it should connected to React Native Debugger successfully.
 
 <br/>
 
-## 👷&nbsp;&nbsp;&nbsp;Purpose
+## 🔄&nbsp;&nbsp;&nbsp;Updating Expo's CLI
 
-- Chris Carlson who’s our customer is the Dean of Student Success. He oversees operations and resources that would promote a student’s involvement and success while attending Gordon College. While there are many information-based Gordon websites currently accessible to students, it's a known fact that a student's primary resource for information is their smartphone. Mobile apps power our daily lives. Gordon 360 is one of Gordon’s web platforms that was made by students, for students. It's a central place for students to view personal information, join new clubs, and find activities throughout campus. Our goal is to use this platform to allow students and faculty to connect as we've become more socially distant due to Covid-19. As Gordon 360's environment exists solely on the web, there are many limitations put into place for mobile devices. We intend to create a mobile application that would help individuals stay in touch while incorporating Gordon 360's current web ecosystem.
+### Make sure to follow these steps exactly or else you may run into random bugs and glitches! To upgrade Expo, you must have "expo" as a command. That command should be available if you have `expo-cli` installed.
+
+- Update Expo's CLI using the command, '`npm install expo-cli`' if using NPM and, '`yarn add expo-cli`' if using Yarn.
+- After the CLI finishes installing, MAKE SURE to upgrade Expo. Not doing so can lead to hours and hours of debugging and not finding the answers to why a bug or glitch is occuring. This is due to Expo's upgraded CLI not finding the correct dependencies it needs to run correctly. If you have changes in your project and haven't pushed it yet to Github, it's best to stash it before upgrading Expo. This can be done with the command, '`git stash`'. Afterward, you can upgrade Expo with the command, '`expo upgrade`'. After everything installs correctly, the project manifest files such as '<i>package.json</i>' will have updated. You have upgraded Expo successfully! If you stashed changes before running '`expo upgrade`', continue reading below to recover your changes successfully. Otherwise, you are all set! 🎉
+- Due to git seeing the modified files such as '<i>package.json</i>' as "changes", you will be required to run the command '`git stash`' again. Your stack should be similar to the example below. You may view your stack with the command, '`git stash list`'.
+
+---
+
+| Stash #   | What's Contained in the Stash                                                                  |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| stash@{0} | The modified files after executing the command, '`expo upgrade`' (aka yarn.lock, package.json) |
+| stash@{1} | The modified files before executing the command, '`expo upgrade`'                              |
+| stash@{x} | Other stashes you may have had in the stack before from other coding sessions.                 |
+
+---
+
+- To successfully recover your files, first recover the files you made changes to before upgrading Expo. This can be done with the command, '`git stash pop stash@{1}`'. Now, commit these files with the command, '`git add .`'. You have to commit the files first because git won't allow you to recover your files from a stash in your stack unless you commit the changes. After commiting the changes, now execute the command, '`git stash pop`'. This will recover the files that changed after upgrading Expo. Lastly, to bring all changes together, run the command, '`git add .`' once more. It's recommended to push your changes to your branch immediately so that if an unclear error occurs while coding, you can checkout all the files without having to re-upgrade Expo. If you're not in a branch that you wanted to push the changes to, or wanted to create a new branch, you can uncommit your changes with the command, '`git reset head`' and continue on doing so.
 
 <br/><br/>
 
@@ -268,6 +289,26 @@
     </td>
     <td style="color: #82C9FF"> 
     Simply leave the InputToolbar as a class component. While you may make all components used by InputToolbar functional hooks, the InputToolbar component itself must remain as a class.
+    </td>
+    <td style="color: #FFE266">
+      <ol>
+      <li> src/Views/Chat/Chats/Components/InputToolbar/index.js </li>
+      </ol>
+    </td>
+  </tr>
+  <!-------------------------------------------------- # 6 -------------------------------------------------->
+  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
+    <td style="color: #FFE266"> 
+      6
+    </td>
+    <td style="color: #FFE266"> 
+    NO CODE REFERENCE
+    </td>
+    <td style="color: #FC9186"> 
+      This is a BIG WARNING when updating Expo's CLI. If you update Expo's CLI using `npm -g install expo-cli` or `yarn add expo-cli `, this can cause serious glitches with the app as the CLI has updated but the rest of Expo's dependencies hasn't. Even if the glitches may not happen right away, you may experience things such as random network requests going missing. LITERALLY. You would invoke a network request and you will never get a response back. You won't get an error either to indicate that the network request timed out. 
+    </td>
+    <td style="color: #82C9FF"> 
+    In order to prevent glitches from happening, make sure to upgrade Expo after upgrading the 
     </td>
     <td style="color: #FFE266">
       <ol>

@@ -34,13 +34,10 @@ export const getUserImage = (userImage) =>
  * Gets the name of the room. If the room name is not available,
  * the names of users in the room is returned
  * @param {JSON} room The room to be parsed through
- * @param {JSON} userProfile The profile of the user
- * @return {String} The name of the room
+ * @param {number} mainUserID The ID of the main user
+ * @return {string} The name of the room
  */
-export const getRoomName = (room, userProfile) => {
-  // The main user's ID
-  const { ID: mainUserID } = userProfile;
-
+export const getRoomName = (room, mainUserID) => {
   // If the room is a group
   if (room.group) {
     // If the group has a name, then it's returned
@@ -73,12 +70,10 @@ export const getRoomName = (room, userProfile) => {
  * returned. If the chat is not a group (only has 2 users), then the other user that's
  * not the main user is returned.
  * @param {JSON} room The room to be parsed through
- * @param {JSON} userProfile The profile of the user
+ * @param {string} mainUserID The ID of the main user
+ * @returns {string} The name of the chat
  */
-export function getChatName(room, userProfile) {
-  // The main user's ID
-  const { ID: mainUserID } = userProfile;
-
+export function getChatName(room, mainUserID) {
   // If the room is a group
   if (room.group) {
     // If the group has a name, then it's returned

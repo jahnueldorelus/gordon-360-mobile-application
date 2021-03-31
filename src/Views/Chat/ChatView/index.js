@@ -3,8 +3,12 @@ import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
 import { getSelectedRoomID } from "../../../store/ui/chat";
 import { getUserInfo, getUserImage } from "../../../store/entities/profile";
-import { getUserMessagesByID, sendMessage } from "../../../store/entities/chat";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  getUserMessagesByID,
+  sendMessage,
+  correctedMessageObject,
+} from "../../../store/entities/chat";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import { StyleSheet, View, LayoutAnimation } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
@@ -22,10 +26,13 @@ import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
+import { invokeNewMessage } from "../../../Services/WebSocket/index";
 
 export const ChatView = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
+  // Redux Store
+  const store = useStore();
   // The selected room's ID
   const roomID = useSelector(getSelectedRoomID);
   // The selected room's messages
@@ -65,7 +72,28 @@ export const ChatView = (props) => {
 
   // Sends the user's message
   const onSend = async (text) => {
-    dispatch(sendMessage(text[0]));
+    // The message object
+    const message = text[0];
+
+    // Reformats the message object for the back-end to parse correctly
+    const newMessage = correctedMessageObject(message);
+
+    // Formatted message for the back-end to parse
+    const backEndMessage = {
+      ...newMessage,
+      id: message._id,
+      room_id: roomID,
+    };
+
+    // Formatted message for Redux to parse
+    const stateMessage = { ...newMessage, _id: message._id, pending: true };
+
+    console.log("Sending message to websocket!");
+    // Invokes the back-end to broadcast the message to all users in the room
+    invokeNewMessage(backEndMessage, dispatch, store.getState());
+
+    // Saves the message in state
+    dispatch(sendMessage(stateMessage, backEndMessage));
   };
 
   /**

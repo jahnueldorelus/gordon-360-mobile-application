@@ -9,6 +9,8 @@ import { liveMessageUpdate } from "../../store/entities/chat";
 const connection = signalr.hubConnection("https://360apitrain.gordon.edu");
 // const connection = signalr.hubConnection("http://172.27.40.154:45455");
 
+let hasSavedID = false;
+
 // Allows for console logging of SignalR background processes
 connection.logging = true;
 
@@ -18,8 +20,10 @@ const proxy = connection.createHubProxy("chatHub");
 /**
  * Starts the web socket connection with the server
  * @param {Object} store The redux store
+ * @param {Object} navigation The application's navigation
+ * @param {Object} route The application's navigation route
  */
-export function startWebConnection(store) {
+export function startWebConnection(store, navigation, route) {
   // The main user
   const mainUser = getUserInfo(store.getState());
 
@@ -28,14 +32,11 @@ export function startWebConnection(store) {
    * with message type of "broadcastMessage"
    */
   proxy.on("broadcastMessage", (message) => {
-    // If connected to server
-    if (message == "connectedToServer") {
+    // If connected to server and the connection ID hasn't been saved
+    if (message === "connectedToServer" && !hasSavedID) {
       proxy.invoke("saveConnection", mainUser.ID);
+      hasSavedID = true;
     }
-    // else if (message == "connectedToServer") {
-    //   // proxy.invoke("saveConnection", mainUser.ID);
-    // }
-    else console.log(`Message:  ${message}`);
   });
 
   proxy.on("sendAsync", (message, userID) => {
@@ -44,6 +45,8 @@ export function startWebConnection(store) {
       // Updates the user's messages
       store.dispatch(liveMessageUpdate(message, userID));
     }
+
+    console.log(navigation, route);
   });
 
   // Starts the connection with the server
@@ -89,20 +92,20 @@ export function startWebConnection(store) {
 /**
  *
  * @param {Object} message The message object to send to the server
- * @param {Array} usersList The list of user IDs in the room
+ * @param {*} dispatch The redux store dispatch action
  * @param {Object} state The redux store state
  */
-export function invokeNewMessage(message, dispatch, getState) {
+export function invokeNewMessage(message, dispatch, state) {
   if (connection.id) {
     // The main user
-    const mainUser = getUserInfo(getState());
+    const mainUser = getUserInfo(state);
 
     // The selected room ID
-    let roomID = getSelectedRoomID(getState());
+    let roomID = getSelectedRoomID(state);
     // The selected room Object
-    let roomObject = getUserRoomByID(roomID)(getState());
+    let roomObject = getUserRoomByID(roomID)(state);
     // List of user IDs in the room (apart from the main user)
-    let userIDs = [];
+    let userIDs = [mainUser.ID];
 
     // Parses through the list of users to retrieve all users
     // except for the main user who sent the message

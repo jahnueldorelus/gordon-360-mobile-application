@@ -24,6 +24,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import moment from "moment";
 import { setRoomID } from "../../store/ui/chat";
 import { startWebConnection } from "../../../src/Services/WebSocket";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const deviceHeight = Dimensions.get("window").height;
 
@@ -32,6 +33,10 @@ export const RoomsList = (props) => {
   const dispatch = useDispatch();
   // Redux Store
   const store = useStore();
+
+  // App Navigation and Route
+  const navigation = useNavigation();
+  const route = useRoute();
 
   // The user's token
   const token = useSelector(getToken);
@@ -53,8 +58,8 @@ export const RoomsList = (props) => {
   useEffect(() => {
     if (userProfile)
       // Makes a live connection to the back-end with a web socket
-      startWebConnection(store);
-  }, [userProfile]);
+      startWebConnection(store, navigation, route);
+  }, []);
 
   // Gets the rooms of the main user and the main user's information
   useEffect(() => {
@@ -136,6 +141,8 @@ export const RoomsList = (props) => {
               onPress={() => {
                 // Sets the user's selected room ID
                 dispatch(setRoomID(room.item.id));
+                // Saves the
+                route.params = { roomID: room.item.id };
                 // Navigates to the chat screen
                 props.navigation.navigate("Chat");
               }}
@@ -146,7 +153,7 @@ export const RoomsList = (props) => {
               />
               <ListItem.Content>
                 <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-                  {getRoomName(room.item, userProfile)}
+                  {getRoomName(room.item, userProfile.ID)}
                 </ListItem.Title>
                 <ListItem.Subtitle numberOfLines={2}>
                   {room.item.lastMessage}

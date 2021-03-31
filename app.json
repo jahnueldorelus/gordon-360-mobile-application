@@ -17,7 +17,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "edu.Gordon360.DM"
     },
     "android": {
       "useNextNotificationsApi": true

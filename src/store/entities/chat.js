@@ -2,7 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
 import moment from "moment";
-import { invokeNewMessage } from "../../Services/WebSocket/index";
+import {
+  NotificationIdentifiers,
+  pushNotification,
+} from "../../Services/Notifications/index";
+import { getRoomName } from "../../Services/Messages";
+import { getUserInfo } from "../../store/entities/profile";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -164,6 +169,23 @@ const slice = createSlice({
           _id: messageObj._id,
           createdAt: messageObj.createdAt,
         });
+
+        // Does a push notification if the user should be notified
+        if (
+          action.payload.notification &&
+          !jQuery.isEmptyObject(action.payload.notification)
+        ) {
+          const { title, subtitle, message } = action.payload.notification;
+          // Checks to make sure a title and message are available.
+          // The subtitle may not always be available
+          if (title && message)
+            pushNotification(
+              NotificationIdentifiers.newMessage, // Notification Type
+              title,
+              subtitle ? subtitle : "",
+              message
+            );
+        }
       }
     },
 
@@ -317,37 +339,27 @@ export const fetchMessages = () => (dispatch, getState) => {
 };
 
 /**
- * Sends the user message
- * @param {Object} message The message object to send
- * @returns An action of sending the user's message
+ * Saves the user's message in the state and send the data to the back-end
+ * @param {Object} stateMessage The message object formatted for the Redux state
+ * @param {Object} backEndMessage The message object formatted for the back-end
  */
-export const sendMessage = (message) => (dispatch, getState) => {
+export const sendMessage = (stateMessage, backEndMessage) => (
+  dispatch,
+  getState
+) => {
   // User selected room id
   const roomID = getState().ui.chat.selectedRoomID;
-  // Reformats the message object for the back-end to parse correctly
-  const newMessage = correctedMessageObject(message);
 
-  // Formatted message for the back-end to parse
-  const backEndMessage = {
-    ...newMessage,
-    id: message._id,
-    room_id: roomID,
-  };
-  // Formatted message for Redux to parse
-  const stateMessage = { ...newMessage, _id: message._id, pending: true };
+  // // Adds the message to the state
+  // dispatch({
+  //   type: slice.actions.addMessage.type,
+  //   payload: {
+  //     roomID,
+  //     messageObj: stateMessage,
+  //   },
+  // });
 
-  // Invokes the back-end to broadcast the message to all users in the room
-  invokeNewMessage(backEndMessage, dispatch, getState);
-
-  // Adds the message to the state
-  dispatch(
-    slice.actions.addMessage({
-      roomID,
-      messageObj: stateMessage,
-    })
-  );
-
-  // Sends the message to the back-end
+  // // Sends the message to the back-end
   // dispatch(
   //   apiRequested({
   //     url: "/dm/text",
@@ -415,8 +427,24 @@ export const liveMessageUpdate = (messageObj, messageUserID) => (
   // Corrects the ID property of the message object
   messageObj._id = messageObj.id;
 
+  // Gets the room object and user's ID
+  const roomObj = getUserRoomByID(roomID)(getState());
+  const mainUserID = getUserInfo(getState()).ID;
+
+  // Creates the data for the notification
+  let notification = {
+    title: roomObj.group
+      ? getRoomName(roomObj, mainUserID)
+      : `From ${messageObj.user.name}`,
+    subTitle: roomObj.group ? `From ${messageObj.user.name}` : null,
+    message: messageObj.text,
+  };
+
   // Dispatches the update
-  dispatch({ type: slice.actions.addMessage, payload: { roomID, messageObj } });
+  dispatch({
+    type: slice.actions.addMessage,
+    payload: { roomID, messageObj, notification },
+  });
 };
 
 /**
@@ -475,7 +503,7 @@ const correctedRoomObject = (room) => {
  * @param {Object} message The message object
  * @returns {Object} The corrected message object
  */
-const correctedMessageObject = (message) => {
+export const correctedMessageObject = (message) => {
   // Reformats the message object for the back-end to parse correctly
   return {
     text: message.text,

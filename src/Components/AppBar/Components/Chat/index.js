@@ -37,7 +37,7 @@ export const AppbarChat = (props) => {
         <View style={styles.chatName}>
           <Image style={styles.image} source={getRoomImage(userRoom.image)} />
           <Text style={styles.text} numberOfLines={1}>
-            {getChatName(userRoom, userProfile)}
+            {getChatName(userRoom, userProfile.ID)}
           </Text>
         </View>
         <View style={styles.options}>

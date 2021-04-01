@@ -49,8 +49,6 @@ export default ({ dispatch, getState }) => (next) => async (action) => {
       method,
       data,
       headers: getHeaders,
-      onSuccess,
-      onError,
     });
 
     // Calls the onSuccess action if available and if response was received successfully

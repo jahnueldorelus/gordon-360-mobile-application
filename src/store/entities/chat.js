@@ -17,6 +17,7 @@ const slice = createSlice({
     sortRoomList: [],
     messages: {},
     messageSort: {},
+    fetchMessagesErrors: {},
     dataLoading: false,
     fetchRoomsError: false,
   },
@@ -94,6 +95,9 @@ const slice = createSlice({
       let messages = {};
       // Creates a list for sorting the users messages based on room ID
       state.messageSort[roomID] = [];
+      // Deletes the error saved in the state if a fetch error for the room exists
+      if (state.fetchMessagesErrors[roomID])
+        delete state.fetchMessagesErrors[roomID];
 
       // Adds each text to the messages object
       action.payload
@@ -203,6 +207,12 @@ const slice = createSlice({
         room.lastMessage = messageObj.text;
         room.lastUpdated = messageObj.createdAt;
       }
+    },
+
+    // User's rooms list request failed
+    messageReqFailed: (state, action) => {
+      const error = JSON.parse(action.payload.error);
+      state.fetchMessagesErrors[error.config.data] = error.message;
     },
 
     /**
@@ -329,9 +339,10 @@ export const fetchMessages = () => (dispatch, getState) => {
       apiRequested({
         url: "/dm/messages",
         method: "put",
-        data: room.id,
+        data: room.id.toString(), // Make sure it's a string or may cause a request error with Axios
         useEndpoint: true,
         onSuccess: slice.actions.userMessagesAdded.type,
+        onError: slice.actions.messageReqFailed.type,
         onEnd: slice.actions.dataLoadingEnded.type,
       })
     );

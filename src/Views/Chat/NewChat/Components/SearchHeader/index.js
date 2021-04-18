@@ -9,9 +9,12 @@ import {
 } from "react-native";
 import {
   searchForPeople,
-  resetSearchList,
+  ui_PeopleSearchResetState,
 } from "../../../../../store/ui/peopleSearch";
-import { getSelectedItemsAndNames } from "../../../../../store/ui/peopleSearchFilter";
+import {
+  getSelectedItemsAndNames,
+  ui_PeopleSearchFilterResetState,
+} from "../../../../../store/ui/peopleSearchFilter";
 import { Icon, SearchBar } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
@@ -87,7 +90,8 @@ export const SearchHeader = (props) => {
             props.setSelectedUsers({});
             setSearchedText("");
             props.setLastSearchedText("");
-            dispatch(resetSearchList);
+            dispatch(ui_PeopleSearchFilterResetState);
+            dispatch(ui_PeopleSearchResetState);
             // Ensures the filters are closed
             props.setFilterVisible(false);
             // Closes out the Modal

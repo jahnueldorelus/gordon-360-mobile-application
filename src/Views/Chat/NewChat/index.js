@@ -7,18 +7,12 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Icon } from "react-native-elements";
-import { getUserImage } from "../../../Services/Messages/index";
-import {
-  getPeopleSearchResults,
-  getPeopleSearchLoading,
-} from "../../../store/ui/peopleSearch";
-import { getSelectedItemsAndNames } from "../../../store/ui/peopleSearchFilter";
+import { getPeopleSearchResults } from "../../../store/ui/peopleSearch";
 import { SearchHeader } from "./Components/SearchHeader";
 import { SelectedUsers } from "./Components/SelectedUsers/index";
 import { SearchResults } from "./Components/SearchResults/index";
 import { SearchFilter } from "./Components/SearchFilter/index";
-import { SearchTooltip } from "./Components/SearchTooltip/index";
-import { RoomMessage } from "./Components/RoomMessage/index";
+import { RoomCreator } from "./Components/RoomCreator/index";
 import { useSelector } from "react-redux";
 
 export const NewChat = (props) => {
@@ -36,12 +30,6 @@ export const NewChat = (props) => {
 
   // The people search's result
   const searchResult = useSelector(getPeopleSearchResults);
-
-  // The people search's loading status
-  const searchResultLoading = useSelector(getPeopleSearchLoading);
-
-  // The object of seleced filters
-  const selectedFilterData = useSelector(getSelectedItemsAndNames);
 
   /**
    * Gets the user's full name including their nick name
@@ -165,10 +153,8 @@ export const NewChat = (props) => {
           <SearchResults
             lastSearchedText={lastSearchedText}
             searchResultList={searchResultList}
-            resultLoading={searchResultLoading}
             selectedUsers={selectedUsers}
             setSelectedUsers={setSelectedUsers}
-            getUserImage={getUserImage}
             getUserFullName={getUserFullName}
             handleSelected={handleSelected}
           />
@@ -208,7 +194,9 @@ export const NewChat = (props) => {
           )}
         </View>
         <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
-        <RoomMessage
+
+        {/* MODAL for finalizing and add a message to the new room */}
+        <RoomCreator
           visible={roomMessageVisible}
           setVisible={setRoomMessageVisible}
           selectedUsers={getSelectedUsers()}

@@ -8,6 +8,7 @@ import { getUserRoomByID } from "../../../../store/entities/chat";
 import { getSelectedRoomID } from "../../../../store/ui/chat";
 import { getUserInfo } from "../../../../store/entities/profile";
 import { useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 
 export const AppbarChat = (props) => {
   // User's selected room
@@ -18,6 +19,8 @@ export const AppbarChat = (props) => {
   const userProfile = useSelector(getUserInfo);
   // Modal's visibility
   const [modalInfoVisible, setModaInfoVisible] = useState(false);
+  // React Native Navigation
+  const navigation = useNavigation();
 
   if (userRoom && userProfile)
     return (
@@ -29,13 +32,16 @@ export const AppbarChat = (props) => {
             color="white"
             size={30}
             onPress={() => {
-              props.navigation.pop();
-              props.navigation.navigate("Rooms");
+              navigation.pop();
+              navigation.navigate("Rooms");
             }}
           />
         </View>
         <View style={styles.chatName}>
-          <Image style={styles.image} source={getRoomImage(userRoom.image)} />
+          <Image
+            style={styles.image}
+            source={getRoomImage(userRoom, userProfile.ID)}
+          />
           <Text style={styles.text} numberOfLines={1}>
             {getChatName(userRoom, userProfile.ID)}
           </Text>

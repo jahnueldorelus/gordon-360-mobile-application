@@ -12,18 +12,21 @@ export const renderBubble = (props) => {
 
   return (
     <View>
-      {nameAtTopOfGroupedUserTexts(previousMessage, currentMessage, props.user)}
+      {nameAtTopOfGroupedUserTexts(
+        props.currentRoom,
+        previousMessage,
+        currentMessage,
+        props.user
+      )}
       <Bubble
         {...props}
-        // renderTime={() => <Text>Time</Text>}
-        // renderTicks={() => <Text>Ticks</Text>}
-        containerStyle={{
-          left: {},
-          right: { borderColor: "white", borderWidth: 4 },
-        }}
+        // containerStyle={{
+        //   left: {},
+        //   right: { borderColor: "white", borderWidth: 4 },
+        // }}
         // wrapperStyle={{
-        //   left: { borderColor: "#31342B", borderWidth: 2 },
-        //   right: {},
+        //   left: { borderColor: "#31342B", borderWidth: 0.3 },
+        //   right: { borderColor: "#31342B", borderWidth: 0.3 },
         // }}
         // bottomContainerStyle={{
         //   left: { borderColor: "black", borderWidth: 4 },
@@ -53,12 +56,14 @@ export const renderBubble = (props) => {
  * current text message belongs to the main user (the person receiving the texts), then their
  * name will not appear
  *
+ * @param {Object} room The current room object
  * @param {Object} previousMessage The previous text message
  * @param {Object} currentMessage The current text message. This is the main message that will
  *                                be shown. The othermessages are used for comparison
  * @param {Object} mainUser The main user (The person who's receiving the text messages)
  */
 function nameAtTopOfGroupedUserTexts(
+  room,
   previousMessage,
   currentMessage,
   mainUser
@@ -66,11 +71,17 @@ function nameAtTopOfGroupedUserTexts(
   // Style of the user's name
   let textStyle = { color: "#014983", paddingLeft: 5, paddingBottom: 5 };
 
-  // Checks to see if currentMessage is defined and not empty
-  if (currentMessage && currentMessage.user && currentMessage.user.name) {
+  // Checks to see if currentMessage is defined and the current room is a group
+  if (
+    room &&
+    room.group &&
+    currentMessage &&
+    currentMessage.user &&
+    currentMessage.user.name
+  ) {
     // Checks to make sure that the current message doesn't belong to the main user
     if (currentMessage.user._id !== mainUser._id) {
-      // Checks to see if previousMessage is defined and not empty
+      // Checks to see if previousMessage is defined
       if (
         previousMessage &&
         previousMessage.user &&
@@ -80,7 +91,7 @@ function nameAtTopOfGroupedUserTexts(
         let prevDate = new Date(previousMessage.createdAt);
         let currentDate = new Date(currentMessage.createdAt);
         /**
-         * Checks to see if currentMessage is defined and not empty. If there's no previous
+         * Checks to see if currentMessage is defined. If there's no previous
          * messages, the user's name is shown. If there's a previous message and the user of the
          * previous message is not the same with the current, the user's name is shown. If the user
          * is the same, then their name will be shown only if the previous message has a different date
@@ -99,6 +110,10 @@ function nameAtTopOfGroupedUserTexts(
       }
       // If the previousMessage is a system message, then the user of the currentMessage is shown
       else if (previousMessage && previousMessage.system) {
+        return <Text style={textStyle}>{currentMessage.user.name}</Text>;
+      }
+      // If there's no previous message (the current message is the first in the chat), the user is shown
+      else if (JSON.stringify(previousMessage) === JSON.stringify({})) {
         return <Text style={textStyle}>{currentMessage.user.name}</Text>;
       }
     }

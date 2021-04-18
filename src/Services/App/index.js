@@ -1,6 +1,6 @@
-import { store } from "../../store/configuration/configureStore";
-import { ent_AuthResetState } from "../../store/entities/auth";
+import { ent_AuthResetState } from "../../store/entities/Auth/auth";
 import { ent_ChatResetState } from "../../store/entities/chat";
+import { ent_SettingsResetState } from "../../store/entities/Settings/settings";
 import { ent_ProfileResetState } from "../../store/entities/profile";
 import { ui_ChatResetState } from "../../store/ui/chat";
 import { ui_PeopleSearchResetState } from "../../store/ui/peopleSearch";
@@ -9,19 +9,20 @@ import AsyncStorage from "@react-native-community/async-storage";
 
 /**
  * Resets the entire application.
- * Deletes all data saved in the Redux state
- * and in storage.
+ * Deletes all data saved in the Redux state and in storage.
+ * @param {Function} dispatch Redux dispatch
  * @param {Function} callbackFunc A callback function that runs after
  *                                all data has been deleted
  */
-export const resetApp = (callbackFunc) => {
+export const resetApp = (dispatch, callbackFunc) => {
   // Resets Redux State
-  store.dispatch(ent_AuthResetState);
-  store.dispatch(ent_ChatResetState);
-  store.dispatch(ent_ProfileResetState);
-  store.dispatch(ui_ChatResetState);
-  store.dispatch(ui_PeopleSearchResetState);
-  store.dispatch(ui_PeopleSearchFilterResetState);
+  dispatch(ent_AuthResetState);
+  dispatch(ent_ChatResetState);
+  dispatch(ent_SettingsResetState);
+  dispatch(ent_ProfileResetState);
+  dispatch(ui_ChatResetState);
+  dispatch(ui_PeopleSearchResetState);
+  dispatch(ui_PeopleSearchFilterResetState);
 
   // Resets storage
   AsyncStorage.clear().then(() => {

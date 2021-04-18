@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { GiftedChat } from "react-native-gifted-chat";
 import { getSelectedRoomID } from "../../../store/ui/chat";
 import { getUserInfo, getUserImage } from "../../../store/entities/profile";
 import {
+  removeRoomIDFromNewMessages,
+  getUserRoomsWithNewMessages,
   getUserMessagesByID,
+  getUserRoomByID,
   sendMessage,
   correctedMessageObject,
 } from "../../../store/entities/chat";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import * as Notifications from "expo-notifications";
+import { useDispatch, useSelector } from "react-redux";
 import { StyleSheet, View, LayoutAnimation } from "react-native";
 import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
@@ -26,15 +30,14 @@ import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
-import { invokeNewMessage } from "../../../Services/WebSocket/index";
 
 export const ChatView = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
-  // Redux Store
-  const store = useStore();
   // The selected room's ID
   const roomID = useSelector(getSelectedRoomID);
+  // User's selected room
+  const currentRoom = useSelector(getUserRoomByID(roomID));
   // The selected room's messages
   const userMessages = useSelector(getUserMessagesByID(roomID));
   // The user's profile
@@ -47,6 +50,8 @@ export const ChatView = (props) => {
     avatar: userImage,
     name: `${userProfile.FirstName} ${userProfile.LastName}`,
   };
+  // The user's list of rooms with new messages
+  const roomsWithNewMessages = useSelector(getUserRoomsWithNewMessages);
 
   // The current text inside the input toolbar
   const [text, setText] = useState("");
@@ -63,6 +68,23 @@ export const ChatView = (props) => {
     cover: null,
     styles: {},
   });
+
+  // Removes the room ID from the list of rooms with new unseen messages
+  useEffect(() => {
+    // Gets the notifications in the notification tray
+    const getNotificationsTray = async () =>
+      await Notifications.getPresentedNotificationsAsync();
+
+    getNotificationsTray().then((notificationTray) => {
+      /**
+       * If the list of rooms with new messages includes this chat's room ID,
+       * the room ID is removed from the list of rooms with new messages
+       */
+      if (roomsWithNewMessages.includes(roomID)) {
+        dispatch(removeRoomIDFromNewMessages(roomID, notificationTray));
+      }
+    });
+  }, [roomID, userMessages]);
 
   /**
    * Configures the animation for all components of GiftedChat so that
@@ -88,11 +110,7 @@ export const ChatView = (props) => {
     // Formatted message for Redux to parse
     const stateMessage = { ...newMessage, _id: message._id, pending: true };
 
-    console.log("Sending message to websocket!");
-    // Invokes the back-end to broadcast the message to all users in the room
-    invokeNewMessage(backEndMessage, dispatch, store.getState());
-
-    // Saves the message in state
+    // Saves the message and sends it to the back-end
     dispatch(sendMessage(stateMessage, backEndMessage));
   };
 
@@ -128,8 +146,8 @@ export const ChatView = (props) => {
     return minHeight;
   };
 
-  // if (messages && user)
-  if (userMessages)
+  // If the main user object and the main user's messages are available
+  if (userMessages && user && currentRoom)
     return (
       <View style={{ flex: 1 }}>
         <AppBar {...props} />
@@ -154,8 +172,11 @@ export const ChatView = (props) => {
             const ModalHandler = { modalConfig, setModalConfig };
             return renderActions(props, ImageHandler, ModalHandler);
           }}
-          renderAvatar={renderAvatar}
-          renderBubble={renderBubble}
+          renderAvatar={
+            // The opposite user avatars will only display if the chat is a group
+            currentRoom.group ? (props) => renderAvatar(props) : null
+          }
+          renderBubble={(props) => renderBubble({ ...props, currentRoom })}
           renderComposer={renderComposer}
           /**
            * Uncomment if you'd like to add a custom view to each message.

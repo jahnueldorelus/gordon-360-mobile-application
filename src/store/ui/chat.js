@@ -7,10 +7,12 @@ const slice = createSlice({
   initialState: {
     selectedRoomID: null,
     createRoomLoading: false,
+    roomImage: null,
+    roomName: "",
   },
   reducers: {
     /**
-     *  SELECTED ROOM REDUCERS
+     *  ROOM REDUCERS
      */
     // Sets the user selected room ID to view its messages
     selectedRoom: (state, action) => {
@@ -21,6 +23,14 @@ const slice = createSlice({
       state.createRoomLoading = action.payload;
     },
 
+    setRoomImage: (state, action) => {
+      state.roomImage = action.payload;
+    },
+
+    setRoomName: (state, action) => {
+      state.roomName = action.payload;
+    },
+
     /**
      * STATE RESET REDUCER
      */
@@ -28,6 +38,7 @@ const slice = createSlice({
     resetState: (state, action) => {
       state.selectedRoomID = null;
       state.createRoomLoading = false;
+      state.roomImage = null;
     },
   },
 });
@@ -52,6 +63,22 @@ export const getCreateRoomLoading = createSelector(
   (chat) => chat.createRoomLoading
 );
 
+/**
+ * Returns the room's image for creating a new room
+ */
+export const getRoomImage = createSelector(
+  (state) => state.ui.chat,
+  (chat) => chat.roomImage
+);
+
+/**
+ * Returns the room's name for creating a new room
+ */
+export const getRoomName = createSelector(
+  (state) => state.ui.chat,
+  (chat) => chat.roomName
+);
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Sets the user selected room ID
@@ -71,6 +98,22 @@ export const setCreateRoomLoading = (dispatch, getState) => {
  */
 export const resetCreateRoomLoading = (dispatch, getState) => {
   dispatch({ type: slice.actions.setCreateRoomLoading.type, payload: false });
+};
+
+/**
+ * Sets the room image for creating a room
+ * @param image The image of the room
+ */
+export const setRoomImage = (image) => (dispatch, getState) => {
+  dispatch({ type: slice.actions.setRoomImage.type, payload: image });
+};
+
+/**
+ * Sets the room name for creating a room
+ * @param name The name of the room
+ */
+export const setRoomName = (name) => (dispatch, getState) => {
+  dispatch({ type: slice.actions.setRoomName.type, payload: name });
 };
 
 /**

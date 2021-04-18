@@ -9,7 +9,7 @@ import {
   TouchableHighlight,
   Image,
 } from "react-native";
-import { getUserImage, getRoomChatImages } from "../../../Services/Messages";
+import { getRoomChatImages } from "../../../Services/Messages";
 import { Icon } from "react-native-elements";
 import {
   getUserRoomByID,
@@ -58,7 +58,6 @@ export const ChatInfo = (props) => {
             <View style={styles.usersContainer}>
               <Text style={styles.usersContainerText}>Users</Text>
               {userRoom.users
-                .slice()
                 // Gets all users in the room except the main user
                 .filter((user) => user.id !== userProfile.ID)
                 // Sorts the users by their name
@@ -72,10 +71,22 @@ export const ChatInfo = (props) => {
                 .map((user, index) => {
                   return (
                     <View key={index} style={styles.userItem}>
-                      <Image
-                        source={getUserImage(user.image)}
-                        style={styles.userImage}
-                      />
+                      {user.image && typeof user.image === "string" ? (
+                        // If the message has an image and the image is a string (aka base64)
+                        <Image
+                          source={{ uri: user.image }}
+                          style={styles.userImage}
+                        />
+                      ) : (
+                        // Since there's no image, a default image is supplied instead
+                        <Icon
+                          name={"user-circle-o"}
+                          type="font-awesome"
+                          color="white"
+                          solid={true}
+                          size={styles.userImage.height}
+                        />
+                      )}
                       <Text numberOfLines={1} style={styles.userName}>
                         {user.username}
                       </Text>
@@ -162,7 +173,6 @@ const styles = StyleSheet.create({
   userImage: {
     width: 36,
     height: 36,
-    tintColor: "#014983",
     backgroundColor: "white",
     borderRadius: 50,
     borderWidth: 2,

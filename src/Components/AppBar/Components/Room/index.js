@@ -4,15 +4,19 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
 import { NewChat } from "../../../../Views/Chat/NewChat";
+import { useNavigation } from "@react-navigation/native";
 
 export const AppbarRoom = (props) => {
   // Modal's visibility
   const [modalInfoVisible, setModaInfoVisible] = useState(false);
+  // React Native Navigation
+  const navigation = useNavigation();
+
   return (
     <View style={styles.appBarContainer}>
       <TouchableOpacity
         onPress={() => {
-          props.navigation.openDrawer();
+          navigation.openDrawer();
         }}
         style={styles.navigationButton}
       >

@@ -2,14 +2,18 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
+import { useNavigation } from "@react-navigation/native";
 
 export const Appbar360 = (props) => {
+  // React Native Navigation
+  const navigation = useNavigation();
+
   return (
     <View style={styles.appBarContainer}>
       <View style={styles.navigationContainer}>
         <TouchableOpacity
           onPress={() => {
-            props.navigation.openDrawer();
+            navigation.openDrawer();
           }}
           style={styles.navigationButton}
         >

@@ -1,4 +1,5 @@
 import React from "react";
+import { Dimensions } from "react-native";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { useSelector } from "react-redux";
 import { getUserInfo, getUserImage } from "../../../../store/entities/profile";
@@ -107,34 +108,44 @@ const styles = StyleSheet.create({
   profileView: {
     marginTop: 5,
     marginBottom: 20,
-    flexDirection: "row",
     alignItems: "center",
     overflow: "hidden",
     marginHorizontal: 10,
     borderRadius: 10,
-    borderColor: "#014983",
-    borderWidth: 1,
-    backgroundColor: "#014983",
   },
   profileViewImageContainer: {
     padding: 8,
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   profileViewImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: Dimensions.get("screen").width / 2,
+    height: Dimensions.get("screen").width / 2,
+    maxWidth: 300,
+    maxHeight: 300,
     alignSelf: "center",
+    borderRadius: 100,
+    borderWidth: 0.1,
   },
   profileViewImageDefault: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: Dimensions.get("screen").width / 2,
+    height: Dimensions.get("screen").width / 2,
+    maxWidth: 300,
+    maxHeight: 300,
     alignSelf: "center",
+    borderRadius: 100,
     tintColor: "#014983",
     backgroundColor: "white",
   },
   profileViewTextContainer: {
+    marginTop: 10,
     backgroundColor: "white",
     flex: 1,
   },
@@ -144,7 +155,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   profileViewTextStyle: { fontSize: 21 },
-  profileViewTextClass: { color: "rgba(0,0,0,0.55)" },
-  profileViewTextName: { color: "black" },
-  profileViewTextEmail: { color: "#014983" },
+  profileViewTextClass: { color: "rgba(0,0,0,0.55)", textAlign: "center" },
+  profileViewTextName: { color: "black", textAlign: "center" },
+  profileViewTextEmail: { color: "#014983", textAlign: "center" },
 });

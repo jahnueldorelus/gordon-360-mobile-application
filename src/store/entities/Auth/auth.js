@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createSelector } from "reselect";
-import { apiRequested } from "../middleware/api";
+import { apiRequested } from "../../middleware/api";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -11,7 +10,9 @@ const slice = createSlice({
       loading: false,
       fetchError: false,
     },
+    expoToken: null,
     api: "https://360apitrain.gordon.edu",
+    website: "https://360train.gordon.edu",
     apiEndpoint: "/api",
   },
   reducers: {
@@ -19,30 +20,38 @@ const slice = createSlice({
      * TOKEN REDUCERS
      */
     // Adds the user token
-    tokenAdded: ({ token }, action) => {
-      token.data = action.payload.access_token;
-      token.fetchError = false;
+    tokenAdded: (state, action) => {
+      state.token.data = action.payload.access_token;
+      state.token.fetchError = false;
     },
 
     // User's token request started
-    tokenReqStarted: ({ token }, action) => {
-      token.loading = true;
+    tokenReqStarted: (state, action) => {
+      state.token.loading = true;
     },
 
     // User's token request ended
-    tokenReqEnded: ({ token }, action) => {
-      token.loading = false;
+    tokenReqEnded: (state, action) => {
+      state.token.loading = false;
     },
 
     // User's token request failed
-    tokenReqFailed: ({ token }, action) => {
-      token.fetchError = true;
-      token.data = null;
+    tokenReqFailed: (state, action) => {
+      state.token.fetchError = true;
+      state.token.data = null;
     },
 
     // User's token error removed
-    tokenErrorReset: ({ token }, action) => {
-      token.fetchError = false;
+    tokenErrorReset: (state, action) => {
+      state.token.fetchError = false;
+    },
+
+    /**
+     * EXPO TOKEN REDUCER
+     */
+    // Adds the user expo token
+    expoTokenAdded: (state, action) => {
+      state.expoToken = action.payload.expoToken;
     },
 
     /**
@@ -55,6 +64,7 @@ const slice = createSlice({
         loading: false,
         fetchError: false,
       };
+      state.expoToken = null;
     },
   },
 });
@@ -62,45 +72,11 @@ const slice = createSlice({
 /*************************** DEFAULT REDUCER ***************************/
 export default slice.reducer;
 
-/*********************************** SELECTORS ***********************************/
-/**
- * Returns the user's token
- */
-export const getToken = createSelector(
-  (state) => state.entities.auth,
-  (auth) => auth.token.data
-);
-
-/**
- * Returns the token's error status
- */
-export const getTokenError = createSelector(
-  (state) => state.entities.auth,
-  (auth) => auth.token.fetchError
-);
-
-/**
- * Returns the token's loading status
- */
-export const getTokenLoading = createSelector(
-  (state) => state.entities.auth,
-  (auth) => auth.token.loading
-);
-
-/**
- * Returns the API source
- */
-export const getAPI = createSelector(
-  (state) => state.entities.auth,
-  (auth) => auth.api
-);
-
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Fetches the user's token
  * @param {String} username The user's username
  * @param {String} password The user's password
- * @returns An action of fetching the user's token
  */
 export const fetchToken = (username = "", password = "") => (
   dispatch,
@@ -125,6 +101,14 @@ export const fetchToken = (username = "", password = "") => (
       onError: slice.actions.tokenReqFailed.type,
     })
   );
+};
+
+/**
+ * Set's the user's Expo token
+ * @param {String} expoToken The user's expo token
+ */
+export const setExpoToken = (expoToken) => (dispatch, getState) => {
+  dispatch({ type: slice.actions.expoTokenAdded.type, payload: { expoToken } });
 };
 
 /**

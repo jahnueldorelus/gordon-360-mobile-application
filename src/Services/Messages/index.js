@@ -17,18 +17,31 @@ export const getRoomChatImages = (messages) => {
 };
 
 /**
- * Returns the image of the room
- * @param {*} roomImage The image of the room
+ * Gets the image of the room.
+ * This is specifically for setting the source of an React Native
+ * Image component.
+ * @param {object} room The object of the room
+ * @param {string} mainUserID The ID of the main user
  */
-export const getRoomImage = (roomImage) =>
-  roomImage ? { uri: roomImage } : require("./Images/default-chat-image.png");
-
-/**
- * Returns the image of the user
- * @param {*} userImage The image of the user
- */
-export const getUserImage = (userImage) =>
-  userImage ? { uri: userImage } : require("./Images/default-user-image.png");
+export const getRoomImage = (room, mainUserID) => {
+  // If a room image is available
+  if (room.image) {
+    return { uri: "data:image/gif;base64," + room.image };
+  }
+  // If there's no room image and the chat is a group
+  else if (room.group) {
+    return require("./Images/default-group-image.png");
+  }
+  // If there's no room image and the chat is not a group
+  else if (!room.group) {
+    // Gets the other user in the group
+    const otherUser = room.users.filter((user) => user.id !== mainUserID)[0];
+    // If the other user has an image, their image is returned. Otherwise it's the default user image
+    return otherUser.image
+      ? { uri: "data:image/gif;base64," + otherUser.image }
+      : require("./Images/default-non-group-image.png");
+  }
+};
 
 /**
  * Gets the name of the room. If the room name is not available,
@@ -38,6 +51,9 @@ export const getUserImage = (userImage) =>
  * @return {string} The name of the room
  */
 export const getRoomName = (room, mainUserID) => {
+  // All users in the room apart from the main user
+  const otherUsers = room.users.filter((user) => user.id !== mainUserID);
+
   // If the room is a group
   if (room.group) {
     // If the group has a name, then it's returned
@@ -45,14 +61,17 @@ export const getRoomName = (room, mainUserID) => {
     // Since there's no group name, the names of the members are returned
     else {
       let names = "";
-      room.users.forEach((user, index, arr) => {
-        // Checks to make sure that the main user's name is not shown
-        if (user.id != mainUserID) {
+      // If there are 2 people in the room (not including the main user)
+      if (otherUsers.length === 2) {
+        names = `${otherUsers[0].username} and ${otherUsers[1].username}`;
+      } else {
+        // If there's more than 2 people in the room (not including the main user)
+        otherUsers.forEach((user, index, arr) => {
           // Adds a comma to a user's name except for the last user
           if (index !== arr.length - 1) names += `${user.username}, `;
-          else names += user.username;
-        }
-      });
+          else names += `and ${user.username}`;
+        });
+      }
       return names;
     }
   } else {
@@ -91,3 +110,46 @@ export function getChatName(room, mainUserID) {
     return room.users.filter((user) => user.id !== mainUserID)[0].username;
   }
 }
+
+/**
+ * Gets a readable format of a date
+ * @param {dateFormat} date The date object
+ * @returns {String} A readable date
+ */
+export const getReadableDateFormat = (date) => {
+  const readableDate = moment(date);
+  // Checks to see if the date is the same as the current day
+  if (readableDate.isSame(new Date(), "day")) {
+    return `Today - ${readableDate.format("h:mm a")}`;
+  }
+  // Checks to see if the date is within the same week
+  else if (readableDate.isSame(new Date(), "week")) {
+    // If the date was the day before the current day (aka yesterday)
+    if (readableDate.isSame(moment().subtract(1, "days").startOf("day"), "d")) {
+      return `Yesterday - ${readableDate.format("h:mm a")}`;
+    }
+    // If the date is within the same week as the current day
+    else {
+      return readableDate.format("dddd - h:mm a");
+    }
+  } else {
+    return readableDate.format("MM/DD/YY - h:mm a");
+  }
+};
+
+/**
+ * Gets the user's image in a room.
+ * This is specifically for getting the user's image property.
+ * @param {string} userID The user's ID
+ * @param {object} room The room object
+ */
+export const getUserImageFromRoom = (userID, room) => {
+  // Checks to see if the room is stringified before parsing it
+  try {
+    room = JSON.parse(room);
+  } catch (err) {} // If error occurs, then the object is not stringified
+  // The user object to retrieve from the room
+  const user = room.users.filter((user) => user.id === userID)[0];
+  // If the user is not null, their image is returned
+  return JSON.stringify(user) !== JSON.stringify({}) ? user.image : "";
+};

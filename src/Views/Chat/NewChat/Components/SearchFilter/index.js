@@ -55,7 +55,7 @@ export const SearchFilter = (props) => {
    * is shown so that the user can type in their input for their selected
    * filter section. If not, the regular filter modal is displayed
    */
-  return jQuery.isEmptyObject(focusedTextInput) ? (
+  return JSON.stringify(focusedTextInput) === JSON.stringify({}) ? (
     <SafeAreaView>
       <CustomModal
         coverScreen={true}

@@ -1,13 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
+import { getSelectedRoomID } from "../ui/chat";
+import { pushRemoteNotification } from "../middleware/notification";
 import moment from "moment";
 import {
-  NotificationIdentifiers,
-  pushNotification,
-} from "../../Services/Notifications/index";
-import { getRoomName } from "../../Services/Messages";
-import { getUserInfo } from "../../store/entities/profile";
+  getRoomName,
+  getUserImageFromRoom,
+} from "../../Services/Messages/index";
+import * as Notifications from "expo-notifications";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -15,6 +16,8 @@ const slice = createSlice({
   initialState: {
     rooms: {},
     sortRoomList: [],
+    roomsWithNewMessages: [],
+    notificationIdentifiers: [],
     messages: {},
     messageSort: {},
     fetchMessagesErrors: {},
@@ -26,11 +29,21 @@ const slice = createSlice({
      * ROOM REDUCERS
      */
     addRoom: (state, action) => {
+      // Creates a copy of the rooms sort list
+      let newSortRoomList = state.sortRoomList.slice();
+
       /**
-       * Adds room data to the sort list and sorts the list in
-       * order by the last updated date
+       * Formats the room object to be parsed correctly
        */
-      let newSortRoomList = [...state.sortRoomList];
+      let room = {};
+      room.room_id = action.payload.id;
+      room.name = action.payload.name;
+      room.group = action.payload.group;
+      room.createdAt = action.payload.createdAt;
+      room.lastUpdated = action.payload.lastUpdated;
+      room.roomImage = action.payload.image;
+      room.users = action.payload.users;
+
       /**
        * Checks to make sure there's not a duplicate room. If there is,
        * the newer room object is not saved
@@ -45,10 +58,9 @@ const slice = createSlice({
         });
       }
       // Sorts the room list to be listed in the correct order by date
-      newSortRoomList = newSortRoomList.sort(
-        (a, b) => moment(a.lastUpdated) - moment(b.lastUpdated)
+      state.sortRoomList = newSortRoomList.sort(
+        (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
       );
-      state.sortRoomList = newSortRoomList;
 
       // Adds the room to the rooms object
       state.rooms[action.payload.room_id] = correctedRoomObject(action.payload);
@@ -69,19 +81,61 @@ const slice = createSlice({
             lastUpdated: room.lastUpdated,
           });
           // Adds the room to the rooms object
-          state.rooms[room.room_id] = correctedRoomObject(room);
+          state.rooms[room.room_id] = {
+            ...correctedRoomObject(room),
+          };
         }
       });
 
       // Sorts the list in order by the last updated date
       state.sortRoomList = newSortList.sort(
-        (a, b) => moment(a.lastUpdated) - moment(b.lastUpdated)
+        (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
       );
     },
 
     // User's rooms list request failed
     roomsReqFailed: (state, action) => {
       state.fetchRoomsError = JSON.stringify(action.payload);
+    },
+
+    // Saves the room ID where a new notification was received
+    addRoomIDToNewMessage: (state, action) => {
+      // Checks if the list of rooms with new messages contains the given room ID
+      if (!state.roomsWithNewMessages.includes(action.passedData.roomID)) {
+        state.roomsWithNewMessages = [
+          ...state.roomsWithNewMessages,
+          action.passedData.roomID,
+        ];
+      }
+    },
+
+    // Removes the room ID from the list of rooms with new messages
+    removeRoomIDFromNewMessages: (state, action) => {
+      // Check if the list of rooms with new messages contains the given room ID
+      if (state.roomsWithNewMessages.includes(action.payload.roomID)) {
+        state.roomsWithNewMessages = state.roomsWithNewMessages.filter(
+          (id) => id !== action.payload.roomID
+        );
+        /**
+         * Removes any notifications in the notification tray associated with the room
+         * and removes the notification's ID from the list of notification IDs
+         */
+        action.payload.notificationTray.forEach((notification) => {
+          if (
+            notification.request.content.data.roomID &&
+            notification.request.content.data.roomID === action.payload.roomID
+          ) {
+            // Removes the notification from the notifications tray
+            Notifications.dismissNotificationAsync(
+              notification.request.identifier
+            );
+            // Removes the notification's ID from the list of notification IDs
+            state.notificationIdentifiers = state.notificationIdentifiers.filter(
+              (identifier) => identifier !== notification.request.identifier
+            );
+          }
+        });
+      }
     },
 
     /**
@@ -99,46 +153,63 @@ const slice = createSlice({
       if (state.fetchMessagesErrors[roomID])
         delete state.fetchMessagesErrors[roomID];
 
-      // Adds each text to the messages object
+      // Adds each message to the messages object
       action.payload
         // Sorted from newest to oldest date
         .sort((a, b) => moment(b.createdAt) - moment(a.createdAt))
-        .forEach((text) => {
+        .forEach((message) => {
           // Adds the message object to the object of messages
-          messages[text.message_id] = {
-            ...text,
-            image: text.image,
-            _id: text.message_id,
+          messages[message.message_id] = {
+            ...message,
+            // Modifies the message ID property
+            _id: message.message_id,
             user: {
-              _id: text.user.user_id,
-              name: text.user.user_name,
-              avatar: "https://placeimg.com/140/140/animals",
+              /**
+               * Modifies the avatar of the message's user to add the user's image
+               * from the room object the message belongs in
+               */
+              _id: message.user.user_id,
+              name: message.user.user_name,
+              avatar: getUserImageFromRoom(
+                message.user.user_id,
+                JSON.stringify(state.rooms[roomID])
+              ),
             },
           };
+          // Deletes unnecessary properties
+          delete messages[message.message_id].message_id;
+          delete messages[message.message_id].user_id;
           // Adds the message's ID and date to a list for sorting
           state.messageSort[roomID].push({
-            _id: text.message_id,
-            createdAt: text.createdAt,
+            _id: message.message_id,
+            createdAt: message.createdAt,
           });
+          /**
+           * Updated the room object's last updated and text property with the
+           * last message's date only if the message's date is newer than the
+           * room's last updated date
+           *
+           * Temporary: In the future, the back-end should correctly set these properties
+           */
+          if (
+            moment(message.createdAt).isAfter(state.rooms[roomID].lastUpdated)
+          ) {
+            state.rooms[roomID].lastMessage = message.text;
+            state.rooms[roomID].lastUpdated = message.createdAt;
+            state.sortRoomList.filter((room) => {
+              // The numbers must be converted to string first to properly compare
+              if (room.id.toString() === roomID.toString())
+                room.lastUpdated = message.createdAt;
+            });
+            // Sorts the rooms objects
+            state.sortRoomList.sort(
+              (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
+            );
+          }
         });
 
-      // Creates a new object with the room id as the key
+      // Creates a new message object with the room id as the key
       state.messages[roomID] = messages;
-
-      /**
-       * Adds the last message and last updated to the room's object data
-       */
-      // The ID of the last message in the room
-      const lastMessageID = state.messageSort[roomID][0]._id;
-      // The last message's data object
-      const lastMessageObj = state.messages[roomID][lastMessageID];
-
-      // Temporary = In future, back-end should correctly set these properties
-
-      // (Temporary) Updates the room's lastMessage property
-      state.rooms[roomID].lastMessage = lastMessageObj.text;
-      // (Temporary) Updates the room's lastUpdated property
-      state.rooms[roomID].lastUpdated = lastMessageObj.createdAt;
     },
 
     // User's messages list request started
@@ -158,7 +229,7 @@ const slice = createSlice({
         state.messageSort[roomID] = [];
       }
       const roomMessages = state.messages[roomID];
-      const roomMessagesSorted = state.messageSort[roomID];
+      let roomMessagesSorted = state.messageSort[roomID];
 
       /**
        * Checks to see if a message with the same ID is already saved.
@@ -167,29 +238,56 @@ const slice = createSlice({
        */
       if (!roomMessages[messageObj._id]) {
         // Adds the message to the room's object of messages
-        roomMessages[messageObj._id] = messageObj;
+        roomMessages[messageObj._id] = {
+          // Creates a copy of the message object
+          ...messageObj,
+          // Modifies the user of the objects
+          user: {
+            // Creates a copy of the message's user object
+            ...messageObj.user,
+            /**
+             * Modifies the avatar of the message's user to add the user's image
+             * from the room object the message belongs in
+             */
+            avatar: getUserImageFromRoom(
+              messageObj.user._id,
+              JSON.stringify(state.rooms[roomID])
+            ),
+          },
+        };
         // Adds the message to the room's sorted message list (at the beginning)
         roomMessagesSorted.splice(0, 0, {
           _id: messageObj._id,
           createdAt: messageObj.createdAt,
         });
-
-        // Does a push notification if the user should be notified
+        // Sorts the room's sorted message list
+        roomMessagesSorted.sort(
+          (a, b) => moment(b.createdAt) - moment(a.createdAt)
+        );
+        /**
+         * Updated the room object's last updated and text property with the
+         * last message's date only if the message's date is newer than the
+         * room's last updated date
+         */
         if (
-          action.payload.notification &&
-          !jQuery.isEmptyObject(action.payload.notification)
+          moment(messageObj.createdAt).isAfter(state.rooms[roomID].lastUpdated)
         ) {
-          const { title, subtitle, message } = action.payload.notification;
-          // Checks to make sure a title and message are available.
-          // The subtitle may not always be available
-          if (title && message)
-            pushNotification(
-              NotificationIdentifiers.newMessage, // Notification Type
-              title,
-              subtitle ? subtitle : "",
-              message
-            );
+          state.rooms[roomID].lastMessage = messageObj.text;
+          state.rooms[roomID].lastUpdated = messageObj.createdAt;
+          state.sortRoomList.filter((room) => {
+            // The numbers must be converted to string first to properly compare
+            if (room.id.toString() === roomID.toString())
+              room.lastUpdated = messageObj.createdAt;
+          });
+          // Sorts the rooms objects
+          state.sortRoomList.sort(
+            (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
+          );
         }
+        // Adds the notification's identifier in the list of of notification identifiers
+        state.notificationIdentifiers.push(
+          action.payload.notificationIdentifier
+        );
       }
     },
 
@@ -235,8 +333,11 @@ const slice = createSlice({
     resetState: (state, action) => {
       state.rooms = {};
       state.sortRoomList = [];
+      state.roomsWithNewMessages = [];
+      state.notificationIdentifiers = [];
       state.messages = {};
       state.messageSort = {};
+      state.fetchMessagesErrors = {};
       state.dataLoading = false;
       state.fetchRoomsError = false;
     },
@@ -261,6 +362,14 @@ const getRooms = createSelector(
 const getRoomsSortList = createSelector(
   (state) => state.entities.chat,
   (chat) => chat.sortRoomList
+);
+
+/**
+ * Returns the user's rooms's that has new messages
+ */
+export const getUserRoomsWithNewMessages = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.roomsWithNewMessages
 );
 
 /**
@@ -309,6 +418,16 @@ export const getUserChatLoading = createSelector(
   (chat) => Boolean(chat.dataLoading)
 );
 
+/**
+ * Returns a boolean determining if a notification's ID is already in the list
+ * of notification IDs
+ */
+const isNotificationHandled = (notificationIdentifier) =>
+  createSelector(
+    (state) => state.entities.chat,
+    (chat) => chat.notificationIdentifiers.includes(notificationIdentifier)
+  );
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Fetches the user's list of rooms
@@ -332,7 +451,7 @@ export const fetchRooms = () => (dispatch, getState) => {
  */
 export const fetchMessages = () => (dispatch, getState) => {
   // List of rooms ids to fetch each room's messages
-  const roomIDs = getState().entities.chat.sortRoomList;
+  const roomIDs = getUserRooms(getState());
 
   roomIDs.forEach((room) => {
     dispatch(
@@ -358,17 +477,19 @@ export const sendMessage = (stateMessage, backEndMessage) => (
   dispatch,
   getState
 ) => {
-  // User selected room id
-  const roomID = getState().ui.chat.selectedRoomID;
+  // The room ID of the message
+  const roomID = getSelectedRoomID(getState());
+  // The room object associated with the message
+  const roomObj = getUserRoomByID(roomID)(getState());
 
-  // // Adds the message to the state
-  // dispatch({
-  //   type: slice.actions.addMessage.type,
-  //   payload: {
-  //     roomID,
-  //     messageObj: stateMessage,
-  //   },
-  // });
+  // Adds the message to the state
+  dispatch({
+    type: slice.actions.addMessage.type,
+    payload: {
+      roomID,
+      messageObj: stateMessage,
+    },
+  });
 
   // // Sends the message to the back-end
   // dispatch(
@@ -378,9 +499,132 @@ export const sendMessage = (stateMessage, backEndMessage) => (
   //     data: backEndMessage,
   //     useEndpoint: true,
   //     onSuccess: slice.actions.updateMessagePending.type,
-  //     passedData: { roomID, messageObj: backEndMessage },
+  //     passedData: {
+  //       roomID,
+  //       messageObj: backEndMessage,
+  //       pushTitle: roomObj.group
+  //         ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
+  //         : backEndMessage.user.name,
+  //       pushBody: roomObj.group
+  //         ? `${backEndMessage.user.name}\n${backEndMessage.text}`
+  //         : backEndMessage.text,
+  //     },
   //   })
   // );
+
+  /**
+   * TEMPORARY
+   * Sends data to Expo Server to Push Notification
+   */
+  // const dataToSendWithMessage = {
+  //   title: roomObj.group
+  //     ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
+  //     : backEndMessage.user.name,
+  //   body: roomObj.group
+  //     ? `${backEndMessage.user.name}\n${backEndMessage.text}`
+  //     : backEndMessage.text,
+  // };
+  dispatch(
+    pushRemoteNotification({
+      title: roomObj.group
+        ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
+        : backEndMessage.user.name,
+      body: backEndMessage.text,
+      data: {
+        roomID,
+        messageID: backEndMessage.id,
+        date: moment(Date.now()).format("YYYY-MM-DDTHH:mm:ss.SSS"),
+      },
+    })
+  );
+};
+
+/**
+ * Fetches the full message object from the server based
+ * upon a push notifcation.
+ * @param {object} request The notification's data
+ * @param {Array} notificationTray The list of notifications in the notifications tray
+ */
+export const getFullMessageFromServer = (request, notificationTray) => (
+  dispatch,
+  getState
+) => {
+  /**
+   * Checks to see if the notification ID is in the list of notification IDs.
+   * This prevents an unnecessary fetch for the message's full object from being
+   * made since it has already been done.
+   */
+  if (!isNotificationHandled(request.identifier)(getState())) {
+    // The message's room ID
+    const roomID = request.content.data.roomID;
+    // The message ID
+    const messageID = request.content.data.messageID;
+
+    // // Fetches the full message from the back-end
+    // dispatch(
+    //   apiRequested({
+    //     url: "/dm/REPLACE_ENDPOINT",
+    //     method: "put",
+    //     data: { roomID, messageID },
+    //     useEndpoint: true,
+    //     onSuccess: slice.actions.addMessage.type,
+    //     onEnd: slice.actions.addRoomIDToNewMessage.type,
+    //     passedData: {
+    //       notificationIdentifier: request.identifier,
+    //       notificationTray,
+    //       roomID
+    //     },
+    //   })
+    // );
+
+    /**
+     * TEMPORARILY
+     * ADDS A PUSH MESSAGE TO THE STATE: MOCKS API CALL
+     */
+    dispatch({
+      type: slice.actions.addMessage.type,
+      payload: {
+        notificationIdentifier: request.identifier,
+        notificationTray,
+        roomID,
+        messageObj: {
+          text: request.content.body,
+          createdAt: request.content.data.date,
+          image: null,
+          video: null,
+          audio: null,
+          system: false,
+          received: true,
+          pending: false,
+          user: {
+            _id: "50197779",
+            name: "Ari Dospassos",
+            avatar: "",
+          },
+          _id: messageID,
+        },
+      },
+    });
+    dispatch({
+      type: slice.actions.addRoomIDToNewMessage.type,
+      passedData: { roomID },
+    });
+  }
+};
+
+/**
+ * Removes the room ID from the list of rooms with new message(s)
+ * @param {number} roomID The room ID
+ * @param {Array} notificationTray The list of notifications in the notifications tray
+ */
+export const removeRoomIDFromNewMessages = (roomID, notificationTray) => (
+  dispatch,
+  getState
+) => {
+  dispatch({
+    type: slice.actions.removeRoomIDFromNewMessages.type,
+    payload: { roomID, notificationTray },
+  });
 };
 
 /**
@@ -407,55 +651,6 @@ export const createNewRoom = (room, message) => (dispatch, getState) => {
       messageObj: stateMessage,
     })
   );
-};
-
-/**
- * Updates the user's messages
- * @param {Object} messageObj The message object to add to the state
- * @param {string} messageUserID The user ID of the message
- * @returns An action of updating the user's messages
- */
-export const liveMessageUpdate = (messageObj, messageUserID) => (
-  dispatch,
-  getState
-) => {
-  // The message's room ID
-  const roomID = messageObj.room_id;
-  // The room object
-  const room = getUserRoomByID(roomID)(getState());
-  // Message's user object
-  const messageUserObj = room.users.filter(
-    (user) => user.id === messageUserID
-  )[0];
-
-  // Add the message's owner to the message object
-  messageObj.user = {
-    _id: messageUserObj.id,
-    name: messageUserObj.username,
-    avatar: messageUserObj.image,
-  };
-
-  // Corrects the ID property of the message object
-  messageObj._id = messageObj.id;
-
-  // Gets the room object and user's ID
-  const roomObj = getUserRoomByID(roomID)(getState());
-  const mainUserID = getUserInfo(getState()).ID;
-
-  // Creates the data for the notification
-  let notification = {
-    title: roomObj.group
-      ? getRoomName(roomObj, mainUserID)
-      : `From ${messageObj.user.name}`,
-    subTitle: roomObj.group ? `From ${messageObj.user.name}` : null,
-    message: messageObj.text,
-  };
-
-  // Dispatches the update
-  dispatch({
-    type: slice.actions.addMessage,
-    payload: { roomID, messageObj, notification },
-  });
 };
 
 /**

@@ -15,15 +15,14 @@ import { Button } from "react-native-elements";
 import { Input } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import { ScrollView } from "react-native-gesture-handler";
+import { fetchToken, resetTokenError } from "../../store/entities/Auth/auth";
 import {
-  fetchToken,
   getToken,
   getTokenError,
   getTokenLoading,
-} from "../../store/entities/auth";
+} from "../../store/entities/Auth/authSelectors";
 import { fetchProfile } from "../../store/entities/profile";
 import { useDispatch, useSelector, useStore } from "react-redux";
-import { resetTokenError } from "../../store/entities/auth";
 
 export const Login = (props) => {
   // Redux Dispatch
@@ -46,6 +45,14 @@ export const Login = (props) => {
 
   // Gets the user's profile after fetching their token and handles if the fetch fails
   useEffect(() => {
+    console.log(
+      "Token:",
+      token,
+      "Failed Text:",
+      loginFailedText,
+      "Loading:",
+      tokenLoading
+    );
     if (token && !tokenLoading) {
       if (token) {
         dispatch(fetchProfile());

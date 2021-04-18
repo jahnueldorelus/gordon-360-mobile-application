@@ -3,13 +3,17 @@ import { View, Text } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
+import { useNavigation } from "@react-navigation/native";
 
-export const AppbarSettings = (props) => {
+export const AppbarSettings = () => {
+  // React Native Navigation
+  const navigation = useNavigation();
+
   return (
     <View style={styles.appBarContainer}>
       <TouchableOpacity
         onPress={() => {
-          props.navigation.openDrawer();
+          navigation.openDrawer();
         }}
         style={styles.navigationButton}
       >

@@ -323,7 +323,6 @@ export const fetchInvolvements = (userID) => (dispatch, getState) => {
  * @returns An action of fetching the user's chapel info
  */
 export const fetchChapel = () => (dispatch, getState) => {
-  console.log("CHAPEL TERM:", getTermCode());
   if (shouldFetch(getState().entities.profile.chapel)) {
     dispatch(
       apiRequested({

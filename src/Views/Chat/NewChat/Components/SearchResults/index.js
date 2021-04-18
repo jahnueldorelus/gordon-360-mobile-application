@@ -9,11 +9,19 @@ import {
   ScrollView,
 } from "react-native";
 import { getSelectedItemsAndNames } from "../../../../../store/ui/peopleSearchFilter";
+import {
+  fetchPeoplesImage,
+  getSearchResultImages,
+  getPeopleSearchLoading,
+} from "../../../../../store/ui/peopleSearch";
 import { Icon } from "react-native-elements";
 import { SearchTooltip } from "../../Components/SearchTooltip/index";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 export const SearchResults = (props) => {
+  // Redux Dispatch
+  const dispatch = useDispatch();
+
   // The reference to the scrollview that handles the people search results
   const searchResultsScrollRef = useRef();
 
@@ -25,6 +33,12 @@ export const SearchResults = (props) => {
 
   // A reference to the previous search results
   const prevSearchResults = useRef(props.searchResultList);
+
+  // The object of the search result's people's images
+  const searchResultImages = useSelector(getSearchResultImages);
+
+  // The people search's loading status
+  const searchResultLoading = useSelector(getPeopleSearchLoading);
 
   // Determines if selected all checkbox is selected
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -41,10 +55,11 @@ export const SearchResults = (props) => {
   };
 
   useEffect(() => {
-    if (props.resultLoading) {
+    // Updates the selected filters
+    if (searchResultLoading) {
       selectedFilters.current = selectedFilterData.nameAndItem;
     }
-  }, [props.resultLoading]);
+  }, [searchResultLoading]);
 
   useEffect(() => {
     // List of user names in the search result list
@@ -69,6 +84,22 @@ export const SearchResults = (props) => {
       setIsAllSelected(false);
     }
   }, [props.searchResultList, props.selectedUsers]);
+
+  useEffect(() => {
+    // Checks to make sure that there's a new search result list before fetching people's images
+    if (
+      JSON.stringify(prevSearchResults.current) !==
+      JSON.stringify(props.searchResultList)
+    )
+      dispatch(
+        fetchPeoplesImage(
+          // Checks to see if the people search result has any people
+          props.searchResultList && props.searchResultList.length > 0
+            ? props.searchResultList.map((person) => person.AD_Username)
+            : []
+        )
+      );
+  }, [props.searchResultList]);
 
   /**
    * Determines whether to select or deselect all users
@@ -125,10 +156,23 @@ export const SearchResults = (props) => {
           >
             <View style={styles.itemContainer}>
               <View style={styles.itemImageContainer}>
-                <Image
-                  source={props.getUserImage(item.image)}
-                  style={styles.itemImage}
-                />
+                {searchResultImages[item.AD_Username] &&
+                typeof searchResultImages[item.AD_Username] === "string" ? (
+                  // If the message has an image and the image is a string (aka base64)
+                  <Image
+                    source={{ uri: searchResultImages[item.AD_Username] }}
+                    style={styles.itemImage}
+                  />
+                ) : (
+                  // Since there's no image, a default image is supplied instead
+                  <Icon
+                    name={"user-circle-o"}
+                    type="font-awesome"
+                    color="#014983"
+                    solid={true}
+                    size={styles.itemImage.height}
+                  />
+                )}
               </View>
               <View style={styles.itemContentContainer}>
                 <View style={styles.itemContent}>
@@ -168,10 +212,24 @@ export const SearchResults = (props) => {
     [props.searchResultList]
   );
 
+  // Loading View
+  const loadingView = (
+    <View style={styles.loadingImageContainer}>
+      <Image
+        source={require("../Images/mascot.png")}
+        style={styles.loadingImage}
+      />
+      <Text style={styles.loadingImageText}>Searching...</Text>
+    </View>
+  );
+
   return (
     <View style={{ flex: 1 }}>
-      {/* Displays the "Select All" checkbox if the search result has multple users */}
-      {props.searchResultList.length > 1 && (
+      {/* 
+          Displays the "Select All" checkbox if the search result has multple users 
+          and no further data is loading 
+      */}
+      {!searchResultLoading && props.searchResultList.length > 1 && (
         <View style={styles.selectAllContainer}>
           <TouchableHighlight
             onPress={() => {
@@ -196,114 +254,114 @@ export const SearchResults = (props) => {
           </TouchableHighlight>
         </View>
       )}
-      <FlatList
-        ref={searchResultsScrollRef}
-        style={styles.listContainer}
-        data={props.searchResultList}
-        keyExtractor={(item, index) => index.toString()}
-        showsVerticalScrollIndicator
-        keyboardShouldPersistTaps="always"
-        contentContainerStyle={[
-          styles.listContentContainerStyle,
-          props.searchResultList.length ? null : { justifyContent: "center" },
-        ]}
-        onContentSizeChange={() => {
-          /**
-           * Scrolls all the way back to the top of the list when new search results
-           * are given. Each list is converted by JSON in order to properly check
-           * equality for a list of objects
-           */
-          if (
-            JSON.stringify(prevSearchResults.current) !==
-            JSON.stringify(props.searchResultList)
-          ) {
-            searchResultsScrollRef.current.scrollToOffset({
-              animated: true,
-              offset: 0,
-            });
-
-            // Updates the previous search results with the new list
-            prevSearchResults.current = props.searchResultList;
-          }
-        }}
-        renderItem={renderItem}
-        ListEmptyComponent={() => {
-          // If the search result data isn't loading
-          if (!props.resultLoading) {
-            const lastSearchedText = props.lastSearchedText
-              ? props.lastSearchedText.trim()
-              : "";
-
+      {!searchResultLoading ? (
+        <FlatList
+          ref={searchResultsScrollRef}
+          style={styles.listContainer}
+          data={props.searchResultList}
+          keyExtractor={(item, index) => index.toString()}
+          showsVerticalScrollIndicator
+          keyboardShouldPersistTaps="always"
+          contentContainerStyle={[
+            styles.listContentContainerStyle,
+            props.searchResultList.length ? null : { justifyContent: "center" },
+          ]}
+          onContentSizeChange={() => {
             /**
-             * If there's searched text, the searched text is displayed
-             * Otherwise, the selected filters and their values are displayed
+             * Scrolls all the way back to the top of the list when new search results
+             * are given. Each list is converted by JSON in order to properly check
+             * equality for a list of objects
              */
-            if (lastSearchedText) {
-              return (
-                <View style={styles.emptyList}>
-                  <Image
-                    source={require("../../Images/empty-list.png")}
-                    style={styles.emptyListImage}
-                  />
-                  <Text style={styles.emptyListTextOne}>
-                    No results found for '
-                    {
-                      <Text style={styles.emptyListTextTwo}>
-                        {props.lastSearchedText}
-                      </Text>
-                    }
-                    '.
-                  </Text>
-                </View>
-              );
-            } else if (
-              !lastSearchedText &&
-              selectedFilters.current.length > 0
+            if (
+              JSON.stringify(prevSearchResults.current) !==
+              JSON.stringify(props.searchResultList)
             ) {
-              return (
-                <ScrollView contentContainerStyle={styles.emptyListScrollView}>
-                  <View style={styles.emptyListFilterView}>
+              searchResultsScrollRef.current.scrollToOffset({
+                animated: true,
+                offset: 0,
+              });
+
+              // Updates the previous search results with the new list
+              prevSearchResults.current = props.searchResultList;
+            }
+          }}
+          renderItem={renderItem}
+          ListEmptyComponent={() => {
+            // If the search result data isn't loading
+            if (!searchResultLoading) {
+              const lastSearchedText = props.lastSearchedText
+                ? props.lastSearchedText.trim()
+                : "";
+
+              /**
+               * If there's searched text, the searched text is displayed
+               * Otherwise, the selected filters and their values are displayed
+               */
+              if (lastSearchedText) {
+                return (
+                  <View style={styles.emptyList}>
                     <Image
                       source={require("../../Images/empty-list.png")}
                       style={styles.emptyListImage}
                     />
                     <Text style={styles.emptyListTextOne}>
-                      No results found for the filters:
+                      No results found for '
+                      {
+                        <Text style={styles.emptyListTextTwo}>
+                          {props.lastSearchedText}
+                        </Text>
+                      }
+                      '.
                     </Text>
-                    <View style={styles.emptyListFilterContainer}>
-                      {selectedFilters.current.map((filter, index) => (
-                        <View key={index} style={styles.emptyListFilter}>
-                          <Text
-                            key={index}
-                            style={styles.emptyListFilterTextOne}
-                          >
-                            {filter.name}:
-                          </Text>
-                          <Text style={styles.emptyListFilterTextTwo}>
-                            {filter.item}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
                   </View>
-                </ScrollView>
-              );
+                );
+              } else if (
+                !lastSearchedText &&
+                selectedFilters.current.length > 0
+              ) {
+                return (
+                  <ScrollView
+                    contentContainerStyle={styles.emptyListScrollView}
+                  >
+                    <View style={styles.emptyListFilterView}>
+                      <Image
+                        source={require("../../Images/empty-list.png")}
+                        style={styles.emptyListImage}
+                      />
+                      <Text style={styles.emptyListTextOne}>
+                        No results found for the filters:
+                      </Text>
+                      <View style={styles.emptyListFilterContainer}>
+                        {selectedFilters.current.map((filter, index) => (
+                          <View key={index} style={styles.emptyListFilter}>
+                            <Text
+                              key={index}
+                              style={styles.emptyListFilterTextOne}
+                            >
+                              {filter.name}:
+                            </Text>
+                            <Text style={styles.emptyListFilterTextTwo}>
+                              {filter.item}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </ScrollView>
+                );
+              } else {
+                return <SearchTooltip />;
+              }
             } else {
-              return <SearchTooltip />;
+              // Since the results are still loading, a loading screen is displayed
+              return loadingView;
             }
-          } else {
-            return (
-              <View style={styles.loadingImageContainer}>
-                <Image
-                  source={require("../Images/mascot.png")}
-                  style={styles.loadingImage}
-                />
-                <Text style={styles.loadingImageText}>Searching...</Text>
-              </View>
-            );
-          }
-        }}
-      />
+          }}
+        />
+      ) : (
+        // Shows the loading view until the search request is done
+        loadingView
+      )}
     </View>
   );
 };
@@ -332,8 +390,8 @@ const styles = StyleSheet.create({
   },
   itemImageContainer: { alignSelf: "center" },
   itemImage: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderColor: "#0a5289",
     borderWidth: 1,
     borderRadius: 50,
@@ -418,6 +476,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flexGrow: 1,
+    backgroundColor: "white",
   },
   loadingImage: {
     resizeMode: "contain",

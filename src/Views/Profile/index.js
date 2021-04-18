@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   infoContainerTop: { paddingTop: 20 },
-  infoContainerMiddle: { paddingHorizontal: 10 },
+  infoContainerMiddle: { paddingHorizontal: 10, marginBottom: 20 },
   infoContainerBottom: {
     paddingTop: 20,
     marginHorizontal: 10,

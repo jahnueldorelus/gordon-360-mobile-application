@@ -5,21 +5,22 @@ import {
   View,
   StyleSheet,
   Text,
-  TouchableOpacity,
   Image,
   Dimensions,
-  TextInput,
 } from "react-native";
 import {
   setCreateRoomLoading,
   resetCreateRoomLoading,
   getCreateRoomLoading,
   setRoomID,
+  getRoomImage,
+  setRoomImage,
+  getRoomName,
+  setRoomName,
 } from "../../../../../store/ui/chat";
-import { resetSearchList } from "../../../../../store/ui/peopleSearch";
+import { ui_PeopleSearchResetState } from "../../../../../store/ui/peopleSearch";
+import { ui_PeopleSearchFilterResetState } from "../../../../../store/ui/peopleSearchFilter";
 import { createNewRoom } from "../../../../../store/entities/chat";
-import { Icon } from "react-native-elements";
-import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
 import { GiftedChat } from "react-native-gifted-chat";
 import { getBottomSpace } from "react-native-iphone-x-helper";
@@ -37,9 +38,13 @@ import {
   getUserInfo,
   getUserImage,
 } from "../../../../../store/entities/profile";
+import { RoomImagePicker } from "./RoomImagePicker/index";
 import { useNavigation } from "@react-navigation/native";
+import { Header } from "./Header/index.js";
+import { GroupNameInput } from "./GroupNameInput/index";
+import { CameraPermissions } from "./CameraPermissions/index";
 
-export const RoomMessage = (props) => {
+export const RoomCreator = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
 
@@ -49,8 +54,11 @@ export const RoomMessage = (props) => {
   // The current text inside the input toolbar
   const [messageText, setMessageText] = useState("");
 
-  // The group name if the selected user's are greater than 1
-  const [groupName, setGroupName] = useState("");
+  // The room's name
+  const roomName = useSelector(getRoomName);
+
+  // The room's image
+  const roomImage = useSelector(getRoomImage);
 
   // The list of images the user has selected
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
@@ -62,9 +70,6 @@ export const RoomMessage = (props) => {
   const [modalConfig, setModalConfig] = useState({
     visible: false,
     content: <></>,
-    height: 0,
-    contain: null,
-    cover: null,
     styles: {},
   });
 
@@ -78,7 +83,7 @@ export const RoomMessage = (props) => {
   const userImage = useSelector(getUserImage);
 
   // GiftedChat's user format
-  const user = {
+  const mainUser = {
     _id: userProfile.ID,
     avatar: userImage,
     name: `${userProfile.FirstName} ${userProfile.LastName}`,
@@ -104,9 +109,9 @@ export const RoomMessage = (props) => {
 
     // TEMPORARY ROOM OBJECT
     const room = {
-      roomImage: null,
+      roomImage,
       room_id: `TEMP-ROOM-${Math.random() * (1000000 - 0) + 0}`,
-      name: groupName,
+      name: roomName.trim(),
       group: props.selectedUsersList.length > 1 ? true : false,
       createdAt: message.createdAt,
       lastUpdated: message.createdAt,
@@ -114,20 +119,22 @@ export const RoomMessage = (props) => {
       users: [
         ...selectedUsers,
         {
-          user_id: message.user._id,
-          user_name: message.user.image,
-          user_avatar: null,
+          user_id: mainUser._id,
+          user_name: mainUser.name,
+          user_avatar: mainUser.avatar,
         },
       ],
       lastMessage: message.text,
     };
 
+    // Deletes the user selected room image
+    dispatch(setRoomImage(null));
+    // Deletes the user selected room image
+    dispatch(setRoomName(""));
     // Sets the creation of the room as loading
     dispatch(setCreateRoomLoading);
-
     // Saves the new room and message to state
     dispatch(createNewRoom(room, message));
-
     // Sets the selected room to the new room
     dispatch(setRoomID(room.room_id));
 
@@ -137,12 +144,14 @@ export const RoomMessage = (props) => {
       props.setNewChatModalVisible(false);
       // Sets the loading status of creating a room to false
       dispatch(resetCreateRoomLoading);
-      // Deletes the search list results
-      dispatch(resetSearchList);
       // Deletes the last searched text
       props.setLastSearchedText(null);
       // Deletes selected users
       props.setSelectedUsers({});
+      // Deletes people search results
+      dispatch(ui_PeopleSearchResetState);
+      // Deletes people search filters
+      dispatch(ui_PeopleSearchFilterResetState);
       // Closes the modal to display the chat of the new room
       props.setVisible(false);
       // Navigates to the chat screen
@@ -190,167 +199,123 @@ export const RoomMessage = (props) => {
       onRequestClose={() => props.setVisible(false)}
       onDismiss={() => props.setVisible(false)}
     >
-      {!createRoomLoading ? (
-        <SafeAreaView style={{ flex: 1 }}>
-          <LinearGradient
-            // Background Linear Gradient
-            colors={["#014983", "#015483"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.gradient}
-          >
-            <View
-              style={{
-                alignSelf: "center",
-                width: "90%",
-                paddingVertical: 5,
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => props.setVisible(false)}
-                style={{
-                  alignSelf: "flex-start",
-                  paddingRight: 5,
-                }}
-              >
-                <View style={{ flexDirection: "row" }}>
-                  <Icon
-                    name={"chevron-left"}
-                    type="font-awesome-5"
-                    color="white"
-                    size={22}
-                    containerStyle={{
-                      padding: 5,
-                      marginRight: 5,
-                    }}
-                  />
-                  <Text style={styles.titleText}>People Search</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-          {props.selectedUsersList.length > 1 && (
-            <View
-              style={{
-                flexDirection: "row",
-                marginHorizontal: "5%",
-                marginTop: 10,
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  marginRight: 10,
-                  fontWeight: "bold",
-                  color: "#014983",
-                }}
-              >
-                Group Name:
-              </Text>
-              <TextInput
-                placeholder="Type a name..."
-                placeholderTextColor="#2f3d49"
-                value={groupName}
-                selectTextOnFocus={true}
-                returnKeyType="done"
-                onChangeText={(name) => setGroupName(name)}
-                style={{
-                  borderColor: "#014983",
-                  borderRadius: 4,
-                  borderWidth: 2,
-                  flex: 1,
-                  fontSize: 18,
-                  paddingVertical: 5,
-                  paddingHorizontal: 5,
-                }}
+      <SafeAreaView style={styles.mainContainerSafeArea}>
+        <View style={styles.mainContainerView}>
+          {!createRoomLoading ? (
+            // If a room is not in the process of being created
+            <View style={{ flex: 1, backgroundColor: "white" }}>
+              {/* Header */}
+              <Header
+                setVisible={props.setVisible}
+                modalConfig={modalConfig}
+                setModalConfig={setModalConfig}
               />
+
+              {/* Group Name Input */}
+              <GroupNameInput
+                selectedUsersListLength={props.selectedUsersList.length}
+              />
+
+              {/* Room Image */}
+              <RoomImagePicker
+                modalConfig={modalConfig}
+                setModalConfig={setModalConfig}
+                selectedUsersListLength={props.selectedUsersList.length}
+                setVisible={props.setVisible}
+              />
+
+              {/* Selected Users */}
+              {props.selectedUsers}
+
+              {/* GiftedChat */}
+              <GiftedChat
+                alignTop
+                alwaysShowSend
+                bottomOffset={getBottomSpace()}
+                isCustomViewBottom
+                messages={[]}
+                messagesContainerStyle={styles.messagesContainer}
+                minInputToolbarHeight={minInputToolbarHeight()}
+                onInputTextChanged={setMessageText}
+                onSend={onSend}
+                parsePatterns={(linkStyle) => [
+                  {
+                    pattern: /#(\w+)/,
+                    style: linkStyle,
+                  },
+                ]}
+                renderActions={(props) => {
+                  const ImageHandler = { selectedImages, setSelectedImages };
+                  const ModalHandler = { modalConfig, setModalConfig };
+                  return renderActions(props, ImageHandler, ModalHandler);
+                }}
+                renderAvatar={renderAvatar}
+                renderBubble={renderBubble}
+                renderComposer={renderComposer}
+                /**
+                 * Uncomment if you'd like to add a custom view to each message.
+                 * This view appears after a message's text and before the message's
+                 * status information (aka date, sent, delivered, etc.)
+                 */
+                // renderCustomView={renderCustomView}
+                renderInputToolbar={(props) => {
+                  const ImageHandler = { selectedImages, setSelectedImages };
+                  const ModalHandler = { modalConfig, setModalConfig };
+                  const ActionHandler = { showActions, setShowActions };
+                  return renderInputToolbar(
+                    props,
+                    ImageHandler,
+                    ModalHandler,
+                    ActionHandler
+                  );
+                }}
+                renderMessage={renderMessage}
+                renderMessageImage={(props) => {
+                  const ModalHandler = { modalConfig, setModalConfig };
+                  return renderMessageImage(props, ModalHandler);
+                }}
+                renderMessageText={renderMessageText}
+                renderSend={renderSend}
+                renderSystemMessage={renderSystemMessage}
+                scrollToBottom
+                text={messageText}
+                user={mainUser}
+              />
+
+              {/* Camera Permissions */}
+              <CameraPermissions modalConfig={modalConfig} />
+            </View>
+          ) : (
+            // If a room is in the process of being created, a loading screen is shown
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Image
+                source={require("../Images/mascot.png")}
+                style={styles.loadingImage}
+              />
+              <Text style={styles.loadingText}>Creating Room...</Text>
             </View>
           )}
-          {props.selectedUsers}
-          <GiftedChat
-            alignTop
-            alwaysShowSend
-            bottomOffset={getBottomSpace()}
-            isCustomViewBottom
-            messages={[]}
-            messagesContainerStyle={styles.messagesContainer}
-            minInputToolbarHeight={minInputToolbarHeight()}
-            onInputTextChanged={setMessageText}
-            onSend={onSend}
-            parsePatterns={(linkStyle) => [
-              {
-                pattern: /#(\w+)/,
-                style: linkStyle,
-              },
-            ]}
-            renderActions={(props) => {
-              const ImageHandler = { selectedImages, setSelectedImages };
-              const ModalHandler = { modalConfig, setModalConfig };
-              return renderActions(props, ImageHandler, ModalHandler);
-            }}
-            renderAvatar={renderAvatar}
-            renderBubble={renderBubble}
-            renderComposer={renderComposer}
-            /**
-             * Uncomment if you'd like to add a custom view to each message.
-             * This view appears after a message's text and before the message's
-             * status information (aka date, sent, delivered, etc.)
-             */
-            // renderCustomView={renderCustomView}
-            renderInputToolbar={(props) => {
-              const ImageHandler = { selectedImages, setSelectedImages };
-              const ModalHandler = { modalConfig, setModalConfig };
-              const ActionHandler = { showActions, setShowActions };
-              return renderInputToolbar(
-                props,
-                ImageHandler,
-                ModalHandler,
-                ActionHandler
-              );
-            }}
-            renderMessage={renderMessage}
-            renderMessageImage={(props) => {
-              const ModalHandler = { modalConfig, setModalConfig };
-              return renderMessageImage(props, ModalHandler);
-            }}
-            renderMessageText={renderMessageText}
-            renderSend={renderSend}
-            renderSystemMessage={renderSystemMessage}
-            scrollToBottom
-            // showUserAvatar
-            text={messageText}
-            user={user}
-          />
-        </SafeAreaView>
-      ) : (
-        <SafeAreaView style={{ flex: 1, justifyContent: "center" }}>
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Image
-              source={require("../Images/mascot.png")}
-              style={styles.loadingImage}
-            />
-            <Text style={styles.loadingText}>Creating Room...</Text>
-          </View>
-        </SafeAreaView>
-      )}
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  titleText: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
-    paddingVertical: 5,
+  mainContainerSafeArea: {
+    flex: 1,
+    backgroundColor: "black",
   },
-  gradient: { backgroundColor: "blue" },
+  mainContainerView: {
+    justifyContent: "center",
+    backgroundColor: "white",
+    flex: 1,
+  },
   messagesContainer: {
     backgroundColor: "white",
   },

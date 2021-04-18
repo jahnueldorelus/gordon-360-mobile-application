@@ -8,8 +8,10 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getRoomName, getRoomImage } from "../../Services/Messages";
-import { ListItem } from "react-native-elements";
+import { getReadableDateFormat } from "../../Services/Messages/index";
+import { ListItem, Icon } from "react-native-elements";
 import { CustomLoader } from "../../Components/CustomLoader";
 import {
   getUserRooms,
@@ -17,31 +19,25 @@ import {
   fetchMessages,
   getUserMessages,
   getUserChatLoading,
+  getUserRoomsWithNewMessages,
 } from "../../store/entities/chat";
 import { getUserInfo } from "../../store/entities/profile";
-import { getToken } from "../../store/entities/auth";
-import { useDispatch, useSelector, useStore } from "react-redux";
-import moment from "moment";
+import { getToken } from "../../store/entities/Auth/authSelectors";
+import { useDispatch, useSelector } from "react-redux";
 import { setRoomID } from "../../store/ui/chat";
-import { startWebConnection } from "../../../src/Services/WebSocket";
-import { useNavigation, useRoute } from "@react-navigation/native";
 
 const deviceHeight = Dimensions.get("window").height;
 
 export const RoomsList = (props) => {
   // Redux Dispath
   const dispatch = useDispatch();
-  // Redux Store
-  const store = useStore();
-
-  // App Navigation and Route
-  const navigation = useNavigation();
-  const route = useRoute();
 
   // The user's token
   const token = useSelector(getToken);
   // The user's list of rooms
   const rooms = useSelector(getUserRooms);
+  // The user's list of rooms with new messages
+  const roomsWithNewMessages = useSelector(getUserRoomsWithNewMessages);
   // The user's messages
   const messages = useSelector(getUserMessages);
   // The user's profile info
@@ -49,71 +45,36 @@ export const RoomsList = (props) => {
   // The user's chat loading status
   const dataLoading = useSelector(getUserChatLoading);
 
-  /**
-   * Connects to the server through the WebSocket
-   * If the user made it to this screen, then that means they have loogged in and
-   * that their user profile information is available. If the user info is not
-   * available, a websocket connection isn't established.
-   */
-  useEffect(() => {
-    if (userProfile)
-      // Makes a live connection to the back-end with a web socket
-      startWebConnection(store, navigation, route);
-  }, []);
-
   // Gets the rooms of the main user and the main user's information
   useEffect(() => {
     // If the user's token is available
     if (token) {
       // If user's rooms is available
-      if (!jQuery.isEmptyObject(rooms)) {
+      if (JSON.stringify(rooms) !== JSON.stringify({})) {
         /**
-         * If the user's messages are unavailable or the user's
-         * room and messages are being refreshed
+         * If the user's messages are unavailable or the user's room
+         * and messages are being refreshed, the user's messages are fetched
          */
-        if (jQuery.isEmptyObject(messages) || dataLoading)
+        if (JSON.stringify(messages) === JSON.stringify({}) || dataLoading)
           dispatch(fetchMessages());
       } else {
         // If the user's rooms are not available, they are fetched
         dispatch(fetchRooms());
       }
     } else {
-      // Navigates to the Messages screen since authentication passed
+      // Navigates to the Login screen since authentication failed
       props.navigation.navigate("Login");
     }
   }, [token, rooms]);
 
-  /**
-   * Gets the date of the room
-   * @param {Object} room
-   * @returns {String} The date of the room
-   */
-  const getRoomDate = (date) => {
-    const roomDate = moment(date);
-    // Checks to see if the date is the same as the current day
-    if (roomDate.isSame(new Date(), "day")) {
-      return `Today - ${roomDate.format("h:mm a")}`;
-      // return roomDate.format("MMMM Do YYYY, h:mm:ss a")
-    }
-    // Checks to see if the date is within the same week
-    else if (roomDate.isSame(new Date(), "week")) {
-      // If the date was the day before the current day (aka yesterday)
-      if (roomDate.isSame(moment().subtract(1, "days").startOf("day"), "d")) {
-        return `Yesterday - ${roomDate.format("h:mm a")}`;
-      }
-      // If the date is within the same week as the current day
-      else {
-        return roomDate.format("dddd - h:mm a");
-      }
-    } else {
-      return roomDate.format("MM/DD/YY - h:mm a");
-    }
-  };
-
-  if (rooms && userProfile)
+  if (rooms && roomsWithNewMessages && userProfile)
     return (
       <FlatList
         style={styles.room}
+        contentContainerStyle={{
+          // Adds a padding to the bottom of the list if device has SafeAreaView
+          paddingBottom: useSafeAreaInsets().bottom,
+        }}
         data={rooms}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
@@ -141,20 +102,41 @@ export const RoomsList = (props) => {
               onPress={() => {
                 // Sets the user's selected room ID
                 dispatch(setRoomID(room.item.id));
-                // Saves the
-                route.params = { roomID: room.item.id };
-                // Navigates to the chat screen
-                props.navigation.navigate("Chat");
+                /**
+                 * Navigates to the chat screen and saves the room ID
+                 * so that navigation can have the ID of the last room the user entered
+                 */
+                props.navigation.navigate("Chat", { roomID: room.item.id });
               }}
             >
               <Image
-                source={getRoomImage(room.item.image)}
+                source={getRoomImage(room.item, userProfile.ID)}
                 style={styles.listItemImage}
               />
               <ListItem.Content>
-                <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-                  {getRoomName(room.item, userProfile.ID)}
-                </ListItem.Title>
+                <View style={styles.listItemHeader}>
+                  <View style={styles.listItemHeaderTitleContainer}>
+                    <ListItem.Title
+                      numberOfLines={1}
+                      style={styles.listItemHeaderTitle}
+                    >
+                      {getRoomName(room.item, userProfile.ID)}
+                    </ListItem.Title>
+                  </View>
+                  {/* Displays a blue badge if the room has any unopened messages */}
+                  {roomsWithNewMessages.includes(room.item.id) && (
+                    <View style={styles.listItemHeaderIcon}>
+                      <Icon
+                        name="circle"
+                        solid={true}
+                        type="font-awesome-5"
+                        color="#2484e4"
+                        size={12}
+                      />
+                    </View>
+                  )}
+                </View>
+
                 <ListItem.Subtitle numberOfLines={2}>
                   {room.item.lastMessage}
                 </ListItem.Subtitle>
@@ -162,7 +144,7 @@ export const RoomsList = (props) => {
                   numberOfLines={1}
                   style={styles.listSubTitleDate}
                 >
-                  {getRoomDate(room.item.lastUpdated)}
+                  {getReadableDateFormat(room.item.lastUpdated)}
                 </ListItem.Subtitle>
               </ListItem.Content>
               <ListItem.Chevron />
@@ -198,13 +180,33 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  listItemTitle: { fontWeight: "bold", color: "#001f37" },
+  listItemHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  listItemHeaderTitleContainer: {
+    flex: 1,
+  },
+  listItemHeaderTitle: {
+    fontWeight: "bold",
+    color: "#001f37",
+  },
+  listItemHeaderIcon: {
+    marginLeft: 10,
+  },
   listItemImage: {
     borderColor: "#014983",
     width: 50,
     height: 50,
-    borderWidth: 1,
     borderRadius: 50,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   listSubTitleDate: {
     fontWeight: "bold",

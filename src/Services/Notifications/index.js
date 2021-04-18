@@ -1,120 +1,181 @@
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
-import { Platform, Vibration } from "react-native";
+import { Platform } from "react-native";
+import * as Navigation from "../Navigation/index";
+import { apiRequested } from "../../store/middleware/api";
+import { setExpoToken } from "../../store/entities/Auth/auth";
 
 // Notification Category Identifier
-export const NotificationIdentifiers = {
+export const NotificationType = {
   newMessage: "new_message",
-  calendarEvent: "cal_event",
 };
 
 /**
- * Handles the display of the notifications
+ * Handles the display of the notifications when the app is in the foreground.
+ * If the user is in a chat where a message is received, a notification won't show.
+ * Otherwise, a notification will display.
  */
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
+  handleNotification: async (notification) => {
+    return isChatMessageAndUserInChat(notification)
+      ? {
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }
+      : {
+          shouldShowAlert: false,
+          shouldPlaySound: false,
+          shouldSetBadge: true,
+        };
+  },
 });
 
 /**
- * Sets the notification options for the new message identifier
- */
-Notifications.setNotificationCategoryAsync(NotificationIdentifiers.newMessage, [
-  {
-    identifier: NotificationIdentifiers.newMessage + "_response",
-    buttonTitle: "Respond",
-    textInput: {
-      submitButtonTitle: "Send",
-      placeholder: "Type your message...",
-    },
-  },
-]);
-
-/**
  * Handles all notifications received
- * @param {object} notification
+ * @param {object} notification The notification received
+ * @param {Function} getFullMessageFromServer Function that fetches the full message object
+ * @param {*} dispatch Redux dispatch
  */
-export const notificationReceivedHandler = (notification) => {
-  Vibration.vibrate();
-  console.log(notification);
+export const notificationReceivedHandler = async (
+  notification,
+  getFullMessageFromServer,
+  dispatch
+) => {
+  // List of notifications in the notification tray
+  let notificationTray = await Notifications.getPresentedNotificationsAsync();
+  // The full message object is fetched from the server
+  dispatch(getFullMessageFromServer(notification.request), notificationTray);
 };
 
 /**
  * Handles all notifications responded to
- * @param {object} response
+ * @param {object} notification The notification received
+ * @param {Function} getFullMessageFromServer Function that fetches the full message object
+ * @param {*} dispatch Redux dispatch
  */
-export const notificationResponseHandler = (response) => {
-  console.log(response);
+export const notificationResponseHandler = async (
+  notification,
+  getFullMessageFromServer,
+  dispatch
+) => {
+  // If the notification is for a chat, the user is brought to the specified chat
+  if (notification.request.content.data.roomID) {
+    Navigation.navigateToChat(
+      dispatch,
+      notification.request.content.data.roomID
+    );
+    // List of notifications in the notification tray
+    let notificationTray = await Notifications.getPresentedNotificationsAsync();
+    // The full message object is fetched from the server
+    dispatch(getFullMessageFromServer(notification.request), notificationTray);
+  }
 };
 
 /**
- * Creates a push notification
- * @param {string} identifier The identifier
- * @param {string} title The title of the notification
- * @param {string} subtitle The subtitle of the notification
- * @param {string} body The body of the notification
- * @param {*} data The data to be passed along with the notification (not displayed on UI)
+ * Handles getting all of the notifications that wasn't
+ * responded to while the app wasn't in the foreground
+ * @param {object} previousAppState Reference to the previous app state
+ * @param {string} nextAppState The new app state
+ * @param {Function} getFullMessageFromServer Function that fetches the full message object
+ * @param {*} dispatch Redux dispatch
  */
-export async function pushNotification(
-  identifier,
-  title,
-  subtitle,
-  body,
-  data
-) {
-  // Checks to make sure there's a title and body. Data is not required
-  if (identifier && title && body)
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        categoryIdentifier: identifier,
-        title,
-        subtitle,
-        body,
-        data,
-      },
-      trigger: { seconds: 1 }, // The time interval must be greater than 0
+export const handleAppStateChange = async (
+  previousAppState,
+  nextAppState,
+  getFullMessageFromServer,
+  dispatch
+) => {
+  /**
+   * Checks to see if the app is returning to the foreground.
+   * If so, if there are any push notification(s) that have not been
+   * processed, the full message object(s) are fetched from the back-end
+   */
+  if (
+    previousAppState.current.match(/inactive|background/) &&
+    nextAppState === "active"
+  ) {
+    // List of notifications in the notification tray
+    let notificationTray = await Notifications.getPresentedNotificationsAsync();
+    // For each presented notification, it's full message object is fetched from the server
+    notificationTray.forEach((notification) => {
+      dispatch(
+        getFullMessageFromServer(notification.request),
+        notificationTray
+      );
     });
-}
+  }
+
+  // Sets the new previous app state the same as the current
+  previousAppState.current = nextAppState;
+};
+
+/**
+ * Sets the new Expo's token
+ * @param {string} token The new Expo token
+ * @param {*} dispatch Redux dispatch
+ */
+export const setNewToken = (token, dispatch) => {
+  // Sends the user's Expo Token to the back-end
+  dispatch(
+    apiRequested({
+      url: "/dm/REPLACE_ENDPOINT",
+      method: "put",
+      data: { token },
+      useEndpoint: true,
+    })
+  );
+  // Saves the user's Expo token
+  dispatch(setExpoToken(token));
+};
 
 /**
  * Registers for the device to receive push notifications.
  * Permission is asked from the user to receive notifications.
  * If permission is denied, the user has to go to the settings of the app
  * inside of the device's Settings to enable notifications.
+ *
+ * @param {*} dispatch Redux dispatch
  */
-export async function registerForPushNotificationsAsync() {
+export const registerForPushNotificationsAsync = async (dispatch) => {
   // Checks to make sure that a physical device is being used since
   // push notifications don't work on emulators and simulators
   if (Constants.isDevice) {
-    const { status, ios } = await Notifications.getPermissionsAsync();
+    const {
+      status: existingStatus,
+    } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
 
-    // Checks to see if notification permissions are allowed
-    if (
-      //   (Platform.OS === "ios" &&
-      //     ios.status === Notifications.IosAuthorizationStatus.AUTHORIZED) ||
-      //   status !== "granted"
-      true
-    ) {
-      const { status } = await Notifications.requestPermissionsAsync({
-        ios: {
-          allowAlert: true,
-          allowBadge: true,
-          allowSound: true,
-          allowDisplayInCarPlay: true,
-          allowCriticalAlerts: true,
-          provideAppNotificationSettings: true,
-          allowAnnouncements: true,
-        },
-      });
-      if (status !== "granted") {
-        alert("Failed to get push token for push notification!");
-        return;
-      }
+    /**
+     * Checks to see if notification permissions are allowed. If not,
+     * permissions are asked.
+     */
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
     }
-  } else {
+    // If permission was still denied after permission was asked
+    if (finalStatus !== "granted") {
+      alert("Failed to get push token for push notification!");
+      return;
+    }
+
+    // Get's a token from Expo to do Push Notifications with Expo's server
+    const token = await (await Notifications.getExpoPushTokenAsync()).data;
+    // Sends the user's Expo Token to the back-end
+    // dispatch(
+    //   apiRequested({
+    //     url: "/dm/REPLACE_ENDPOINT",
+    //     method: "put",
+    //     data: { token },
+    //     useEndpoint: true,
+    //   })
+    // );
+    // Saves the user's Expo token
+    dispatch(setExpoToken(token));
+  }
+  // If the device is not a real device, push notifications may be disabled
+  else {
     alert("Must use physical device for Push Notifications");
   }
 
@@ -129,4 +190,20 @@ export async function registerForPushNotificationsAsync() {
       lightColor: "#FF231F7C",
     });
   }
-}
+};
+
+/**
+ * Determines if a notification should appear.
+ * If a notification is received for a chat that the user
+ * is already in, no notification will appear. Otherwise, a notification
+ * will display.
+ */
+const isChatMessageAndUserInChat = (notification) =>
+  notification.request.content.data.roomID &&
+  notification.request.content.data.messageID &&
+  Navigation.getNavigationRoute().name === "Chat" &&
+  Navigation.getNavigationRoute().params.roomID &&
+  notification.request.content.data.roomID ===
+    Navigation.getNavigationRoute().params.roomID
+    ? false
+    : true;

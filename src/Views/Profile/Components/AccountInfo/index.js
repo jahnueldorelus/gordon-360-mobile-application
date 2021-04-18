@@ -272,7 +272,8 @@ const styles = StyleSheet.create({
     tintColor: "white",
   },
   accountView: {
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 40,
     width: "100%",
   },
   accountViewCard: {

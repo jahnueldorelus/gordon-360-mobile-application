@@ -22,11 +22,11 @@ export const FocusedTextInput = (props) => {
 
   useEffect(() => {
     /**
-     * Focuses on the text input of there's a focused text input
+     * Focuses on the text input if there's a focused text input
      * If there's a text input that was selected, it's input will be focused
      * This will make the keyboard appear automatically for the user to give input
      */
-    if (!jQuery.isEmptyObject(props.focusedTextInput)) {
+    if (JSON.stringify(props.focusedTextInput) !== JSON.stringify({})) {
       TextInput.State.focusTextInput(focusedTextInputRef.current);
     }
 

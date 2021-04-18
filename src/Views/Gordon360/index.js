@@ -1,13 +1,12 @@
 import React, { useRef, useState } from "react";
 import { View, StyleSheet, LayoutAnimation } from "react-native";
 import { WebView } from "react-native-webview";
-import AsyncStorage from "@react-native-community/async-storage";
 import { NetworkConsumer } from "react-native-offline";
 import { CustomLoader } from "../../Components/CustomLoader";
 import { AppBar } from "../../Components/AppBar";
 import { OfflineMessage } from "./Components/OfflineMessage";
 import { WebViewError } from "./Components/WebViewError";
-import { getToken } from "../../store/entities/auth";
+import { getToken } from "../../store/entities/Auth/authSelectors";
 import { useSelector } from "react-redux";
 
 export const Gordon360 = (props) => {

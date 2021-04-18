@@ -20,12 +20,13 @@ export const AppBar = (props) => {
       top: Platform.OS === "android" ? StatusBar.currentHeight : 0,
       marginBottom: Platform.OS === "android" ? StatusBar.currentHeight : 0,
       padding: 10,
+      paddingTop: Platform.OS === "ios" ? 25 : 10,
     },
   });
 
   return (
     <View style={styles.appBar}>
-      <StatusBar barStyle="light-content" hidden={false} translucent={true} />
+      <StatusBar barStyle="default" hidden={false} translucent={true} />
       <SafeAreaView>
         {route.name === "Chat" && <AppbarChat {...props} />}
         {route.name === "Rooms" && <AppbarRoom {...props} />}

@@ -46,11 +46,15 @@ const Actions = (props) => (
               quality: undefined,
               base64: true,
             });
+            // If an image is selected
             if (!image.cancelled) {
               let newSelectedImages = JSON.parse(
                 props.ImageHandler.selectedImages
               );
+              // Saves the image converted to base64
               // newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
+
+              // Saves the image's local path
               newSelectedImages.push(image.uri);
               /**
                * The images are set in a JSON object in order for useEffect() in

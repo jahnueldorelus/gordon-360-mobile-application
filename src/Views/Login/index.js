@@ -45,14 +45,14 @@ export const Login = (props) => {
 
   // Gets the user's profile after fetching their token and handles if the fetch fails
   useEffect(() => {
-    console.log(
-      "Token:",
-      token,
-      "Failed Text:",
-      loginFailedText,
-      "Loading:",
-      tokenLoading
-    );
+    // console.log(
+    //   "Token:",
+    //   token,
+    //   "Failed Text:",
+    //   loginFailedText,
+    //   "Loading:",
+    //   tokenLoading
+    // );
     if (token && !tokenLoading) {
       if (token) {
         dispatch(fetchProfile());

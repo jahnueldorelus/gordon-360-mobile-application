@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { TextInput, StyleSheet } from "react-native";
+import * as Haptics from "expo-haptics";
+import { getUseHapticsForTexting } from "../../../../../../../store/entities/Settings/settingsSelectors";
+import { useSelector } from "react-redux";
 
 /**
  * Renders the composer (aka textfield) in the InputToolbar. Also handles,
@@ -22,6 +25,8 @@ const Composer = (props) => {
   const giftedChatInputHeightSet = useRef(false);
   // Used to determine if the actions buttons visibility changed
   const actionsVisible = useRef(props.ActionHandler.showActions);
+  // Determines if haptics are enabled
+  const hapticsEnabled = useSelector(getUseHapticsForTexting);
 
   /**
    * Properly displays any selected images and videos in the InputToolbar.
@@ -89,6 +94,8 @@ const Composer = (props) => {
       }}
       onChangeText={(text) => {
         props.onTextChanged(text);
+        // Does Haptic feedback if enabled
+        if (hapticsEnabled) Haptics.selectionAsync();
       }}
       style={styles.input}
       autoFocus={props.textInputAutoFocus}

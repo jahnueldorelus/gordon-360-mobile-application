@@ -20,7 +20,11 @@ import {
 } from "../../../../../store/ui/chat";
 import { ui_PeopleSearchResetState } from "../../../../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../../../../store/ui/peopleSearchFilter";
-import { createNewRoom } from "../../../../../store/entities/chat";
+import {
+  createNewRoom,
+  resetNewRoomCreated,
+  getNewRoomCreated,
+} from "../../../../../store/entities/chat";
 import { useDispatch, useSelector } from "react-redux";
 import { GiftedChat } from "react-native-gifted-chat";
 import { getBottomSpace } from "react-native-iphone-x-helper";
@@ -66,6 +70,9 @@ export const RoomCreator = (props) => {
   // Determines if the actions buttons of the input toolbar should display
   const [showActions, setShowActions] = useState(false);
 
+  // Determines if a new room was created
+  const newRoomCreated = useSelector(getNewRoomCreated);
+
   // Configuration for setting the custom modal
   const [modalConfig, setModalConfig] = useState({
     visible: false,
@@ -89,57 +96,10 @@ export const RoomCreator = (props) => {
     name: `${userProfile.FirstName} ${userProfile.LastName}`,
   };
 
-  // If there are no selected users, the modal is exited
+  // If a new room was created, the new room created property is reset
   useEffect(() => {
-    if (props.selectedUsersList.length === 0) props.setVisible(false);
-  }, [props.selectedUsersList]);
-
-  // Creates the new room
-  const onSend = async (messageObj) => {
-    // Gets the message object
-    const message = messageObj[0];
-
-    const selectedUsers = props.selectedUsersList.map((user) => {
-      return {
-        user_id: user.AD_Username,
-        user_name: user.AD_Username,
-        user_avatar: null,
-      };
-    });
-
-    // TEMPORARY ROOM OBJECT
-    const room = {
-      roomImage,
-      room_id: `TEMP-ROOM-${Math.random() * (1000000 - 0) + 0}`,
-      name: roomName.trim(),
-      group: props.selectedUsersList.length > 1 ? true : false,
-      createdAt: message.createdAt,
-      lastUpdated: message.createdAt,
-      // Users are a combination of selected users and the main user
-      users: [
-        ...selectedUsers,
-        {
-          user_id: mainUser._id,
-          user_name: mainUser.name,
-          user_avatar: mainUser.avatar,
-        },
-      ],
-      lastMessage: message.text,
-    };
-
-    // Deletes the user selected room image
-    dispatch(setRoomImage(null));
-    // Deletes the user selected room image
-    dispatch(setRoomName(""));
-    // Sets the creation of the room as loading
-    dispatch(setCreateRoomLoading);
-    // Saves the new room and message to state
-    dispatch(createNewRoom(room, message));
-    // Sets the selected room to the new room
-    dispatch(setRoomID(room.room_id));
-
-    // Creates a new room and navigates to it after 3 seconds
-    setTimeout(() => {
+    if (newRoomCreated) {
+      dispatch(resetNewRoomCreated);
       // Exists out the new chat modal
       props.setNewChatModalVisible(false);
       // Sets the loading status of creating a room to false
@@ -154,9 +114,41 @@ export const RoomCreator = (props) => {
       dispatch(ui_PeopleSearchFilterResetState);
       // Closes the modal to display the chat of the new room
       props.setVisible(false);
-      // Navigates to the chat screen
-      navigation.navigate("Chat");
-    }, 3000);
+      // // Navigates to the chat screen
+      // navigation.navigate("Chat");
+    }
+  }, [newRoomCreated]);
+
+  // If there are no selected users, the modal is exited
+  useEffect(() => {
+    if (props.selectedUsersList.length === 0) props.setVisible(false);
+  }, [props.selectedUsersList]);
+
+  // Creates the new room
+  const onSend = async (messageObj) => {
+    // Gets the message object to send to the back-end
+    const message = messageObj[0];
+    // Creates a list of selected users
+    const usernames = props.selectedUsersList.map((user) => user.AD_Username);
+
+    // The room object to send to the back-end
+    const room = {
+      name: roomName.trim(),
+      group: props.selectedUsersList.length > 1 ? true : false,
+      image: roomImage,
+      usernames,
+      initialMessage: message,
+      userId: userProfile.ID,
+    };
+
+    // Deletes the user selected room image
+    dispatch(setRoomImage(null));
+    // Deletes the user selected room image
+    dispatch(setRoomName(""));
+    // Sets the creation of the room as loading
+    dispatch(setCreateRoomLoading);
+    // Sends the new room to the back-end
+    dispatch(createNewRoom(room));
   };
 
   /**

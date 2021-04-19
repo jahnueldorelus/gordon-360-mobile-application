@@ -17,6 +17,7 @@ const slice = createSlice({
     rooms: {},
     sortRoomList: [],
     roomsWithNewMessages: [],
+    newRoomCreated: false,
     notificationIdentifiers: [],
     messages: {},
     messageSort: {},
@@ -56,14 +57,24 @@ const slice = createSlice({
           id: action.payload.room_id,
           lastUpdated: action.payload.lastUpdated,
         });
-      }
-      // Sorts the room list to be listed in the correct order by date
-      state.sortRoomList = newSortRoomList.sort(
-        (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
-      );
 
-      // Adds the room to the rooms object
-      state.rooms[action.payload.room_id] = correctedRoomObject(action.payload);
+        // Sorts the room list to be listed in the correct order by date
+        state.sortRoomList = newSortRoomList.sort(
+          (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
+        );
+
+        // Adds the room to the rooms object
+        state.rooms[action.payload.room_id] = correctedRoomObject(
+          action.payload
+        );
+        // Shows in the state that a new room was created
+        state.newRoomCreated = true;
+      }
+    },
+
+    // Sets the new room created back to false
+    resetNewRoomCreated: (state, action) => {
+      state.newRoomCreated = false;
     },
 
     // Adds the list of rooms
@@ -219,7 +230,32 @@ const slice = createSlice({
 
     // Adds a message to the user's messsages based on room id
     addMessage: (state, action) => {
-      const { roomID, messageObj } = action.payload;
+      // The room ID and message object
+      let roomID, messageObj;
+
+      /**
+       * Correctly parses the data since it may have different formats
+       */
+      // If the message was fetched from the server
+      if (action.passedData && action.passedData.singleMessageFromServer) {
+        roomID = action.passedData.roomID;
+        messageObj = action.payload;
+        // Sets the correct message ID property
+        messageObj._id = messageObj.message_id;
+        delete messageObj.message_id;
+        // Sets the correct user property
+        messageObj.user = {
+          _id: messageObj.user_id,
+          name: messageObj.user_name,
+          avatar: messageObj.user_avatar,
+        };
+      }
+      // If the message was passed locally
+      else {
+        roomID = action.payload.roomID;
+        messageObj = action.payload.messageObj;
+      }
+
       /**
        * Checks to see if the room has messages. If not, new objects are
        * created to add messages to
@@ -228,7 +264,9 @@ const slice = createSlice({
         state.messages[roomID] = {};
         state.messageSort[roomID] = [];
       }
+      // The messages of the room
       const roomMessages = state.messages[roomID];
+      // The list of sorted messages of the room
       let roomMessagesSorted = state.messageSort[roomID];
 
       /**
@@ -365,6 +403,14 @@ const getRoomsSortList = createSelector(
 );
 
 /**
+ * Returns the new room created property
+ */
+export const getNewRoomCreated = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.newRoomCreated
+);
+
+/**
  * Returns the user's rooms's that has new messages
  */
 export const getUserRoomsWithNewMessages = createSelector(
@@ -491,26 +537,31 @@ export const sendMessage = (stateMessage, backEndMessage) => (
     },
   });
 
+  // The push notification title
+  backEndMessage.groupName = roomObj.group
+    ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
+    : backEndMessage.user.name;
+  // The push notification body
+  backEndMessage.groupText = roomObj.group
+    ? `${backEndMessage.user.name}\n${backEndMessage.text}`
+    : backEndMessage.text;
+  // The push notification user IDs
+  backEndMessage.users_ids = roomObj.users.map((user) => user.id);
+
   // // Sends the message to the back-end
-  // dispatch(
-  //   apiRequested({
-  //     url: "/dm/text",
-  //     method: "put",
-  //     data: backEndMessage,
-  //     useEndpoint: true,
-  //     onSuccess: slice.actions.updateMessagePending.type,
-  //     passedData: {
-  //       roomID,
-  //       messageObj: backEndMessage,
-  //       pushTitle: roomObj.group
-  //         ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
-  //         : backEndMessage.user.name,
-  //       pushBody: roomObj.group
-  //         ? `${backEndMessage.user.name}\n${backEndMessage.text}`
-  //         : backEndMessage.text,
-  //     },
-  //   })
-  // );
+  dispatch(
+    apiRequested({
+      url: "/dm/text",
+      method: "put",
+      data: backEndMessage,
+      useEndpoint: true,
+      onSuccess: slice.actions.updateMessagePending.type,
+      passedData: {
+        roomID,
+        messageObj: backEndMessage,
+      },
+    })
+  );
 
   /**
    * TEMPORARY
@@ -524,19 +575,19 @@ export const sendMessage = (stateMessage, backEndMessage) => (
   //     ? `${backEndMessage.user.name}\n${backEndMessage.text}`
   //     : backEndMessage.text,
   // };
-  dispatch(
-    pushRemoteNotification({
-      title: roomObj.group
-        ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
-        : backEndMessage.user.name,
-      body: backEndMessage.text,
-      data: {
-        roomID,
-        messageID: backEndMessage.id,
-        date: moment(Date.now()).format("YYYY-MM-DDTHH:mm:ss.SSS"),
-      },
-    })
-  );
+  // dispatch(
+  //   pushRemoteNotification({
+  //     title: roomObj.group
+  //       ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
+  //       : backEndMessage.user.name,
+  //     body: backEndMessage.text,
+  //     data: {
+  //       roomID,
+  //       messageID: backEndMessage.id,
+  //       date: moment(Date.now()).format("YYYY-MM-DDTHH:mm:ss.SSS"),
+  //     },
+  //   })
+  // );
 };
 
 /**
@@ -556,59 +607,61 @@ export const getFullMessageFromServer = (request, notificationTray) => (
    */
   if (!isNotificationHandled(request.identifier)(getState())) {
     // The message's room ID
-    const roomID = request.content.data.roomID;
+    const roomID = parseInt(request.content.data.roomID);
     // The message ID
     const messageID = request.content.data.messageID;
+    console.log("Room ID of notification:", roomID);
 
-    // // Fetches the full message from the back-end
-    // dispatch(
-    //   apiRequested({
-    //     url: "/dm/REPLACE_ENDPOINT",
-    //     method: "put",
-    //     data: { roomID, messageID },
-    //     useEndpoint: true,
-    //     onSuccess: slice.actions.addMessage.type,
-    //     onEnd: slice.actions.addRoomIDToNewMessage.type,
-    //     passedData: {
-    //       notificationIdentifier: request.identifier,
-    //       notificationTray,
-    //       roomID
-    //     },
-    //   })
-    // );
+    // Fetches the full message from the back-end
+    dispatch(
+      apiRequested({
+        url: "/dm/singleMessage",
+        method: "put",
+        data: { roomID, messageID },
+        useEndpoint: true,
+        onStart: slice.actions.addRoomIDToNewMessage.type,
+        onSuccess: slice.actions.addMessage.type,
+        passedData: {
+          notificationIdentifier: request.identifier,
+          notificationTray,
+          roomID,
+          singleMessageFromServer: true,
+        },
+      })
+    );
 
     /**
      * TEMPORARILY
      * ADDS A PUSH MESSAGE TO THE STATE: MOCKS API CALL
      */
-    dispatch({
-      type: slice.actions.addMessage.type,
-      payload: {
-        notificationIdentifier: request.identifier,
-        notificationTray,
-        roomID,
-        messageObj: {
-          text: request.content.body,
-          createdAt: request.content.data.date,
-          image: null,
-          video: null,
-          audio: null,
-          system: false,
-          received: true,
-          pending: false,
-          user: {
-            _id: "50197779",
-            name: "Ari Dospassos",
-            avatar: "",
-          },
-          _id: messageID,
-        },
-      },
-    });
-    dispatch({
-      type: slice.actions.addRoomIDToNewMessage.type,
-      passedData: { roomID },
-    });
+    // dispatch({
+    //   type: slice.actions.addMessage.type,
+    //   payload: {
+    //     notificationIdentifier: request.identifier,
+    //     notificationTray,
+    //     roomID,
+    //     messageObj: {
+    //       text: request.content.body,
+    //       createdAt: request.content.data.date,
+    //       image: null,
+    //       video: null,
+    //       audio: null,
+    //       system: false,
+    //       received: true,
+    //       pending: false,
+    //       user: {
+    //         _id: "50197779",
+    //         name: "Ari Dospassos",
+    //         avatar: "",
+    //       },
+    //       _id: messageID,
+    //     },
+    //   },
+    // });
+    // dispatch({
+    //   type: slice.actions.addRoomIDToNewMessage.type,
+    //   passedData: { roomID },
+    // });
   }
 };
 
@@ -629,28 +682,30 @@ export const removeRoomIDFromNewMessages = (roomID, notificationTray) => (
 
 /**
  * Creates a new room
- * @param {Object} room The room object to save
- * @param {string} message The message object to save
+ * @param {Object} room The room object with the initial message to send
+ *                      to the back-end
  */
-export const createNewRoom = (room, message) => (dispatch, getState) => {
-  // The room's ID
-  const roomID = room.room_id;
+export const createNewRoom = (room) => (dispatch, getState) => {
+  // Corrects the message object format
+  room.initialMessage = correctedMessageObject(room.initialMessage);
 
-  // Corrects the message object
-  const newMessage = correctedMessageObject(message);
-  // Formatted message for Redux to parse
-  const stateMessage = { ...newMessage, _id: message._id, pending: true };
-
-  // Adds the room to the state
-  dispatch(slice.actions.addRoom(room));
-
-  // Adds the message to the state
+  // Sends the new room to the back-end
   dispatch(
-    slice.actions.addMessage({
-      roomID,
-      messageObj: stateMessage,
+    apiRequested({
+      url: "/dm/",
+      method: "post",
+      data: JSON.stringify(room),
+      useEndpoint: true,
+      onSuccess: slice.actions.addRoom.type,
     })
   );
+};
+
+/**
+ * Resets the new rooms created property
+ */
+export const resetNewRoomCreated = (dispatch, getState) => {
+  dispatch({ type: slice.actions.resetNewRoomCreated.type, payload: null });
 };
 
 /**

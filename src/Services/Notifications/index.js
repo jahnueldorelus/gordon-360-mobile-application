@@ -1,8 +1,7 @@
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { Platform, Linking, Alert } from "react-native";
 import * as Navigation from "../Navigation/index";
-import { apiRequested } from "../../store/middleware/api";
 import { setExpoToken } from "../../store/entities/Auth/auth";
 
 // Notification Category Identifier
@@ -111,25 +110,6 @@ export const handleAppStateChange = async (
 };
 
 /**
- * Sets the new Expo's token
- * @param {string} token The new Expo token
- * @param {*} dispatch Redux dispatch
- */
-export const setNewToken = (token, dispatch) => {
-  // Sends the user's Expo Token to the back-end
-  dispatch(
-    apiRequested({
-      url: "/dm/REPLACE_ENDPOINT",
-      method: "put",
-      data: { token },
-      useEndpoint: true,
-    })
-  );
-  // Saves the user's Expo token
-  dispatch(setExpoToken(token));
-};
-
-/**
  * Registers for the device to receive push notifications.
  * Permission is asked from the user to receive notifications.
  * If permission is denied, the user has to go to the settings of the app
@@ -156,23 +136,30 @@ export const registerForPushNotificationsAsync = async (dispatch) => {
     }
     // If permission was still denied after permission was asked
     if (finalStatus !== "granted") {
-      alert("Failed to get push token for push notification!");
+      Alert.alert(
+        "Notifications Disabled",
+        "Notifications must be enabled for chat messaging to work! Please enable notifications in your device settings.",
+        [
+          {
+            text: "Open Settings",
+            // Deletes data and navigates to Login page
+            onPress: () => Linking.openSettings(),
+          },
+          {
+            text: "Cancel",
+            onPress: () => {}, // Does nothing
+            style: "cancel",
+          },
+        ]
+      );
       return;
     }
 
     // Get's a token from Expo to do Push Notifications with Expo's server
-    const token = await (await Notifications.getExpoPushTokenAsync()).data;
-    // Sends the user's Expo Token to the back-end
-    // dispatch(
-    //   apiRequested({
-    //     url: "/dm/REPLACE_ENDPOINT",
-    //     method: "put",
-    //     data: { token },
-    //     useEndpoint: true,
-    //   })
-    // );
+    const token = await Notifications.getExpoPushTokenAsync();
+
     // Saves the user's Expo token
-    dispatch(setExpoToken(token));
+    dispatch(setExpoToken(token.data));
   }
   // If the device is not a real device, push notifications may be disabled
   else {

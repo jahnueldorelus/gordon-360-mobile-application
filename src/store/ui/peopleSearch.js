@@ -8,7 +8,6 @@ import {
   getAPI,
   getAPIEndpoint,
 } from "../entities/Auth/authSelectors";
-import { type } from "jquery";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -18,6 +17,7 @@ const slice = createSlice({
     loading: false,
     peopleSearchImages: {},
     peopleSearchImageRequests: {},
+    previousRequestURL: null,
   },
   reducers: {
     /**
@@ -31,6 +31,10 @@ const slice = createSlice({
        * the action.payload as an object
        */
       if (JSON.stringify(action.payload) !== JSON.stringify([])) {
+        /**
+         * If the fetch result is the same as the results currently saved,
+         * then the search request is ended since the results are already available
+         */
         let newSearchListObj = {};
         action.payload.forEach((person) => {
           // Only saves the users who have not graduated and are still students
@@ -54,6 +58,8 @@ const slice = createSlice({
       // Resets the list of searched images and images requested
       state.peopleSearchImages = {};
       state.peopleSearchImageRequests = {};
+      // Saves the search request as the previous request
+      state.previousRequestURL = action.config.url;
     },
 
     peopleImagesAdded: (state, action) => {
@@ -109,7 +115,9 @@ const slice = createSlice({
     resetState: (state, action) => {
       state.data = {};
       state.loading = false;
+      state.peopleSearchImages = {};
       state.peopleSearchImageRequests = {};
+      state.previousRequestURL = null;
     },
   },
 });
@@ -150,6 +158,14 @@ export const getSearchResultImages = createSelector(
   (peopleSearch) => peopleSearch.peopleSearchImages
 );
 
+/**
+ * Returns the URL of the previous request
+ */
+export const getPreviousRequestURL = createSelector(
+  (state) => state.ui.peopleSearch,
+  (peopleSearch) => peopleSearch.previousRequestURL
+);
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * The search parameters for searching on People Search
@@ -171,15 +187,19 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
     building,
   } = correctSearchParams(searchParams);
 
-  dispatch(
-    apiRequested({
-      url: `/accounts/advanced-people-search/${includeAlumni}/${firstName}/${lastName}/${major}/${minor}/${hall}/${classType}/${homeCity}/${state}/${country}/${department}/${building}`,
-      method: "get",
-      useEndpoint: true,
-      onSuccess: slice.actions.peopleAdded.type,
-      onStart: slice.actions.peopleReqStarted.type,
-    })
-  );
+  const url = `/accounts/advanced-people-search/${includeAlumni}/${firstName}/${lastName}/${major}/${minor}/${hall}/${classType}/${homeCity}/${state}/${country}/${department}/${building}`;
+
+  // Does a fetch if the request is not the same as the previous one
+  if (getAPIEndpoint(getState()) + url !== getPreviousRequestURL(getState()))
+    dispatch(
+      apiRequested({
+        url,
+        method: "get",
+        useEndpoint: true,
+        onSuccess: slice.actions.peopleAdded.type,
+        onStart: slice.actions.peopleReqStarted.type,
+      })
+    );
 };
 
 /**

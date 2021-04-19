@@ -1,11 +1,17 @@
 import React, { createRef } from "react";
-import { Dimensions, StyleSheet, View, Text, Animated } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  View,
+  Text,
+  Animated,
+  SafeAreaView,
+} from "react-native";
 import {
   PinchGestureHandler,
   PanGestureHandler,
   State,
 } from "react-native-gesture-handler";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 /**
  * Creates the Custom Image Viewer

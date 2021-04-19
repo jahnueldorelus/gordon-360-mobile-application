@@ -34,11 +34,16 @@ export const SearchHeader = (props) => {
 
   /**
    * Determines if users can be searched.
-   * Users can be searched only if the length of the text
-   * in the search bar is at least 2
+   * Users can be searched only if there are filters enabled and if
+   * there's at least 1 number or letter in the text
    */
   const canSearchUsers = () => {
-    return searchedText.length > 0 || selectedFilterData.nameAndItem.length > 0;
+    return (
+      (searchedText.length > 0 &&
+        // This checks to make sure the text contains at least 1 letter or number
+        (/\d/.test(searchedText) || /[a-zA-Z]/.test(searchedText))) ||
+      selectedFilterData.nameAndItem.length > 0
+    );
   };
 
   /**

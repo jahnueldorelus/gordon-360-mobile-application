@@ -4,7 +4,6 @@ import { NetworkProvider } from "react-native-offline";
 import { store, persistor } from "./src/store/configuration/configureStore";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { navigationRef, isReadyRef } from "./src/Services/Navigation/index";
 import { Start } from "./start";
@@ -27,19 +26,17 @@ export default function App() {
     <Provider store={store}>
       <PersistGate persistor={persistor} loading={null}>
         <NetworkProvider pingServerUrl="https://360train.gordon.edu">
-          <SafeAreaProvider>
-            <View style={styles.screenView}>
-              <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                  // Sets the navigation as ready since it has loaded
-                  isReadyRef.current = true;
-                }}
-              >
-                <Start />
-              </NavigationContainer>
-            </View>
-          </SafeAreaProvider>
+          <View style={styles.screenView}>
+            <NavigationContainer
+              ref={navigationRef}
+              onReady={() => {
+                // Sets the navigation as ready since it has loaded
+                isReadyRef.current = true;
+              }}
+            >
+              <Start />
+            </NavigationContainer>
+          </View>
         </NetworkProvider>
       </PersistGate>
     </Provider>

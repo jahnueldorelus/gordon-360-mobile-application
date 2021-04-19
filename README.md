@@ -87,8 +87,8 @@
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker react-native-safe-area-context`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -124,8 +124,6 @@
        - `expo install @react-native-community/netinfo`
      - Install Expo Image Picker using the following command.
        - `expo install expo-image-picker`
-     - Install Safe Area Context using any of the following commands.
-       - `expo install react-native-safe-area-context`
      - Install React Native Offline using any of the following commands.
        - `npm i react-native-offline`
        - `yarn add react-native-offline`

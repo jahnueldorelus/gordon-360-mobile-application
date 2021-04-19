@@ -31,3 +31,11 @@ export const get360ServerLastCheckedDate = createSelector(
   (state) => state.entities.settings,
   (settings) => settings.gordon_360_server.lastCheckedDate
 );
+
+/**
+ * Returns the status of using haptics for texting
+ */
+export const getUseHapticsForTexting = createSelector(
+  (state) => state.entities.settings,
+  (settings) => settings.useHapticsWhileTexting
+);

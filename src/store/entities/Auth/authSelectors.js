@@ -25,11 +25,27 @@ export const getTokenLoading = createSelector(
 );
 
 /**
- * Returns the user's expo token
+ * Returns the user's Expo token
  */
 export const getExpoToken = createSelector(
   (state) => state.entities.auth,
-  (auth) => auth.expoToken
+  (auth) => auth.expoToken.data
+);
+
+/**
+ * Returns the user's Expo token saved to server property
+ */
+export const getExpoTokenAlreadySent = createSelector(
+  (state) => state.entities.auth,
+  (auth) => auth.expoToken.savedToServer
+);
+
+/**
+ * Returns the user's Expo tokens saved on the server
+ */
+export const getListOfExpoTokens = createSelector(
+  (state) => state.entities.auth,
+  (auth) => auth.expoToken.listOfServerIDs
 );
 
 /**

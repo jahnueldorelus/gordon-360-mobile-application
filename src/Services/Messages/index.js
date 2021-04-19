@@ -148,8 +148,10 @@ export const getUserImageFromRoom = (userID, room) => {
   try {
     room = JSON.parse(room);
   } catch (err) {} // If error occurs, then the object is not stringified
+
   // The user object to retrieve from the room
   const user = room.users.filter((user) => user.id === userID)[0];
+
   // If the user is not null, their image is returned
-  return JSON.stringify(user) !== JSON.stringify({}) ? user.image : "";
+  return JSON.stringify(user) !== JSON.stringify([]) ? user.image : "";
 };

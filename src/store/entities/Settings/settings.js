@@ -15,6 +15,7 @@ export const slice = createSlice({
       isWorking: false,
       lastCheckedDate: null,
     },
+    useHapticsWhileTexting: true,
   },
   reducers: {
     /**
@@ -52,6 +53,14 @@ export const slice = createSlice({
     },
 
     /**
+     * TEXT HAPTICS REDUCER
+     */
+    // Sets the haptics value
+    setHaptics: (state, action) => {
+      state.useHapticsWhileTexting = action.payload;
+    },
+
+    /**
      * STATE RESET REDUCER
      */
     // Resets all the state's data
@@ -64,6 +73,7 @@ export const slice = createSlice({
         isWorking: false,
         lastCheckedDate: null,
       };
+      state.useHapticsWhileTexting = true;
     },
   },
 });
@@ -104,6 +114,14 @@ export const fetchGordon360ServerStatus = (dispatch, getState) => {
       onError: slice.actions.add360ServerStatus.type,
     })
   );
+};
+
+/**
+ * Sets the use of haptics while texiting
+ * @param {boolean} useHaptics Determines if the haptics should be used
+ */
+export const setHapticsForTexting = (useHaptics) => (dispatch, getState) => {
+  dispatch({ type: slice.actions.setHaptics.type, payload: useHaptics });
 };
 
 /**

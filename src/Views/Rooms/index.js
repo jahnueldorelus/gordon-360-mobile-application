@@ -8,7 +8,6 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getRoomName, getRoomImage } from "../../Services/Messages";
 import { getReadableDateFormat } from "../../Services/Messages/index";
 import { ListItem, Icon } from "react-native-elements";
@@ -71,10 +70,6 @@ export const RoomsList = (props) => {
     return (
       <FlatList
         style={styles.room}
-        contentContainerStyle={{
-          // Adds a padding to the bottom of the list if device has SafeAreaView
-          paddingBottom: useSafeAreaInsets().bottom,
-        }}
         data={rooms}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={

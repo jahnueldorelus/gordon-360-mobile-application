@@ -9,9 +9,7 @@ import { Login } from "./src/Views/Login";
 import { AppSettings } from "./src/Views/AppSettings";
 import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
-
 import {
-  setNewToken,
   registerForPushNotificationsAsync,
   notificationResponseHandler,
   notificationReceivedHandler,
@@ -24,7 +22,12 @@ import * as Notifications from "expo-notifications";
  * require cycle that could potentially cause issues.
  */
 import { getFullMessageFromServer } from "./src/store/entities/chat";
-import { useDispatch } from "react-redux";
+import { sendExpoTokenToServer } from "./src/store/entities/Auth/auth";
+import {
+  getExpoToken,
+  getToken,
+} from "./src/store/entities/Auth/authSelectors";
+import { useDispatch, useSelector } from "react-redux";
 
 export const Start = () => {
   // Redux Dispatch
@@ -36,17 +39,17 @@ export const Start = () => {
   const notificationResponseListener = useRef();
   const previousAppState = useRef(AppState.currentState);
 
+  // The main user's Gordon 360 token
+  const authToken = useSelector(getToken);
+  // The main user's Expo token
+  const expoToken = useSelector(getExpoToken);
+
   /**
    * Notification and Application State Listeners
    */
   useEffect(() => {
     // Attempts to get the user's permission to allow notifications
     registerForPushNotificationsAsync(dispatch);
-
-    // Notification Token Listener
-    const tokenListener = Notifications.addPushTokenListener((newToken) =>
-      setNewToken(newToken, dispatch)
-    );
 
     // Notification Received Listener
     notificationReceivedListener.current = Notifications.addNotificationReceivedListener(
@@ -90,9 +93,15 @@ export const Start = () => {
       AppState.removeEventListener("change", (nextAppState) =>
         handleAppStateChange(nextAppState)
       );
-      tokenListener.remove();
     };
   }, []);
+
+  useEffect(() => {
+    // If the user is logged in, their Expo token is sent to the server
+    if (authToken && expoToken) {
+      dispatch(sendExpoTokenToServer);
+    }
+  }, [authToken]);
 
   // Gordon 360 Screen
   const Gordon360Page = ({ navigation }) => {

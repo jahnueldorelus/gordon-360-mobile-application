@@ -1,5 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { apiRequested } from "../../middleware/api";
+import {
+  getExpoToken,
+  getExpoTokenAlreadySent,
+  getListOfExpoTokens,
+} from "./authSelectors";
+import { getUserInfo } from "../profile";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -10,7 +16,11 @@ const slice = createSlice({
       loading: false,
       fetchError: false,
     },
-    expoToken: null,
+    expoToken: {
+      data: null,
+      savedToServer: false,
+      listOfServerIDs: [],
+    },
     api: "https://360apitrain.gordon.edu",
     website: "https://360train.gordon.edu",
     apiEndpoint: "/api",
@@ -51,7 +61,20 @@ const slice = createSlice({
      */
     // Adds the user expo token
     expoTokenAdded: (state, action) => {
-      state.expoToken = action.payload.expoToken;
+      state.expoToken.data = action.payload.expoToken;
+      state.expoToken.savedToServer = false;
+    },
+
+    expoTokenSendSuccess: (state, action) => {
+      state.expoToken.savedToServer = true;
+    },
+    expoTokenSendFailed: (state, action) => {
+      state.expoToken.savedToServer = false;
+    },
+    expoTokenIDsAdded: (state, action) => {
+      state.expoToken.listOfServerIDs = action.payload[0].map(
+        (user) => user.connection_id
+      );
     },
 
     /**
@@ -64,7 +87,11 @@ const slice = createSlice({
         loading: false,
         fetchError: false,
       };
-      state.expoToken = null;
+      state.expoToken = {
+        data: null,
+        savedToServer: false,
+        listOfServerIDs: [],
+      };
     },
   },
 });
@@ -104,11 +131,75 @@ export const fetchToken = (username = "", password = "") => (
 };
 
 /**
- * Set's the user's Expo token
+ * Sends the Expo token to the server
+ */
+export const sendExpoTokenToServer = (dispatch, getState) => {
+  // The Expo Token to send to the server
+  const expoTokenAlreadySent = getExpoTokenAlreadySent(getState());
+  // The curerntly saved Expo Token
+  const savedExpoToken = getExpoToken(getState());
+  // The main user's list of Expo tokens saved on the server
+  const listOfExpoTokens = getListOfExpoTokens(getState());
+
+  /**
+   * Sends the Expo token to the server if the token hasn't already been sent
+   * and if the token isn't included in the list of the user's Expo tokens on the server
+   */
+  if (!expoTokenAlreadySent && !listOfExpoTokens.includes(savedExpoToken)) {
+    // Sends the request
+    dispatch(
+      apiRequested({
+        url: "/dm/userConnectionIds",
+        method: "post",
+        data: JSON.stringify(savedExpoToken),
+        useEndpoint: true,
+        onSuccess: slice.actions.expoTokenSendSuccess.type,
+        onError: slice.actions.expoTokenSendFailed.type,
+      })
+    );
+  }
+
+  // Gets the list of the user's Expo tokens
+  dispatch(fetchListOfExpoTokens);
+};
+
+/**
+ * Gets the Expo token connection IDs of the user
+ */
+export const fetchListOfExpoTokens = (dispatch, getState) => {
+  // Checks to make sure the user id is available before attempting to retrieve it
+  if (getUserInfo(getState())) {
+    // The main user's ID
+    const userID = getUserInfo(getState()).ID;
+
+    // Sends the request
+    dispatch(
+      apiRequested({
+        url: "/dm/userConnectionIds",
+        method: "put",
+        data: [userID],
+        useEndpoint: true,
+        onSuccess: slice.actions.expoTokenIDsAdded.type,
+      })
+    );
+  }
+};
+
+/**
+ * Set's the user's Expo token if the Expo token is not the same
+ * as the current token saved.
  * @param {String} expoToken The user's expo token
  */
 export const setExpoToken = (expoToken) => (dispatch, getState) => {
-  dispatch({ type: slice.actions.expoTokenAdded.type, payload: { expoToken } });
+  // The curerntly saved Expo Token
+  const savedExpoToken = getExpoToken(getState());
+
+  // Saves the token if it's not the same as the current token and is defined
+  if (savedExpoToken !== expoToken && expoToken)
+    dispatch({
+      type: slice.actions.expoTokenAdded.type,
+      payload: { expoToken },
+    });
 };
 
 /**

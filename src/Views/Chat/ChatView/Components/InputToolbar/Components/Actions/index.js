@@ -5,8 +5,8 @@ import {
   Linking,
   Text,
   StyleSheet,
+  SafeAreaView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Icon } from "react-native-elements";
 
@@ -84,7 +84,7 @@ const Actions = (props) => (
                */
               newModalConfig.content = (
                 <View style={styles.modalContainer}>
-                  <SafeAreaView edges={["bottom"]}>
+                  <SafeAreaView>
                     <Text style={styles.modalTextTitle}>
                       Please enable camera permissions for the app inside of
                       Settings.

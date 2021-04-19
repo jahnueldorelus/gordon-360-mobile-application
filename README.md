@@ -59,7 +59,28 @@
 
 <br/>
 
-## 🔄&nbsp;&nbsp;&nbsp;Updating Expo's CLI
+## &nbsp;&nbsp;&nbsp;Expo Push Notification Service
+
+- Push Notification Tool:
+  - https://expo.io/notifications
+- Sending Notifications with Expo's Push API:
+  - https://docs.expo.io/push-notifications/sending-notifications/#push-tickets
+- Expo Notifications (JS API):
+  - https://docs.expo.io/versions/latest/sdk/notifications/#types
+- Push Notifications Overview:
+  - https://docs.expo.io/push-notifications/overview/
+
+<br/>
+
+## &nbsp;&nbsp;&nbsp;Building the App with Expo
+
+- Building the app:
+  - https://docs.expo.io/distribution/building-standalone-apps/
+- What you should make sure of before distributing the app
+  - https://docs.expo.io/distribution/app-stores/
+    <br/>
+
+## 👷&nbsp;&nbsp;&nbsp;Purpose
 
 ### Make sure to follow these steps exactly or else you may run into random bugs and glitches! To upgrade Expo, you must have "expo" as a command. That command should be available if you have `expo-cli` installed.
 

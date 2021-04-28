@@ -33,10 +33,13 @@ import { AppBar } from "../../../Components/AppBar";
 import * as FileSystem from "expo-file-system";
 import { getNewMessageID } from "../../../Services/Messages/index";
 import moment from "moment";
+import { useNavigation } from "@react-navigation/native";
 
 export const ChatView = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
+  // App Navigation
+  const navigation = useNavigation();
   // The selected room's ID
   const roomID = useSelector(getSelectedRoomID);
   // User's selected room
@@ -179,6 +182,9 @@ export const ChatView = (props) => {
 
     // Saves the message and sends it to the back-end
     dispatch(sendMessage(stateMessage, backEndMessage));
+
+    // Deletes the selected images
+    setSelectedImages(JSON.stringify([]));
   };
 
   /**
@@ -286,7 +292,7 @@ export const ChatView = (props) => {
         />
       </View>
     );
-  else return <></>;
+  else navigation.navigate("Messages");
 };
 
 const styles = StyleSheet.create({

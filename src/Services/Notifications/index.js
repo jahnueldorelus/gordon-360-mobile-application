@@ -43,6 +43,8 @@ export const notificationReceivedHandler = async (
 ) => {
   // List of notifications in the notification tray
   let notificationTray = await Notifications.getPresentedNotificationsAsync();
+  // Sets the badge number of the app
+  await Notifications.setBadgeCountAsync(notificationTray.length);
   // The full message object is fetched from the server
   dispatch(getFullMessageFromServer(notification.request), notificationTray);
 };
@@ -190,7 +192,7 @@ const isChatMessageAndUserInChat = (notification) =>
   notification.request.content.data.messageID &&
   Navigation.getNavigationRoute().name === "Chat" &&
   Navigation.getNavigationRoute().params.roomID &&
-  notification.request.content.data.roomID ===
+  parseInt(notification.request.content.data.roomID) ===
     Navigation.getNavigationRoute().params.roomID
     ? false
     : true;

@@ -23,10 +23,13 @@ import {
 } from "../../store/entities/Auth/authSelectors";
 import { fetchProfile } from "../../store/entities/profile";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 
-export const Login = (props) => {
+export const Login = () => {
   // Redux Dispatch
   const dispatch = useDispatch();
+  // App Navigation
+  const navigation = useNavigation();
 
   // The user's token
   const token = useSelector(getToken);
@@ -52,8 +55,6 @@ export const Login = (props) => {
         setUsername("");
         setPassword("");
         setLoginFailedText("");
-        // Navigates to the Messages screen since authentication passed
-        props.navigation.navigate("Messages");
       } else if (tokenError) {
         dispatch(resetTokenError());
         // Sets the login as failed

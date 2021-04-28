@@ -14,7 +14,7 @@ export const AppBar = (props) => {
 
   const styles = StyleSheet.create({
     appBar: {
-      backgroundColor: route.name === "Gordon 360" ? "#012849" : "#014983",
+      backgroundColor: route.name === "Gordon 360" ? "#012849" : "#013b6a",
       flexDirection: "column",
       // If the device is android, the status bar's height has to be accounted for
       top: Platform.OS === "android" ? StatusBar.currentHeight : 0,

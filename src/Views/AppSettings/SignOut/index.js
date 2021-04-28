@@ -27,8 +27,7 @@ export const SignOut = (props) => {
                * Deletes all data (except for login information), retieves all the data
                * from the server and navigate to the messages screen
                */
-              onPress: () =>
-                signOutApp(dispatch, () => navigation.navigate("Login")),
+              onPress: () => signOutApp(dispatch),
             },
             {
               text: "Cancel",

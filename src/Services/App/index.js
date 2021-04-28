@@ -11,6 +11,7 @@ import {
   ent_ProfileResetState,
   ent_ProfileResetExceptUserProfile,
   ent_ProfileFetchAllData,
+  ent_ProfileFetchAllDataAfterLogIn,
 } from "../../store/entities/profile";
 import { ui_ChatResetState } from "../../store/ui/chat";
 import { ui_PeopleSearchResetState } from "../../store/ui/peopleSearch";
@@ -27,6 +28,20 @@ export const fetchAllAppData = (dispatch, callbackFunc) => {
   dispatch(ent_ChatFetchAllData);
   dispatch(ent_SettingsFetchAllData);
   dispatch(ent_ProfileFetchAllData);
+  // Calls callback function if available
+  if (callbackFunc) callbackFunc();
+};
+
+/**
+ * Fetches all data used by the application from the server
+ * @param {Function} dispatch Redux dispatch
+ * @param {Function} callbackFunc A callback function that runs after
+ *                                all data has been deleted
+ */
+export const fetchAllAppDataAfterLogIn = (dispatch, callbackFunc) => {
+  dispatch(ent_ChatFetchAllData);
+  dispatch(ent_SettingsFetchAllData);
+  dispatch(ent_ProfileFetchAllDataAfterLogIn);
   // Calls callback function if available
   if (callbackFunc) callbackFunc();
 };

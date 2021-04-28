@@ -6,7 +6,7 @@ import { CustomLoader } from "../../Components/CustomLoader";
 import { AppBar } from "../../Components/AppBar";
 import { OfflineMessage } from "./Components/OfflineMessage";
 import { WebViewError } from "./Components/WebViewError";
-import { getToken } from "../../store/entities/Auth/authSelectors";
+import { getToken, get360URL } from "../../store/entities/Auth/authSelectors";
 import { useSelector } from "react-redux";
 
 export const Gordon360 = (props) => {
@@ -14,6 +14,8 @@ export const Gordon360 = (props) => {
 
   // The user's token
   const token = useSelector(getToken);
+  // Gordon 360's URL
+  const gordon360URL = useSelector(get360URL);
 
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
@@ -72,7 +74,7 @@ export const Gordon360 = (props) => {
                   domStorageEnabled={true}
                   // Adds the token to the WebView's local storage to enable automatic sign in on 360
                   injectedJavaScriptBeforeContentLoaded={`window.localStorage.setItem('token', '"${token}"');`}
-                  source={{ uri: "https://360.gordon.edu" }}
+                  source={{ uri: gordon360URL }}
                   bounces={false}
                   onNavigationStateChange={(navState) => {
                     setCanGoBack(navState.canGoBack);

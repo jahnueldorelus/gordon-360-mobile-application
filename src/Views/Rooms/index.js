@@ -11,7 +11,6 @@ import {
 import { getRoomName, getRoomImage } from "../../Services/Messages";
 import { getReadableDateFormat } from "../../Services/Messages/index";
 import { ListItem, Icon } from "react-native-elements";
-import { CustomLoader } from "../../Components/CustomLoader";
 import {
   getUserRooms,
   fetchRooms,
@@ -21,7 +20,6 @@ import {
   getUserRoomsWithNewMessages,
 } from "../../store/entities/chat";
 import { getUserInfo } from "../../store/entities/profile";
-import { getToken } from "../../store/entities/Auth/authSelectors";
 import { useDispatch, useSelector } from "react-redux";
 import { setRoomID } from "../../store/ui/chat";
 import { LoadingScreen } from "../../Components/LoadingScreen/index";
@@ -32,8 +30,6 @@ export const RoomsList = (props) => {
   // Redux Dispath
   const dispatch = useDispatch();
 
-  // The user's token
-  const token = useSelector(getToken);
   // The user's list of rooms
   const rooms = useSelector(getUserRooms);
   // The user's list of rooms with new messages
@@ -47,29 +43,33 @@ export const RoomsList = (props) => {
 
   // Gets the rooms of the main user and the main user's information
   useEffect(() => {
-    // If the user's token is available
-    if (token) {
-      // If user's rooms is available
-      if (JSON.stringify(rooms) !== JSON.stringify({})) {
-        /**
-         * If the user's messages are unavailable or the user's room
-         * and messages are being refreshed, the user's messages are fetched
-         */
-        if (JSON.stringify(messages) === JSON.stringify({}) || dataLoading)
-          dispatch(fetchMessages());
-      } else {
-        // If the user's rooms are not available, they are fetched
-        dispatch(fetchRooms);
-      }
+    // If user's rooms is available
+    if (JSON.stringify(rooms) !== JSON.stringify({})) {
+      /**
+       * If the user's messages are unavailable or the user's room
+       * and messages are being refreshed, the user's messages are fetched
+       */
+      if (JSON.stringify(messages) === JSON.stringify({}) || dataLoading)
+        dispatch(fetchMessages());
     } else {
-      // Navigates to the Login screen since authentication failed
-      props.navigation.navigate("Login");
+      // If the user's rooms are not available, they are fetched
+      dispatch(fetchRooms);
     }
-  }, [token, rooms]);
+  }, [rooms]);
+
+  useEffect(() => {
+    // Fetches the user's rooms first time the screen is opened
+    dispatch(fetchRooms);
+  }, []);
 
   if (rooms && roomsWithNewMessages && userProfile && !dataLoading)
     return (
       <FlatList
+        /**
+         * Scroll indicator prevents glitch with scrollbar appearing
+         * in the middle of the screen
+         */
+        scrollIndicatorInsets={{ right: 1 }}
         style={styles.room}
         data={rooms}
         keyExtractor={(item, index) => index.toString()}

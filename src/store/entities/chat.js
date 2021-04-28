@@ -145,15 +145,22 @@ const slice = createSlice({
         state.roomsWithNewMessages = state.roomsWithNewMessages.filter(
           (id) => id !== action.payload.roomID
         );
+
+        // A copy of the notification tray list
+        let notifcationTrayTemp = [...action.payload.notificationTray];
+
         /**
          * Removes any notifications in the notification tray associated with the room
          * and removes the notification's ID from the list of notification IDs
          */
-        action.payload.notificationTray.forEach((notification) => {
+        action.payload.notificationTray.forEach((notification, index) => {
           if (
             notification.request.content.data.roomID &&
-            notification.request.content.data.roomID === action.payload.roomID
+            parseInt(notification.request.content.data.roomID) ===
+              action.payload.roomID
           ) {
+            // Removes the notification from the copy of the notification tray
+            notifcationTrayTemp.splice(index, 1);
             // Removes the notification from the notifications tray
             Notifications.dismissNotificationAsync(
               notification.request.identifier
@@ -164,6 +171,13 @@ const slice = createSlice({
             );
           }
         });
+
+        /**
+         * If there are no more notifications in the notification tray,
+         * the app's badge number is set to 0
+         */
+        if (notifcationTrayTemp.length === 0)
+          Notifications.setBadgeCountAsync(0);
       }
     },
 
@@ -358,10 +372,14 @@ const slice = createSlice({
         const message = state.messages[roomID][messageObj.id];
         const room = state.rooms[roomID];
         // Changes the message's pending status to false
-        message.pending = false;
+        if (message) {
+          message.pending = false;
+        }
         // Updates the room's lastUpdated and lastMessage properties
-        room.lastMessage = messageObj.text;
-        room.lastUpdated = messageObj.createdAt;
+        if (room) {
+          room.lastMessage = messageObj.text;
+          room.lastUpdated = messageObj.createdAt;
+        }
       }
     },
 
@@ -530,6 +548,7 @@ const isNotificationHandled = (notificationIdentifier) =>
  * @returns An action of fetching the user's list of rooms
  */
 export const fetchRooms = (dispatch, getState) => {
+  dispatch({ type: slice.actions.roomsReqFailed.type });
   dispatch(
     apiRequested({
       url: "/dm/rooms",
@@ -726,20 +745,25 @@ export const ent_ChatFetchAllData = (dispatch, getState) => {
 /**
  * Retrieves the list of messages based upon room ID
  * @param {Object} chat The state of this reducer
- * @param {number} id The id of the room to retrieve messages from
+ * @param {number} roomID The id of the room to retrieve messages from
  * @returns {Array} A list of the messages based upon the room ID
  */
-const getListMessagesByID = (chat, id) => {
-  /**
-   * Gets the list of messages for a room that's sorted in order from
-   * newest to oldest date
-   */
-  let messages = chat.messageSort[id];
-  /**
-   * Returns a mapping of each text to retrieve the full message object
-   * Conversion: { _id, createdAt } -> { _id, text, user_id, user, image, etc. }
-   */
-  return messages.map((text) => chat.messages[id][text._id]);
+const getListMessagesByID = (chat, roomID) => {
+  // If the chat object and room ID is available
+  if (JSON.stringify(chat) !== JSON.stringify({}) && roomID) {
+    /**
+     * Gets the list of messages for a room that's sorted in order from
+     * newest to oldest date
+     */
+    const messages = chat.messageSort[roomID];
+    /**
+     * Returns a mapping of each text to retrieve the full message object
+     * Conversion: { _id, createdAt } -> { _id, text, user_id, user, image, etc. }
+     */
+    return messages.map((text) => chat.messages[roomID][text._id]);
+  }
+  // If the chat object or room is not available, an empty list is returned
+  else return [];
 };
 
 /**

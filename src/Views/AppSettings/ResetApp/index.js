@@ -54,7 +54,7 @@ export const ResetApp = (props) => {
                  */
                 onPress: () =>
                   resetApp(dispatch, () =>
-                    fetchAllAppData(dispatch, navigation.navigate("Messages"))
+                    fetchAllAppData(dispatch, navigation.navigate("Gordon 360"))
                   ),
               },
               {

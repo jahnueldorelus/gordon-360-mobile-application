@@ -28,6 +28,7 @@ import {
   getToken,
 } from "./src/store/entities/Auth/authSelectors";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchAllAppDataAfterLogIn } from "./src/Services/App/index";
 
 export const Start = () => {
   // Redux Dispatch
@@ -97,9 +98,16 @@ export const Start = () => {
   }, []);
 
   useEffect(() => {
-    // If the user is logged in, their Expo token is sent to the server
+    /**
+     * If the user is logged in and they have their Expo token,
+     * their Expo token is sent to the server
+     */
     if (authToken && expoToken) {
       dispatch(sendExpoTokenToServer);
+    }
+    // If the user is logged in, all of their data is fetched
+    else if (authToken) {
+      fetchAllAppDataAfterLogIn(dispatch);
     }
   }, [authToken]);
 
@@ -155,39 +163,50 @@ export const Start = () => {
   };
 
   // Login Screen
-  const LoginPage = ({ navigation }) => {
+  const LoginPage = () => {
     return (
       <View style={styles.screenView}>
-        <Login navigation={navigation} />
+        <Login />
       </View>
     );
   };
 
-  return (
-    <Drawer.Navigator initialRouteName="Messages" drawerType="slide">
-      <Drawer.Screen name="Profile" component={ProfilePage} />
-      <Drawer.Screen
-        name="Gordon 360"
-        component={Gordon360Page}
-        /**
-         * Prevent users from accessing the drawer navigator using gestures
-         * Since the WebView uses gestures for navigating through the browser's
-         * history, the drawer navigator interferes with swiping gesture to go back a page
-         */
-        options={{ swipeEnabled: false }}
-      />
-      <Drawer.Screen name="Messages" component={Messages} />
-      <Drawer.Screen name="Settings" component={Settings} />
-      <Drawer.Screen
-        name="Login"
-        component={LoginPage}
-        /**
-         * Prevent users from accessing the drawer navigator using gestures
-         */
-        options={{ swipeEnabled: false }}
-      />
-    </Drawer.Navigator>
-  );
+  const MainScreen = () => {
+    if (authToken) {
+      return (
+        <Drawer.Navigator initialRouteName="Gordon 360" drawerType="slide">
+          <Drawer.Screen
+            name="Gordon 360"
+            component={Gordon360Page}
+            /**
+             * Prevent users from accessing the drawer navigator using gestures
+             * Since the WebView uses gestures for navigating through the browser's
+             * history, the drawer navigator interferes with swiping gesture to go back a page
+             */
+            options={{ swipeEnabled: false }}
+          />
+          <Drawer.Screen name="Messages" component={Messages} />
+          <Drawer.Screen name="Profile" component={ProfilePage} />
+          <Drawer.Screen name="Settings" component={Settings} />
+        </Drawer.Navigator>
+      );
+    } else {
+      return (
+        <Drawer.Navigator initialRouteName="Login" drawerType="slide">
+          <Drawer.Screen
+            name="Login"
+            component={LoginPage}
+            /**
+             * Prevent users from accessing the drawer navigator using gestures
+             */
+            options={{ swipeEnabled: false }}
+          />
+        </Drawer.Navigator>
+      );
+    }
+  };
+
+  return MainScreen();
 };
 
 const styles = StyleSheet.create({

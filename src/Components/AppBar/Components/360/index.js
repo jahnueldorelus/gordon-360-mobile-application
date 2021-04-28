@@ -17,7 +17,12 @@ export const Appbar360 = (props) => {
           }}
           style={styles.navigationButton}
         >
-          <Icon name="bars" type="font-awesome-5" color="white" size={28} />
+          <Icon
+            name="arrow-circle-left"
+            type="font-awesome-5"
+            color="white"
+            size={28}
+          />
           <Text style={styles.navigationButtonText}>Gordon 360</Text>
         </TouchableOpacity>
       </View>

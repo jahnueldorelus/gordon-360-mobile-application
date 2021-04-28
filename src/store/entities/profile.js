@@ -436,6 +436,21 @@ export const ent_ProfileFetchAllData = (dispatch, getState) => {
 };
 
 /**
+ * Fetches all data used by this slice from the server
+ * except for the user's advisors and involvements. This is function
+ * should only be used after to fetch the user's data after signing in
+ * since their profile information won't be available which disallows
+ * for a user's advisors and involvements to be requested.
+ */
+export const ent_ProfileFetchAllDataAfterLogIn = (dispatch, getState) => {
+  dispatch(fetchChapel);
+  dispatch(fetchDining);
+  dispatch(fetchImage);
+  dispatch(fetchProfile);
+  dispatch(fetchSchedule);
+};
+
+/**
  * Resets all the state's data
  */
 export const ent_ProfileResetState = (dispatch, getState) => {

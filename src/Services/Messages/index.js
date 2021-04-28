@@ -155,3 +155,21 @@ export const getUserImageFromRoom = (userID, room) => {
   // If the user is not null, their image is returned
   return JSON.stringify(user) !== JSON.stringify([]) ? user.image : "";
 };
+
+/**
+ * Creates a message ID similar to the format
+ * of GiftedChat
+ */
+export const getNewMessageID = () => {
+  return (
+    Math.random().toString(36).substr(2, 8) +
+    "-" +
+    Math.random().toString(36).substr(2, 4) +
+    "-" +
+    Math.random().toString(36).substr(2, 4) +
+    "-" +
+    Math.random().toString(36).substr(2, 4) +
+    "-" +
+    Math.random().toString(36).substr(2, 12)
+  );
+};

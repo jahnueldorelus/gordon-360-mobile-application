@@ -22,7 +22,7 @@ import {
   getTokenLoading,
 } from "../../store/entities/Auth/authSelectors";
 import { fetchProfile } from "../../store/entities/profile";
-import { useDispatch, useSelector, useStore } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export const Login = (props) => {
   // Redux Dispatch
@@ -45,124 +45,23 @@ export const Login = (props) => {
 
   // Gets the user's profile after fetching their token and handles if the fetch fails
   useEffect(() => {
-    // console.log(
-    //   "Token:",
-    //   token,
-    //   "Failed Text:",
-    //   loginFailedText,
-    //   "Loading:",
-    //   tokenLoading
-    // );
-    if (token && !tokenLoading) {
+    if (!tokenLoading) {
       if (token) {
-        dispatch(fetchProfile());
+        dispatch(fetchProfile);
         // Deletes any sensitive information saved in the state
         setUsername("");
         setPassword("");
         setLoginFailedText("");
         // Navigates to the Messages screen since authentication passed
         props.navigation.navigate("Messages");
-      } else if (token && tokenError) {
+      } else if (tokenError) {
         dispatch(resetTokenError());
-        console.log("Token Error");
-        // Stops the login button from showing a loader since the fetch failed
-        setLoading(false);
         // Sets the login as failed
         setLoginFailedText("Invalid email or password");
       }
     }
   }, [token, tokenError, tokenLoading]);
 
-  /**
-   * Styles used for this component. This is created inside of the component and
-   * not outside because there's a style that required the value of the component's state
-   */
-  const styles = StyleSheet.create({
-    gradient: { flex: 1 },
-    KeyboardAvoidingView: { flex: 1 },
-    login: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    loginScrollView: {
-      flexGrow: 1,
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    loginInput: {
-      marginTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-      alignItems: "center",
-      paddingHorizontal: 10,
-    },
-    loginLogo: {
-      resizeMode: "contain",
-      width: 200,
-      height: 200,
-      marginBottom: 25,
-    },
-    loginTextIcon: {
-      color: "#A9CEFF",
-    },
-    loginTextboxContainer: {
-      maxWidth: 600,
-      marginBottom: 10,
-    },
-    loginTextboxInputLabel: {
-      paddingLeft: 10,
-      paddingBottom: 10,
-      fontSize: 18,
-    },
-    loginTextboxInputLabelUsername: {
-      color: usernameHighlighted ? "#FDB913" : "rgba(255, 255, 255, 0.5)",
-    },
-    loginTextboxInputLabelPassword: {
-      color: passwordHighlighted ? "#FDB913" : "rgba(255, 255, 255, 0.5)",
-    },
-    loginTextboxInputContainer: {
-      borderRadius: 40,
-      backgroundColor: "rgba(160, 172, 186, 0.3)",
-      borderBottomWidth: 0,
-      paddingHorizontal: 15,
-      paddingVertical: 2,
-    },
-    loginTextboxInputText: {
-      color: "white",
-      marginLeft: 5,
-    },
-    loginTextboxInputTextPlaceholder: {
-      color: "rgba(255, 255, 255, 0.4)",
-    },
-    loginFailedText: {
-      display: loginFailedText ? "flex" : "none",
-      fontSize: 17,
-      textAlign: "center",
-      color: "#FDB913",
-      marginBottom: 30,
-    },
-    loginButtonContainer: {
-      width: "100%",
-    },
-    loginButtonEnabled: {
-      borderRadius: 30,
-      maxWidth: 250,
-      alignSelf: "center",
-      backgroundColor: "#014983",
-      marginBottom: 20,
-    },
-    loginButtonDisabled: {
-      borderRadius: 30,
-      maxWidth: 250,
-      alignSelf: "center",
-      backgroundColor: "#014983",
-      marginBottom: 20,
-      opacity: 0.6,
-    },
-    loginButtonTextStyle: {
-      flex: 1,
-      fontWeight: "bold",
-      fontSize: 23,
-    },
-  });
   /**
    * Gets the token from the back-end
    */
@@ -185,7 +84,15 @@ export const Login = (props) => {
             keyboardShouldPersistTaps="handled"
           >
             <SafeAreaView style={styles.login}>
-              <View style={styles.loginInput}>
+              <View
+                style={[
+                  styles.loginInput,
+                  {
+                    marginTop:
+                      Platform.OS === "android" ? StatusBar.currentHeight : 0,
+                  },
+                ]}
+              >
                 <Image
                   style={styles.loginLogo}
                   source={require("./Images/logo.png")}
@@ -229,7 +136,11 @@ export const Login = (props) => {
                   containerStyle={styles.loginTextboxContainer}
                   labelStyle={[
                     styles.loginTextboxInputLabel,
-                    styles.loginTextboxInputLabelUsername,
+                    {
+                      color: usernameHighlighted
+                        ? "#FDB913"
+                        : "rgba(255, 255, 255, 0.5)",
+                    },
                   ]}
                   inputContainerStyle={styles.loginTextboxInputContainer}
                   inputStyle={styles.loginTextboxInputText}
@@ -284,7 +195,11 @@ export const Login = (props) => {
                   containerStyle={styles.loginTextboxContainer}
                   labelStyle={[
                     styles.loginTextboxInputLabel,
-                    styles.loginTextboxInputLabelPassword,
+                    {
+                      color: usernameHighlighted
+                        ? "#FDB913"
+                        : "rgba(255, 255, 255, 0.5)",
+                    },
                   ]}
                   inputContainerStyle={styles.loginTextboxInputContainer}
                   inputStyle={styles.loginTextboxInputText}
@@ -320,7 +235,14 @@ export const Login = (props) => {
                   }}
                 />
 
-                <Text style={styles.loginFailedText}>{loginFailedText}</Text>
+                <Text
+                  style={[
+                    styles.loginFailedText,
+                    { display: loginFailedText ? "flex" : "none" },
+                  ]}
+                >
+                  {loginFailedText}
+                </Text>
               </View>
               <View style={styles.loginButtonContainer}>
                 <Button
@@ -341,3 +263,86 @@ export const Login = (props) => {
     </LinearGradient>
   );
 };
+
+/**
+ * Styles used for this component. This is created inside of the component and
+ * not outside because there's a style that required the value of the component's state
+ */
+const styles = StyleSheet.create({
+  gradient: { flex: 1 },
+  KeyboardAvoidingView: { flex: 1 },
+  login: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  loginScrollView: {
+    flexGrow: 1,
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  loginInput: {
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  loginLogo: {
+    resizeMode: "contain",
+    width: 200,
+    height: 200,
+    marginBottom: 25,
+  },
+  loginTextIcon: {
+    color: "#A9CEFF",
+  },
+  loginTextboxContainer: {
+    maxWidth: 600,
+    marginBottom: 10,
+  },
+  loginTextboxInputLabel: {
+    paddingLeft: 10,
+    paddingBottom: 10,
+    fontSize: 18,
+  },
+  loginTextboxInputContainer: {
+    borderRadius: 40,
+    backgroundColor: "rgba(160, 172, 186, 0.3)",
+    borderBottomWidth: 0,
+    paddingHorizontal: 15,
+    paddingVertical: 2,
+  },
+  loginTextboxInputText: {
+    color: "white",
+    marginLeft: 5,
+  },
+  loginTextboxInputTextPlaceholder: {
+    color: "rgba(255, 255, 255, 0.4)",
+  },
+  loginFailedText: {
+    fontSize: 17,
+    textAlign: "center",
+    color: "#FDB913",
+    marginBottom: 30,
+  },
+  loginButtonContainer: {
+    width: "100%",
+  },
+  loginButtonEnabled: {
+    borderRadius: 30,
+    maxWidth: 250,
+    alignSelf: "center",
+    backgroundColor: "#014983",
+    marginBottom: 20,
+  },
+  loginButtonDisabled: {
+    borderRadius: 30,
+    maxWidth: 250,
+    alignSelf: "center",
+    backgroundColor: "#014983",
+    marginBottom: 20,
+    opacity: 0.6,
+  },
+  loginButtonTextStyle: {
+    flex: 1,
+    fontWeight: "bold",
+    fontSize: 23,
+  },
+});

@@ -110,7 +110,9 @@ export const ChatInfo = (props) => {
                       underlayColor="none"
                     >
                       <Image
-                        source={{ uri: message.image }}
+                        source={{
+                          uri: "data:image/gif;base64," + message.image,
+                        }}
                         style={{
                           ...styles.imagesContainerImage,
                           width: viewWidth

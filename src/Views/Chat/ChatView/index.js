@@ -30,6 +30,9 @@ import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CustomModal } from "../../../Components/CustomModal";
 import { AppBar } from "../../../Components/AppBar";
+import * as FileSystem from "expo-file-system";
+import { getNewMessageID } from "../../../Services/Messages/index";
+import moment from "moment";
 
 export const ChatView = (props) => {
   // Redux Dispatch
@@ -100,15 +103,79 @@ export const ChatView = (props) => {
     // Reformats the message object for the back-end to parse correctly
     const newMessage = correctedMessageObject(message);
 
+    // The initial message date
+    let messageDate = moment(newMessage.createdAt);
+
+    // Gets the images associated with the room
+    const parsedImages = JSON.parse(selectedImages).map(async (image) => {
+      // Creates a new date for the message based upon index to seperate each image by time
+      messageDate.add(1, "milliseconds");
+
+      return {
+        date: messageDate.format("YYYY-MM-DDTHH:mm:ss.SSS"),
+        // ID is created similar to the format of GiftedChat
+        id: getNewMessageID(),
+        image: await FileSystem.readAsStringAsync(image, {
+          encoding: FileSystem.EncodingType.Base64,
+        }),
+      };
+    });
+
+    // If there are selected images, each image is sent to the back-end
+    if (parsedImages.length > 0) {
+      // Parses through the list of images of creates a new message for each
+      parsedImages.forEach((imageData) => {
+        imageData.then((data) => {
+          // Image back-end message
+          const imageBackEndMessage = {
+            ...newMessage,
+            id: data.id,
+            room_id: roomID,
+            text: "",
+            createdAt: data.date,
+            image: data.image,
+          };
+          // Image state message
+          const imageStateMessage = {
+            ...newMessage,
+            _id: data.id,
+            room_id: roomID,
+            text: "",
+            createdAt: data.date,
+            image: data.image,
+            pending: true,
+          };
+
+          // Saves the message and sends it to the back-end
+          dispatch(sendMessage(imageStateMessage, imageBackEndMessage));
+        });
+      });
+
+      /**
+       * Since there are selected images, the message date is forwarded to prevent
+       * the actual text message that will be sent down below from having the same
+       * exact time as any of the selected pictures.
+       */
+      messageDate.add(1, "milliseconds");
+    }
+
+    const newMessageDate = messageDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
+
     // Formatted message for the back-end to parse
     const backEndMessage = {
       ...newMessage,
       id: message._id,
       room_id: roomID,
+      createdAt: newMessageDate,
     };
 
     // Formatted message for Redux to parse
-    const stateMessage = { ...newMessage, _id: message._id, pending: true };
+    const stateMessage = {
+      ...newMessage,
+      _id: message._id,
+      pending: true,
+      createdAt: newMessageDate,
+    };
 
     // Saves the message and sends it to the back-end
     dispatch(sendMessage(stateMessage, backEndMessage));

@@ -132,8 +132,6 @@ export const NewChat = (props) => {
       visible={props.visible}
       presentationStyle="pageSheet"
       animationType="slide"
-      onRequestClose={() => props.setVisible(false)}
-      onDismiss={() => props.setVisible(false)}
     >
       <SafeAreaView style={styles.safeAreaView}>
         <SearchHeader

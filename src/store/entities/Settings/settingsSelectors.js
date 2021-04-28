@@ -9,6 +9,14 @@ export const get360SiteStatus = createSelector(
 );
 
 /**
+ * Returns Gordon 360's Site's Request Pending Status
+ */
+export const get360SitePending = createSelector(
+  (state) => state.entities.settings,
+  (settings) => settings.gordon_360_site.reqPending
+);
+
+/**
  * Returns Gordon 360's Site last checked date
  */
 export const get360SiteLastCheckedDate = createSelector(
@@ -22,6 +30,14 @@ export const get360SiteLastCheckedDate = createSelector(
 export const get360ServerStatus = createSelector(
   (state) => state.entities.settings,
   (settings) => settings.gordon_360_server.isWorking
+);
+
+/**
+ * Returns Gordon 360's Server's Request Pending Status
+ */
+export const get360ServerPending = createSelector(
+  (state) => state.entities.settings,
+  (settings) => settings.gordon_360_server.reqPending
 );
 
 /**

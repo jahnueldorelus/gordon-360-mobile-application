@@ -1,4 +1,4 @@
-import React, { createRef } from "react";
+import React, { createRef, useEffect, useState } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -12,6 +12,7 @@ import {
   PanGestureHandler,
   State,
 } from "react-native-gesture-handler";
+import * as FileSystem from "expo-file-system";
 
 /**
  * Creates the Custom Image Viewer
@@ -24,6 +25,34 @@ export const CustomImageViewer = (props) => {
   // Gesture Handler References
   const imagePinchHandler = createRef();
   const imagePanHandler = createRef();
+
+  // The image
+  const [imageURI, setImageURI] = useState(props.image);
+
+  /**
+   * If the image is a path to a local image, the image is retrieved
+   * and converted to base64
+   */
+  useEffect(() => {
+    const getBase64Format = async (image) => {
+      // If the image is a path to the image on the local device, it's converted to base64
+      if (image.includes("file:")) {
+        const newImageURI =
+          "data:image/gif;base64," +
+          (await FileSystem.readAsStringAsync(image, {
+            encoding: FileSystem.EncodingType.Base64,
+          }));
+        setImageURI(newImageURI);
+      }
+      // Since the image is not a file path, it's base64
+      else {
+        const newImageURI = "data:image/gif;base64," + image;
+        setImageURI(newImageURI);
+      }
+    };
+
+    getBase64Format(props.image);
+  }, [props.image]);
 
   const styles = StyleSheet.create({
     container: {
@@ -230,7 +259,7 @@ export const CustomImageViewer = (props) => {
                   style={{
                     flex: 1,
                   }}
-                  source={{ uri: props.image }}
+                  source={{ uri: imageURI }}
                   resizeMode="contain"
                 />
               </PinchGestureHandler>

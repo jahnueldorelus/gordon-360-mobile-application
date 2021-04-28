@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, RefreshControl } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { ProfileInfo } from "./Components/ProfileInfo";
 import { AccountInfo } from "./Components/AccountInfo";
@@ -15,6 +15,13 @@ import {
   fetchProfile,
   fetchSchedule,
   getUserInfo,
+  getReqUserAdvisorsStatus,
+  getReqUserChapelStatus,
+  getReqUserDiningStatus,
+  getReqUserImageStatus,
+  getReqUserInvolvementsStatus,
+  getReqUserProfileStatus,
+  getReqUserScheduleStatus,
 } from "../../store/entities/profile";
 
 export const Profile = () => {
@@ -24,26 +31,89 @@ export const Profile = () => {
   // User's profile info
   const userInfo = useSelector(getUserInfo);
 
+  /**
+   * REQUESTS' PENDING STATUS
+   */
+  // User's advisors request pending status
+  const isReqAdvisorsPending = useSelector(getReqUserAdvisorsStatus);
+  // User's chapel request pending status
+  const isReqChapelPending = useSelector(getReqUserChapelStatus);
+  // User's dining request pending status
+  const isReqDiningPending = useSelector(getReqUserDiningStatus);
+  // User's image request pending status
+  const isReqImagePending = useSelector(getReqUserImageStatus);
+  // User's involvements request pending status
+  const isReqInvolvementsPending = useSelector(getReqUserInvolvementsStatus);
+  // User's profile request pending status
+  const isReqProfilePending = useSelector(getReqUserProfileStatus);
+  // User's schedule request pending status
+  const isReqSchedulePending = useSelector(getReqUserScheduleStatus);
+
+  // Determines if the user's data is still in the middle of being requested
+  const [dataLoading, setDataLoading] = useState(false);
+
   // Gets the user's profile info
   useEffect(() => {
-    dispatch(fetchProfile());
-    dispatch(fetchImage());
-    dispatch(fetchDining());
-    dispatch(fetchSchedule());
-    dispatch(fetchChapel());
+    getAllUserInfo();
   }, []);
+
+  /**
+   * Fetches all of the user's information for this component
+   */
+  const getAllUserInfo = () => {
+    dispatch(fetchProfile);
+    dispatch(fetchImage);
+    dispatch(fetchDining);
+    dispatch(fetchSchedule);
+    dispatch(fetchChapel);
+  };
+
+  /**
+   * Determines if the scrollview should show the loading indicator to alert
+   * the user that data is being fetched
+   */
+  useEffect(() => {
+    // Determines if user the user's data is being requested
+    const isUserDataPending =
+      isReqAdvisorsPending ||
+      isReqChapelPending ||
+      isReqDiningPending ||
+      isReqImagePending ||
+      isReqInvolvementsPending ||
+      isReqProfilePending ||
+      isReqSchedulePending;
+    isUserDataPending ? setDataLoading(true) : setDataLoading(false);
+  }, [
+    isReqAdvisorsPending,
+    isReqChapelPending,
+    isReqDiningPending,
+    isReqImagePending,
+    isReqInvolvementsPending,
+    isReqProfilePending,
+    isReqSchedulePending,
+  ]);
 
   // Gets the user's involvements and advisor(s) after their profile info is retrieved
   useEffect(() => {
     if (userInfo) {
-      dispatch(fetchInvolvements(userInfo.ID));
-      dispatch(fetchAdvisors(userInfo.AD_Username));
+      dispatch(fetchInvolvements);
+      dispatch(fetchAdvisors);
     }
   }, [userInfo]);
 
   return (
     <View style={styles.mainContaner}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={dataLoading}
+            onRefresh={() => {
+              getAllUserInfo();
+            }}
+          />
+        }
+      >
         <View style={styles.infoContainerTop}>
           <ProfileInfo />
         </View>

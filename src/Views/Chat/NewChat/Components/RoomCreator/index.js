@@ -1,22 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   SafeAreaView,
   View,
   StyleSheet,
-  Text,
-  Image,
   Dimensions,
+  Alert,
 } from "react-native";
 import {
-  setCreateRoomLoading,
-  resetCreateRoomLoading,
-  getCreateRoomLoading,
-  setRoomID,
   getRoomImage,
   setRoomImage,
   getRoomName,
   setRoomName,
+  setRoomID,
 } from "../../../../../store/ui/chat";
 import { ui_PeopleSearchResetState } from "../../../../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../../../../store/ui/peopleSearchFilter";
@@ -24,6 +20,11 @@ import {
   createNewRoom,
   resetNewRoomCreated,
   getNewRoomCreated,
+  getNewRoomCreatedID,
+  getNewRoomCreatedLastUpdated,
+  getCreateRoomLoading,
+  correctedMessageObject,
+  sendMessage,
 } from "../../../../../store/entities/chat";
 import { useDispatch, useSelector } from "react-redux";
 import { GiftedChat } from "react-native-gifted-chat";
@@ -47,6 +48,10 @@ import { useNavigation } from "@react-navigation/native";
 import { Header } from "./Header/index.js";
 import { GroupNameInput } from "./GroupNameInput/index";
 import { CameraPermissions } from "./CameraPermissions/index";
+import { LoadingScreen } from "../../../../../Components/LoadingScreen/index";
+import { getNewMessageID } from "../../../../../Services/Messages/index";
+import * as FileSystem from "expo-file-system";
+import moment from "moment";
 
 export const RoomCreator = (props) => {
   // Redux Dispatch
@@ -56,7 +61,9 @@ export const RoomCreator = (props) => {
   const navigation = useNavigation();
 
   // The current text inside the input toolbar
-  const [messageText, setMessageText] = useState("");
+  const [messageText, setMessageText] = useState(null);
+  // A reference to the current text inside the input toolbar
+  const previousMessage = useRef(messageText);
 
   // The room's name
   const roomName = useSelector(getRoomName);
@@ -72,6 +79,10 @@ export const RoomCreator = (props) => {
 
   // Determines if a new room was created
   const newRoomCreated = useSelector(getNewRoomCreated);
+  // The ID of the new room created
+  const newRoomCreatedID = useSelector(getNewRoomCreatedID);
+  // The last updated date of the new room created
+  const newRoomCreatedLastUpdated = useSelector(getNewRoomCreatedLastUpdated);
 
   // Configuration for setting the custom modal
   const [modalConfig, setModalConfig] = useState({
@@ -82,6 +93,8 @@ export const RoomCreator = (props) => {
 
   // The loading status of creating a room
   const createRoomLoading = useSelector(getCreateRoomLoading);
+  // A reference to the loading status of creating a room
+  const createRoomLoadingRef = useRef(createRoomLoading);
 
   // The user's profile
   const userProfile = useSelector(getUserInfo);
@@ -96,14 +109,26 @@ export const RoomCreator = (props) => {
     name: `${userProfile.FirstName} ${userProfile.LastName}`,
   };
 
-  // If a new room was created, the new room created property is reset
   useEffect(() => {
-    if (newRoomCreated) {
+    /**
+     * If a new room was created, all temporary states are reset
+     * and the user is navigated to the new room
+     */
+    if (createRoomLoadingRef.current && newRoomCreated) {
+      // Saves the room as the selected room ID
+      dispatch(setRoomID(newRoomCreatedID));
+      // Sends the message to the server
+      sendMessageToServer(previousMessage.current);
+      // Delets the previous message
+      previousMessage.current = null;
+      // Deletes the user selected room image
+      dispatch(setRoomImage(null));
+      // Deletes the user selected room name
+      dispatch(setRoomName(""));
+      // Sets the value of new chat being created back to false
       dispatch(resetNewRoomCreated);
       // Exists out the new chat modal
       props.setNewChatModalVisible(false);
-      // Sets the loading status of creating a room to false
-      dispatch(resetCreateRoomLoading);
       // Deletes the last searched text
       props.setLastSearchedText(null);
       // Deletes selected users
@@ -114,22 +139,139 @@ export const RoomCreator = (props) => {
       dispatch(ui_PeopleSearchFilterResetState);
       // Closes the modal to display the chat of the new room
       props.setVisible(false);
-      // // Navigates to the chat screen
-      // navigation.navigate("Chat");
+      // Navigates to the chat screen
+      navigation.navigate("Chat");
     }
-  }, [newRoomCreated]);
+    // Creating a new room failed
+    else if (createRoomLoadingRef.current && !newRoomCreated) {
+      Alert.alert(
+        "Unsuccessful Chat Creation",
+        "An error occured while creating a new chat. Please try again."
+      );
+    }
 
-  // If there are no selected users, the modal is exited
+    // Saves the newest state for the loading status of creating a new room into the ref
+    createRoomLoadingRef.current = createRoomLoading;
+  }, [newRoomCreated, createRoomLoading]);
+
   useEffect(() => {
+    // If there are no selected users, the modal is exited
     if (props.selectedUsersList.length === 0) props.setVisible(false);
   }, [props.selectedUsersList]);
 
-  // Creates the new room
-  const onSend = async (messageObj) => {
+  /**
+   * Sends the message to the server
+   * @param {object} sentMessage The message to be sent to the server
+   */
+  const sendMessageToServer = async (sentMessage) => {
+    // Reformats the message object for the back-end to parse correctly
+    const newMessage = correctedMessageObject(sentMessage);
+
+    // The initial message date is the last updated date of the new room
+    let messageDate = moment(newRoomCreatedLastUpdated);
+
+    // Gets the images associated with the room
+    const parsedImages = JSON.parse(selectedImages).map(async (image) => {
+      // Creates a new date for the message based upon index to seperate each image by time
+      messageDate.add(1, "milliseconds");
+
+      return {
+        date: messageDate.format("YYYY-MM-DDTHH:mm:ss.SSS"),
+        // ID is created similar to the format of GiftedChat
+        id: getNewMessageID(),
+        image: await FileSystem.readAsStringAsync(image, {
+          encoding: FileSystem.EncodingType.Base64,
+        }),
+      };
+    });
+
+    // If there are selected images, each image is sent to the back-end
+    if (parsedImages.length > 0) {
+      // Parses through the list of images of creates a new message for each
+      parsedImages.forEach((imageData) => {
+        imageData.then((data) => {
+          // Image back-end message
+          const imageBackEndMessage = {
+            ...newMessage,
+            id: data.id,
+            room_id: newRoomCreatedID,
+            text: "",
+            createdAt: data.date,
+            image: data.image,
+          };
+          // Image state message
+          const imageStateMessage = {
+            ...newMessage,
+            _id: data.id,
+            room_id: newRoomCreatedID,
+            text: "",
+            createdAt: data.date,
+            image: data.image,
+            pending: true,
+          };
+
+          // Saves the message and sends it to the back-end
+          dispatch(sendMessage(imageStateMessage, imageBackEndMessage));
+        });
+      });
+
+      /**
+       * Since there are selected images, the message date is forwarded to prevent
+       * the actual text message that will be sent down below from having the same
+       * exact time as any of the selected pictures.
+       */
+      messageDate.add(1, "milliseconds");
+    }
+
+    const newMessageDate = messageDate.format("YYYY-MM-DDTHH:mm:ss.SSS");
+
+    // Formatted message for the back-end to parse
+    const backEndMessage = {
+      ...newMessage,
+      id: sentMessage._id,
+      room_id: newRoomCreatedID,
+      createdAt: newMessageDate,
+    };
+
+    // Formatted message for Redux to parse
+    const stateMessage = {
+      ...newMessage,
+      _id: sentMessage._id,
+      pending: true,
+      createdAt: newMessageDate,
+    };
+
+    // Saves the message and sends it to the back-end
+    dispatch(sendMessage(stateMessage, backEndMessage));
+  };
+
+  /**
+   * Creates the new room
+   * @param {object} messageObj The message object
+   */
+  const createRoom = async (messageObj) => {
+    // Saves the message's text to a reference since GiftedChat automatically erases it
+    previousMessage.current = messageObj[0];
     // Gets the message object to send to the back-end
-    const message = messageObj[0];
+    const message = correctedMessageObject(messageObj[0]);
+
+    /**
+     * Deletes the user's avatar. This is due to privacy reasons as not every person
+     * may have access to view this user's avatar. For example, if a student has their
+     * image as private, other students shouldn't be able to see their avatar
+     */
+    message.user.avatar = null;
+
+    // Formatted message for the back-end to parse
+    const backEndMessage = {
+      ...message,
+      id: message._id,
+    };
+
     // Creates a list of selected users
     const usernames = props.selectedUsersList.map((user) => user.AD_Username);
+    // Adds the main user's username
+    usernames.push(userProfile.AD_Username);
 
     // The room object to send to the back-end
     const room = {
@@ -137,16 +279,11 @@ export const RoomCreator = (props) => {
       group: props.selectedUsersList.length > 1 ? true : false,
       image: roomImage,
       usernames,
-      initialMessage: message,
+      // TEMP - REMOVE MESSAGE PROPERTY IN FUTURE
+      message: backEndMessage,
       userId: userProfile.ID,
     };
 
-    // Deletes the user selected room image
-    dispatch(setRoomImage(null));
-    // Deletes the user selected room image
-    dispatch(setRoomName(""));
-    // Sets the creation of the room as loading
-    dispatch(setCreateRoomLoading);
     // Sends the new room to the back-end
     dispatch(createNewRoom(room));
   };
@@ -229,7 +366,7 @@ export const RoomCreator = (props) => {
                 messagesContainerStyle={styles.messagesContainer}
                 minInputToolbarHeight={minInputToolbarHeight()}
                 onInputTextChanged={setMessageText}
-                onSend={onSend}
+                onSend={createRoom}
                 parsePatterns={(linkStyle) => [
                   {
                     pattern: /#(\w+)/,
@@ -279,18 +416,7 @@ export const RoomCreator = (props) => {
             </View>
           ) : (
             // If a room is in the process of being created, a loading screen is shown
-            <View
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Image
-                source={require("../Images/mascot.png")}
-                style={styles.loadingImage}
-              />
-              <Text style={styles.loadingText}>Creating Room...</Text>
-            </View>
+            <LoadingScreen loadingText="Creating New Chat" />
           )}
         </View>
       </SafeAreaView>

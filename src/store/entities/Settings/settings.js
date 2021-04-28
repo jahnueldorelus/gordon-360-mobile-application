@@ -10,12 +10,14 @@ export const slice = createSlice({
     gordon_360_site: {
       isWorking: false,
       lastCheckedDate: null,
+      reqPending: false,
     },
     gordon_360_server: {
       isWorking: false,
       lastCheckedDate: null,
+      reqPending: false,
     },
-    useHapticsWhileTexting: true,
+    useHapticsWhileTexting: false,
   },
   reducers: {
     /**
@@ -32,6 +34,16 @@ export const slice = createSlice({
             : false
           : false;
       state.gordon_360_site.lastCheckedDate = getReadableDateFormat(new Date());
+    },
+
+    // Saves that the request for the status of the site started
+    req360SiteStarted: (state, action) => {
+      state.gordon_360_site.reqPending = true;
+    },
+
+    // Saves that the request for the status of the site ended
+    req360SiteEnded: (state, action) => {
+      state.gordon_360_site.reqPending = false;
     },
 
     /**
@@ -52,6 +64,16 @@ export const slice = createSlice({
       );
     },
 
+    // Saves that the request for the status of the server started
+    req360ServerStarted: (state, action) => {
+      state.gordon_360_server.reqPending = true;
+    },
+
+    // Saves that the request for the status of the server ended
+    req360ServerEnded: (state, action) => {
+      state.gordon_360_server.reqPending = false;
+    },
+
     /**
      * TEXT HAPTICS REDUCER
      */
@@ -68,12 +90,14 @@ export const slice = createSlice({
       state.gordon_360_site = {
         isWorking: false,
         lastCheckedDate: null,
+        reqPending: false,
       };
       state.gordon_360_server = {
         isWorking: false,
         lastCheckedDate: null,
+        reqPending: false,
       };
-      state.useHapticsWhileTexting = true;
+      state.useHapticsWhileTexting = false;
     },
   },
 });
@@ -95,8 +119,10 @@ export const fetchGordon360SiteStatus = (dispatch, getState) => {
           "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Content-Type": "text/html",
       },
+      onStart: slice.actions.req360SiteStarted.type,
       onSuccess: slice.actions.add360SiteStatus.type,
       onError: slice.actions.add360SiteStatus.type,
+      onEnd: slice.actions.req360SiteEnded.type,
     })
   );
 };
@@ -110,8 +136,10 @@ export const fetchGordon360ServerStatus = (dispatch, getState) => {
       url: "/profiles",
       useEndpoint: true,
       method: "get",
+      onStart: slice.actions.req360ServerStarted.type,
       onSuccess: slice.actions.add360ServerStatus.type,
       onError: slice.actions.add360ServerStatus.type,
+      onEnd: slice.actions.req360ServerEnded.type,
     })
   );
 };
@@ -129,4 +157,12 @@ export const setHapticsForTexting = (useHaptics) => (dispatch, getState) => {
  */
 export const ent_SettingsResetState = (dispatch, getState) => {
   dispatch({ type: slice.actions.resetState.type, payload: null });
+};
+
+/**
+ * Fetches all data used by this slice from the server
+ */
+export const ent_SettingsFetchAllData = (dispatch, getState) => {
+  dispatch(fetchGordon360SiteStatus);
+  dispatch(fetchGordon360ServerStatus);
 };

@@ -5,6 +5,7 @@ import { fetchGordon360ServerStatus } from "../../../store/entities/Settings/set
 import {
   get360ServerLastCheckedDate,
   get360ServerStatus,
+  get360ServerPending,
 } from "../../../store/entities/Settings/settingsSelectors";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -13,6 +14,8 @@ export const StatusServer = (props) => {
   const dispatch = useDispatch();
   // Gordon 360 Server status
   const status360Server = useSelector(get360ServerStatus);
+  // Gordon 360 Server request pending status
+  const is360ServerPending = useSelector(get360ServerPending);
   // Gordon 360 Server last checked date
   const lastChecked360Server = useSelector(get360ServerLastCheckedDate);
 
@@ -24,47 +27,54 @@ export const StatusServer = (props) => {
   return (
     <View
       style={[
-        props.styles.statusContainer,
+        props.styles.itemContainer,
         {
           backgroundColor: "#014983",
         },
       ]}
     >
-      <View style={props.styles.statusTextAndIconContainer}>
-        <View style={props.styles.statusIconContainer}>
+      <View style={props.styles.itemTextAndIconContainer}>
+        <View style={props.styles.itemIconContainer}>
           <Icon
             name="server"
             type="font-awesome-5"
             color="#354f86"
             size={40}
-            containerStyle={props.styles.statusIcon}
+            containerStyle={props.styles.itemIcon}
           />
         </View>
-        <View style={props.styles.statusTextContainer}>
-          <Text style={props.styles.statusTextTitle}>Gordon 360 Server</Text>
+        <View style={props.styles.itemTextContainer}>
+          <Text style={props.styles.itemTextTitle}>Gordon 360 Server</Text>
           <Text
-            style={[
-              props.styles.statusTextDate,
-              props.styles.statusTextDateBold,
-            ]}
+            style={[props.styles.itemTextDate, props.styles.itemTextDateBold]}
           >
             {"Last Checked: "}
-            <Text style={props.styles.statusTextDate}>
+            <Text style={props.styles.itemTextDate}>
               {lastChecked360Server ? lastChecked360Server : "No Previous Date"}
             </Text>
           </Text>
           {lastChecked360Server && (
-            <View style={props.styles.statusTextCurrentContainer}>
+            <View style={props.styles.itemTextCurrentContainer}>
               <Icon
                 name="circle"
                 solid={true}
                 type="font-awesome-5"
-                color={status360Server ? "green" : "red"}
+                color={
+                  is360ServerPending
+                    ? "gray"
+                    : status360Server
+                    ? "green"
+                    : "red"
+                }
                 size={12}
                 containerStyle={{ marginRight: 5 }}
               />
-              <Text style={props.styles.statusTextCurrent}>
-                {status360Server ? "Online" : "Offline"}
+              <Text style={props.styles.itemTextCurrent}>
+                {is360ServerPending
+                  ? "Checking..."
+                  : status360Server
+                  ? "Online"
+                  : "Offline"}
               </Text>
             </View>
           )}
@@ -72,11 +82,9 @@ export const StatusServer = (props) => {
       </View>
       <TouchableOpacity
         onPress={() => dispatch(fetchGordon360ServerStatus)}
-        style={props.styles.statusCheckerButton}
+        style={props.styles.itemButton}
       >
-        <Text
-          style={[props.styles.statusCheckerButtonText, { color: "#354f86" }]}
-        >
+        <Text style={[props.styles.itemButtonText, { color: "#354f86" }]}>
           Check Status
         </Text>
       </TouchableOpacity>

@@ -24,6 +24,7 @@ import { getUserInfo } from "../../store/entities/profile";
 import { getToken } from "../../store/entities/Auth/authSelectors";
 import { useDispatch, useSelector } from "react-redux";
 import { setRoomID } from "../../store/ui/chat";
+import { LoadingScreen } from "../../Components/LoadingScreen/index";
 
 const deviceHeight = Dimensions.get("window").height;
 
@@ -58,7 +59,7 @@ export const RoomsList = (props) => {
           dispatch(fetchMessages());
       } else {
         // If the user's rooms are not available, they are fetched
-        dispatch(fetchRooms());
+        dispatch(fetchRooms);
       }
     } else {
       // Navigates to the Login screen since authentication failed
@@ -66,7 +67,7 @@ export const RoomsList = (props) => {
     }
   }, [token, rooms]);
 
-  if (rooms && roomsWithNewMessages && userProfile)
+  if (rooms && roomsWithNewMessages && userProfile && !dataLoading)
     return (
       <FlatList
         style={styles.room}
@@ -80,7 +81,7 @@ export const RoomsList = (props) => {
                * Fetching the messages is not necessary as useEffect
                * will fetch the messages after the rooms are fetched
                */
-              dispatch(fetchRooms());
+              dispatch(fetchRooms);
             }}
           />
         }
@@ -155,7 +156,7 @@ export const RoomsList = (props) => {
         )}
       />
     );
-  else return <CustomLoader />;
+  else return <LoadingScreen loadingText="Retrieving Data" />;
 };
 
 const styles = StyleSheet.create({

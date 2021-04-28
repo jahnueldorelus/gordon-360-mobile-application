@@ -22,7 +22,7 @@ const slice = createSlice({
       listOfServerIDs: [],
     },
     api: "https://360apitrain.gordon.edu",
-    website: "https://360train.gordon.edu",
+    website: "https://360.gordon.edu",
     apiEndpoint: "/api",
   },
   reducers: {

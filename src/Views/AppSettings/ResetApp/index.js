@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Icon } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-import { resetApp } from "../../../Services/App/index";
+import { resetApp, fetchAllAppData } from "../../../Services/App/index";
 
 export const ResetApp = (props) => {
   // Redux Dispatch
@@ -14,27 +14,29 @@ export const ResetApp = (props) => {
   return (
     <View
       style={[
-        props.styles.statusContainer,
+        props.styles.itemContainer,
         {
           backgroundColor: "#015f83",
         },
       ]}
     >
-      <View style={props.styles.statusTextAndIconContainer}>
-        <View style={props.styles.statusIconContainer}>
+      <View style={props.styles.itemTextAndIconContainer}>
+        <View style={props.styles.itemIconContainer}>
           <Icon
             name="undo-alt"
             type="font-awesome-5"
-            color="#074f87"
+            color="#015f83"
             size={40}
-            containerStyle={props.styles.statusIcon}
+            containerStyle={props.styles.itemIcon}
           />
         </View>
-        <View style={props.styles.statusTextContainer}>
-          <Text style={props.styles.statusTextTitle}>App Reset</Text>
-          <Text style={props.styles.statusTextDate}>
+        <View style={props.styles.itemTextContainer}>
+          <Text style={props.styles.itemTextTitle}>App Reset</Text>
+          <Text style={props.styles.itemTextDate}>
             If the application appears to be non-functional or has some
-            glitches, a reset may possibly fix the issue.
+            glitches, a reset may possibly fix the issue. You will not be signed
+            out. After the app has reset, your data will be retrieved from our
+            servers.
           </Text>
         </View>
       </View>
@@ -42,13 +44,18 @@ export const ResetApp = (props) => {
         onPress={() =>
           Alert.alert(
             "Resetting Application",
-            "Are you sure you want to reset the application? You will be required to login again.",
+            "Are you sure you want to reset the application?",
             [
               {
                 text: "Reset App",
-                // Deletes data and navigates to Login page
+                /**
+                 * Deletes all data (except for login information), retieves all the data
+                 * from the server and navigate to the messages screen
+                 */
                 onPress: () =>
-                  resetApp(dispatch, () => navigation.navigate("Login")),
+                  resetApp(dispatch, () =>
+                    fetchAllAppData(dispatch, navigation.navigate("Messages"))
+                  ),
               },
               {
                 text: "Cancel",
@@ -58,11 +65,9 @@ export const ResetApp = (props) => {
             ]
           )
         }
-        style={props.styles.statusCheckerButton}
+        style={props.styles.itemButton}
       >
-        <Text
-          style={[props.styles.statusCheckerButtonText, { color: "#074f87" }]}
-        >
+        <Text style={[props.styles.itemButtonText, { color: "#074f87" }]}>
           Reset App
         </Text>
       </TouchableOpacity>

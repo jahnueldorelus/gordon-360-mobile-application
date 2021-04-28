@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
 import { getSelectedRoomID } from "../ui/chat";
-import { pushRemoteNotification } from "../middleware/notification";
 import moment from "moment";
 import {
   getRoomName,
@@ -17,7 +16,12 @@ const slice = createSlice({
     rooms: {},
     sortRoomList: [],
     roomsWithNewMessages: [],
-    newRoomCreated: false,
+    newRoomCreated: {
+      roomCreated: false,
+      roomID: null,
+      roomLastUpdated: null,
+    },
+    createRoomLoading: false,
     notificationIdentifiers: [],
     messages: {},
     messageSort: {},
@@ -36,26 +40,24 @@ const slice = createSlice({
       /**
        * Formats the room object to be parsed correctly
        */
-      let room = {};
-      room.room_id = action.payload.id;
-      room.name = action.payload.name;
-      room.group = action.payload.group;
-      room.createdAt = action.payload.createdAt;
-      room.lastUpdated = action.payload.lastUpdated;
-      room.roomImage = action.payload.image;
-      room.users = action.payload.users;
+      let newRoom = correctedRoomObject(action.payload);
+
+      // Corrects the room ID property
+      newRoom.id = action.payload.id;
+      // Corrects the room image property
+      newRoom.image = action.payload.image;
 
       /**
        * Checks to make sure there's not a duplicate room. If there is,
        * the newer room object is not saved
        */
       if (
-        newSortRoomList.filter((room) => room.id === action.payload.room_id)
+        newSortRoomList.filter((prevRoom) => prevRoom.id === newRoom.id)
           .length === 0
       ) {
         newSortRoomList.push({
-          id: action.payload.room_id,
-          lastUpdated: action.payload.lastUpdated,
+          id: newRoom.id,
+          lastUpdated: newRoom.lastUpdated,
         });
 
         // Sorts the room list to be listed in the correct order by date
@@ -64,12 +66,28 @@ const slice = createSlice({
         );
 
         // Adds the room to the rooms object
-        state.rooms[action.payload.room_id] = correctedRoomObject(
-          action.payload
-        );
-        // Shows in the state that a new room was created
-        state.newRoomCreated = true;
+        state.rooms[newRoom.id] = newRoom;
+        // Shows in the state that a new room was created and sets it's ID
+        state.newRoomCreated = {
+          roomCreated: true,
+          roomID: newRoom.id,
+          roomLastUpdated: newRoom.lastUpdated,
+        };
+        // Resets the room creating loading
+        state.createRoomLoading = false;
       }
+    },
+
+    newRoomReqFailed: (state, action) => {
+      // Since there's no new room, default values are set
+      state.newRoomCreated.roomCreated = false;
+      state.newRoomCreated.roomID = null;
+      // Resets the room creating loading
+      state.createRoomLoading = false;
+    },
+
+    setCreateRoomLoading: (state, action) => {
+      state.createRoomLoading = true;
     },
 
     // Sets the new room created back to false
@@ -203,7 +221,9 @@ const slice = createSlice({
            * Temporary: In the future, the back-end should correctly set these properties
            */
           if (
-            moment(message.createdAt).isAfter(state.rooms[roomID].lastUpdated)
+            moment(message.createdAt).isSameOrAfter(
+              state.rooms[roomID].lastUpdated
+            )
           ) {
             state.rooms[roomID].lastMessage = message.text;
             state.rooms[roomID].lastUpdated = message.createdAt;
@@ -372,6 +392,12 @@ const slice = createSlice({
       state.rooms = {};
       state.sortRoomList = [];
       state.roomsWithNewMessages = [];
+      state.newRoomCreated = {
+        roomCreated: false,
+        roomID: null,
+        roomLastUpdated: null,
+      };
+      state.createRoomLoading = false;
       state.notificationIdentifiers = [];
       state.messages = {};
       state.messageSort = {};
@@ -407,7 +433,23 @@ const getRoomsSortList = createSelector(
  */
 export const getNewRoomCreated = createSelector(
   (state) => state.entities.chat,
-  (chat) => chat.newRoomCreated
+  (chat) => chat.newRoomCreated.roomCreated
+);
+
+/**
+ * Returns the new room created ID #
+ */
+export const getNewRoomCreatedID = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.newRoomCreated.roomID
+);
+
+/**
+ * Returns the new room created last updated date
+ */
+export const getNewRoomCreatedLastUpdated = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.newRoomCreated.roomLastUpdated
 );
 
 /**
@@ -425,6 +467,14 @@ export const getUserRooms = createSelector(
   getRooms,
   getRoomsSortList,
   (rooms, sortList) => sortList.map((room) => rooms[room.id])
+);
+
+/**
+ * Returns the loading status of creating a new room
+ */
+export const getCreateRoomLoading = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.createRoomLoading
 );
 
 /**
@@ -479,7 +529,7 @@ const isNotificationHandled = (notificationIdentifier) =>
  * Fetches the user's list of rooms
  * @returns An action of fetching the user's list of rooms
  */
-export const fetchRooms = () => (dispatch, getState) => {
+export const fetchRooms = (dispatch, getState) => {
   dispatch(
     apiRequested({
       url: "/dm/rooms",
@@ -548,7 +598,6 @@ export const sendMessage = (stateMessage, backEndMessage) => (
   // The push notification user IDs
   backEndMessage.users_ids = roomObj.users.map((user) => user.id);
 
-  // // Sends the message to the back-end
   dispatch(
     apiRequested({
       url: "/dm/text",
@@ -562,32 +611,6 @@ export const sendMessage = (stateMessage, backEndMessage) => (
       },
     })
   );
-
-  /**
-   * TEMPORARY
-   * Sends data to Expo Server to Push Notification
-   */
-  // const dataToSendWithMessage = {
-  //   title: roomObj.group
-  //     ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
-  //     : backEndMessage.user.name,
-  //   body: roomObj.group
-  //     ? `${backEndMessage.user.name}\n${backEndMessage.text}`
-  //     : backEndMessage.text,
-  // };
-  // dispatch(
-  //   pushRemoteNotification({
-  //     title: roomObj.group
-  //       ? getRoomName(roomObj, getState().entities.profile.userInfo.data.ID)
-  //       : backEndMessage.user.name,
-  //     body: backEndMessage.text,
-  //     data: {
-  //       roomID,
-  //       messageID: backEndMessage.id,
-  //       date: moment(Date.now()).format("YYYY-MM-DDTHH:mm:ss.SSS"),
-  //     },
-  //   })
-  // );
 };
 
 /**
@@ -610,7 +633,6 @@ export const getFullMessageFromServer = (request, notificationTray) => (
     const roomID = parseInt(request.content.data.roomID);
     // The message ID
     const messageID = request.content.data.messageID;
-    console.log("Room ID of notification:", roomID);
 
     // Fetches the full message from the back-end
     dispatch(
@@ -629,39 +651,6 @@ export const getFullMessageFromServer = (request, notificationTray) => (
         },
       })
     );
-
-    /**
-     * TEMPORARILY
-     * ADDS A PUSH MESSAGE TO THE STATE: MOCKS API CALL
-     */
-    // dispatch({
-    //   type: slice.actions.addMessage.type,
-    //   payload: {
-    //     notificationIdentifier: request.identifier,
-    //     notificationTray,
-    //     roomID,
-    //     messageObj: {
-    //       text: request.content.body,
-    //       createdAt: request.content.data.date,
-    //       image: null,
-    //       video: null,
-    //       audio: null,
-    //       system: false,
-    //       received: true,
-    //       pending: false,
-    //       user: {
-    //         _id: "50197779",
-    //         name: "Ari Dospassos",
-    //         avatar: "",
-    //       },
-    //       _id: messageID,
-    //     },
-    //   },
-    // });
-    // dispatch({
-    //   type: slice.actions.addRoomIDToNewMessage.type,
-    //   passedData: { roomID },
-    // });
   }
 };
 
@@ -686,8 +675,12 @@ export const removeRoomIDFromNewMessages = (roomID, notificationTray) => (
  *                      to the back-end
  */
 export const createNewRoom = (room) => (dispatch, getState) => {
-  // Corrects the message object format
-  room.initialMessage = correctedMessageObject(room.initialMessage);
+  // Corrects the message object's ID
+  room.message.id = room.message._id;
+  delete room.message._id;
+
+  // Sets the loading status of creating a new room as true
+  dispatch({ type: slice.actions.setCreateRoomLoading.type });
 
   // Sends the new room to the back-end
   dispatch(
@@ -697,6 +690,7 @@ export const createNewRoom = (room) => (dispatch, getState) => {
       data: JSON.stringify(room),
       useEndpoint: true,
       onSuccess: slice.actions.addRoom.type,
+      onError: slice.actions.newRoomReqFailed.type,
     })
   );
 };
@@ -713,6 +707,19 @@ export const resetNewRoomCreated = (dispatch, getState) => {
  */
 export const ent_ChatResetState = (dispatch, getState) => {
   dispatch({ type: slice.actions.resetState.type, payload: null });
+};
+
+/**
+ * Fetches all data used by this slice from the server
+ */
+export const ent_ChatFetchAllData = (dispatch, getState) => {
+  /**
+   * The messages aren't fetched due to the Rooms component. In there,
+   * there's a useEffect that handles fetching the user's messages after
+   * the user's rooms are fetched. Therefore, only fetching the user's rooms
+   * are required
+   */
+  dispatch(fetchRooms);
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/

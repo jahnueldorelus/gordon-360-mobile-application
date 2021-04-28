@@ -54,40 +54,31 @@ export const TextingHaptics = (props) => {
 
   return (
     <View style={styles.mainContainer}>
-      <View
-        style={{
-          flex: 1,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 10,
-        }}
-      >
-        <Text style={{ fontSize: 20, fontWeight: "bold", color: "white" }}>
-          Texting Haptics
-        </Text>
+      <View style={styles.header}>
+        <Text style={props.styles.listItemTitle}>Texting Haptics</Text>
         <Switch
           onValueChange={() => {
             dispatch(setHapticsForTexting(!hapticsEnabled));
             // Sets the Haptics Type for when the user is texting
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           }}
+          disabled={!supportHaptics()}
           value={hapticsEnabled}
           trackColor={getTrackColor()}
           thumbColor={hapticsEnabled ? "#0275f8" : "white"}
           ios_backgroundColor={getTrackColor(true)}
         />
       </View>
-      <Text style={{ color: "#e6f2ff", textAlign: "right", marginBottom: 10 }}>
+      <Text style={styles.switchStatus}>
         {hapticsEnabled ? "Enabled" : "Disabled"}
       </Text>
       {supportHaptics() ? (
-        <Text style={{ color: "#e6f2ff", fontSize: 15 }}>
+        <Text style={props.styles.listItemText}>
           Haptics is the quick vibration you feel from your device after typing
           or deleting a character with your keyboard.
         </Text>
       ) : (
-        <Text style={{ color: "#e6f2ff", fontSize: 15 }}>
+        <Text style={props.styles.listItemText}>
           Haptics are disabled. Your device doesn't support Haptics.
         </Text>
       )}
@@ -99,4 +90,12 @@ const styles = StyleSheet.create({
   mainContainer: {
     marginBottom: 20,
   },
+  header: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  switchStatus: { color: "#e6f2ff", textAlign: "right", marginBottom: 10 },
 });

@@ -17,6 +17,7 @@ import {
 import { Icon } from "react-native-elements";
 import { SearchTooltip } from "../../Components/SearchTooltip/index";
 import { useSelector, useDispatch } from "react-redux";
+import { LoadingScreen } from "../../../../../Components/LoadingScreen/index";
 
 export const SearchResults = (props) => {
   // Redux Dispatch
@@ -213,15 +214,7 @@ export const SearchResults = (props) => {
   );
 
   // Loading View
-  const loadingView = (
-    <View style={styles.loadingImageContainer}>
-      <Image
-        source={require("../Images/mascot.png")}
-        style={styles.loadingImage}
-      />
-      <Text style={styles.loadingImageText}>Searching...</Text>
-    </View>
-  );
+  const loadingView = <LoadingScreen loadingText="Searching" />;
 
   return (
     <View style={{ flex: 1 }}>

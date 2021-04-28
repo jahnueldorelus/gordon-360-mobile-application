@@ -197,10 +197,12 @@ const styles = StyleSheet.create({
   roomImage: {
     width: Dimensions.get("window").height * 0.1,
     height: Dimensions.get("window").height * 0.1,
-    borderRadius: 10,
+    borderRadius: 50,
     marginRight: 15,
     alignSelf: "center",
-    resizeMode: "contain",
+    // resizeMode: "contain",
+    borderWidth: 0.5,
+    borderColor: "#014983",
   },
   mainIconsContainer: { justifyContent: "center" },
   imageIconContainer: {

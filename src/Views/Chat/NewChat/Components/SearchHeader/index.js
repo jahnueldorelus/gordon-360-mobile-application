@@ -116,7 +116,7 @@ export const SearchHeader = (props) => {
           containerStyle={styles.searchBarContainer}
           platform="ios"
           onChangeText={(text) => {
-            setSearchedText(text);
+            setSearchedText(text.trimStart());
           }}
           onSubmitEditing={() => {
             submitSearch();

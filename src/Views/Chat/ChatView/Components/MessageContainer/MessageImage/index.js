@@ -33,12 +33,12 @@ const MessageImage = (props) => {
   };
 
   // The image viewer component
-  const imageViewer = (
-    <CustomImageViewer
-      image={props.currentMessage.image}
-      setVisible={handleImageVisibility}
-    />
-  );
+  // const imageViewer = (
+  //   <CustomImageViewer
+  //     image={props.currentMessage.image}
+  //     setVisible={handleImageVisibility}
+  //   />
+  // );
 
   // The styles of this component
   const styles = StyleSheet.create({
@@ -59,24 +59,26 @@ const MessageImage = (props) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        onPress={() => {
-          // The new configuration for the modal
-          let newModalConfig = { ...props.ModalHandler.modalConfig };
-          /**
-           * The modal's configuration is set to show the image in the image viewer
-           */
-          newModalConfig.visible = true;
-          newModalConfig.content = imageViewer;
-          newModalConfig.height = 100;
-          newModalConfig.contain = false;
-          newModalConfig.cover = true;
-          newModalConfig.styles = {};
-          props.ModalHandler.setModalConfig(newModalConfig);
-        }}
+      // onPress={() => {
+      //   // The new configuration for the modal
+      //   let newModalConfig = { ...props.ModalHandler.modalConfig };
+      //   /**
+      //    * The modal's configuration is set to show the image in the image viewer
+      //    */
+      //   newModalConfig.visible = true;
+      //   newModalConfig.content = imageViewer;
+      //   newModalConfig.height = 100;
+      //   newModalConfig.contain = false;
+      //   newModalConfig.cover = true;
+      //   newModalConfig.styles = {};
+      //   props.ModalHandler.setModalConfig(newModalConfig);
+      // }}
       >
         <Image
           style={styles.image}
-          source={{ uri: props.currentMessage.image }}
+          source={{
+            uri: "data:image/gif;base64," + props.currentMessage.image,
+          }}
         />
       </TouchableOpacity>
     </View>

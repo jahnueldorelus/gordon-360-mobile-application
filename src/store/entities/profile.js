@@ -163,6 +163,16 @@ const slice = createSlice({
       state.schedule = { ...template };
       state.advisors = { ...template };
     },
+
+    // Resets all the state's data except for their profile info
+    resetStateExceptUserProfile: (state, action) => {
+      state.image = { ...template };
+      state.dining = { ...template };
+      state.chapel = { ...template };
+      state.involvements = { ...template };
+      state.schedule = { ...template };
+      state.advisors = { ...template };
+    },
   },
 });
 
@@ -179,11 +189,27 @@ export const getUserImage = createSelector(
 );
 
 /**
+ * Returns the user's image request pending status
+ */
+export const getReqUserImageStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.image.loading
+);
+
+/**
  * Returns the user's dining info
  */
 export const getUserDining = createSelector(
   (state) => state.entities.profile,
   (profile) => profile.dining.data
+);
+
+/**
+ * Returns the user's dining request pending status
+ */
+export const getReqUserDiningStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.dining.loading
 );
 
 /**
@@ -195,11 +221,27 @@ export const getUserChapel = createSelector(
 );
 
 /**
- * Returns the user's chapel involvements
+ * Returns the user's chapel request pending status
+ */
+export const getReqUserChapelStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.chapel.loading
+);
+
+/**
+ * Returns the user's involvements
  */
 export const getUserInvolvements = createSelector(
   (state) => state.entities.profile,
   (profile) => profile.involvements.data
+);
+
+/**
+ * Returns the user's involvements request pending status
+ */
+export const getReqUserInvolvementsStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.involvements.loading
 );
 
 /**
@@ -211,11 +253,27 @@ export const getUserInfo = createSelector(
 );
 
 /**
+ * Returns the user's profile request pending status
+ */
+export const getReqUserProfileStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.userInfo.loading
+);
+
+/**
  * Returns the user's schedule info
  */
 export const getUserSchedule = createSelector(
   (state) => state.entities.profile,
   (profile) => profile.schedule.data
+);
+
+/**
+ * Returns the user's schedule request pending status
+ */
+export const getReqUserScheduleStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.schedule.loading
 );
 
 /**
@@ -226,114 +284,112 @@ export const getUserAdvisors = createSelector(
   (profile) => profile.advisors.data
 );
 
+/**
+ * Returns the user's advisors request pending status
+ */
+export const getReqUserAdvisorsStatus = createSelector(
+  (state) => state.entities.profile,
+  (profile) => profile.advisors.loading
+);
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Fetches the user's profile info
  * @returns An action of fetching the user's profile info
  */
-export const fetchProfile = () => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.userInfo)) {
-    dispatch(
-      apiRequested({
-        url: "/profiles",
-        useEndpoint: true,
-        onStart: slice.actions.infoReqStarted.type,
-        onSuccess: slice.actions.infoAdded.type,
-        onEnd: slice.actions.infoReqEnded.type,
-      })
-    );
-  }
+export const fetchProfile = (dispatch, getState) => {
+  dispatch(
+    apiRequested({
+      url: "/profiles",
+      useEndpoint: true,
+      onStart: slice.actions.infoReqStarted.type,
+      onSuccess: slice.actions.infoAdded.type,
+      onEnd: slice.actions.infoReqEnded.type,
+    })
+  );
 };
 
 /**
  * Fetches the user's image
  * @returns An action of fetching the user's image
  */
-export const fetchImage = () => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.image)) {
-    dispatch(
-      apiRequested({
-        url: "/profiles/image",
-        useEndpoint: true,
-        onStart: slice.actions.imageReqStarted.type,
-        onSuccess: slice.actions.imageAdded.type,
-        onEnd: slice.actions.imageReqEnded.type,
-      })
-    );
-  }
+export const fetchImage = (dispatch, getState) => {
+  dispatch(
+    apiRequested({
+      url: "/profiles/image",
+      useEndpoint: true,
+      onStart: slice.actions.imageReqStarted.type,
+      onSuccess: slice.actions.imageAdded.type,
+      onEnd: slice.actions.imageReqEnded.type,
+    })
+  );
 };
 
 /**
  * Fetches the user's dining info
  * @returns An action of fetching the user's dining info
  */
-export const fetchDining = () => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.dining)) {
-    dispatch(
-      apiRequested({
-        url: "/dining",
-        useEndpoint: true,
-        onStart: slice.actions.diningReqStarted.type,
-        onSuccess: slice.actions.diningAdded.type,
-        onEnd: slice.actions.diningReqEnded.type,
-      })
-    );
-  }
+export const fetchDining = (dispatch, getState) => {
+  dispatch(
+    apiRequested({
+      url: "/dining",
+      useEndpoint: true,
+      onStart: slice.actions.diningReqStarted.type,
+      onSuccess: slice.actions.diningAdded.type,
+      onEnd: slice.actions.diningReqEnded.type,
+    })
+  );
 };
 
 /**
  * Fetches the user's schedule
  * @returns An action of fetching the user's schedule
  */
-export const fetchSchedule = () => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.schedule)) {
-    dispatch(
-      apiRequested({
-        url: "/schedule",
-        useEndpoint: true,
-        onStart: slice.actions.schedReqStarted.type,
-        onSuccess: slice.actions.scheduleAdded.type,
-        onEnd: slice.actions.schedReqEnded.type,
-      })
-    );
-  }
+export const fetchSchedule = (dispatch, getState) => {
+  dispatch(
+    apiRequested({
+      url: "/schedule",
+      useEndpoint: true,
+      onStart: slice.actions.schedReqStarted.type,
+      onSuccess: slice.actions.scheduleAdded.type,
+      onEnd: slice.actions.schedReqEnded.type,
+    })
+  );
 };
 
 /**
  * Fetches the user's involvements
- * @param {number} userID The user's ID number
  * @returns An action of fetching the user's involvements
  */
-export const fetchInvolvements = (userID) => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.involvements)) {
-    dispatch(
-      apiRequested({
-        url: `/memberships/student/${userID}`,
-        useEndpoint: true,
-        onStart: slice.actions.involReqStarted.type,
-        onSuccess: slice.actions.involvementAdded.type,
-        onEnd: slice.actions.involReqEnded.type,
-      })
-    );
-  }
+export const fetchInvolvements = (dispatch, getState) => {
+  // The user's ID number
+  const userID = getUserInfo(getState()).ID;
+
+  dispatch(
+    apiRequested({
+      url: `/memberships/student/${userID}`,
+      useEndpoint: true,
+      onStart: slice.actions.involReqStarted.type,
+      onSuccess: slice.actions.involvementAdded.type,
+      onEnd: slice.actions.involReqEnded.type,
+    })
+  );
 };
 
 /**
  * Fetches the user's chapel info
  * @returns An action of fetching the user's chapel info
  */
-export const fetchChapel = () => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.chapel)) {
-    dispatch(
-      apiRequested({
-        url: `/events/chapel/${getTermCode()}`,
-        useEndpoint: true,
-        onStart: slice.actions.chapelReqStarted.type,
-        onSuccess: slice.actions.chapelAdded.type,
-        onEnd: slice.actions.chapelReqEnded.type,
-      })
-    );
-  }
+export const fetchChapel = (dispatch, getState) => {
+  dispatch(
+    apiRequested({
+      url: `/events/chapel/${getTermCode()}`,
+      useEndpoint: true,
+      onStart: slice.actions.chapelReqStarted.type,
+      onSuccess: slice.actions.chapelAdded.type,
+      onEnd: slice.actions.chapelReqEnded.type,
+    })
+  );
 };
 
 /**
@@ -341,18 +397,42 @@ export const fetchChapel = () => (dispatch, getState) => {
  * @param {string} username The user's username (firstname.lastname)
  * @returns An action of fetching the user's advisor(s)
  */
-export const fetchAdvisors = (username) => (dispatch, getState) => {
-  if (shouldFetch(getState().entities.profile.advisors)) {
-    dispatch(
-      apiRequested({
-        url: `/profiles/Advisors/${username}/`,
-        useEndpoint: true,
-        onStart: slice.actions.advisorsReqStarted.type,
-        onSuccess: slice.actions.advisorsAdded.type,
-        onEnd: slice.actions.advisorsReqEnded.type,
-      })
-    );
-  }
+export const fetchAdvisors = (dispatch, getState) => {
+  // The user's username
+  const username = getUserInfo(getState()).AD_Username;
+
+  dispatch(
+    apiRequested({
+      url: `/profiles/Advisors/${username}/`,
+      useEndpoint: true,
+      onStart: slice.actions.advisorsReqStarted.type,
+      onSuccess: slice.actions.advisorsAdded.type,
+      onEnd: slice.actions.advisorsReqEnded.type,
+    })
+  );
+};
+
+/**
+ * Resets all the state's data except for the user's profile info
+ */
+export const ent_ProfileResetExceptUserProfile = (dispatch, getState) => {
+  dispatch({
+    type: slice.actions.resetStateExceptUserProfile.type,
+    payload: null,
+  });
+};
+
+/**
+ * Fetches all data used by this slice from the server
+ */
+export const ent_ProfileFetchAllData = (dispatch, getState) => {
+  dispatch(fetchAdvisors);
+  dispatch(fetchChapel);
+  dispatch(fetchDining);
+  dispatch(fetchImage);
+  dispatch(fetchInvolvements);
+  dispatch(fetchProfile);
+  dispatch(fetchSchedule);
 };
 
 /**
@@ -363,17 +443,6 @@ export const ent_ProfileResetState = (dispatch, getState) => {
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/
-/**
- * Checks to see if the given data object should be updated
- * @param {Object} slice The object of the given data
- * @returns {Boolean} Whether or not if the fetch should be made
- */
-const shouldFetch = (slice) => {
-  const { lastFetch } = slice;
-  const diffInMinutes = moment().diff(moment(lastFetch), "minutes");
-  // If it hasn't been 10 minutes since the last fetch, a fetch isn't made
-  return diffInMinutes < 10 ? false : true;
-};
 
 /**
  * Gets the current term code. (Code was taken from repo "gordon-360-ui")

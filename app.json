@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "360 DM",
+    "owner": "gordon_college",
     "slug": "360_DM",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,7 +22,8 @@
       "bundleIdentifier": "edu.Gordon360.DM"
     },
     "android": {
-      "useNextNotificationsApi": true
+      "useNextNotificationsApi": true,
+      "package": "edu.Gordon360.DM"
     },
     "web": {
       "favicon": "./assets/favicon.png"

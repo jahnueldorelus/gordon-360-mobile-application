@@ -8,7 +8,6 @@ import { View, Text } from "react-native";
  */
 export const renderCustomView = (props) => (
   <View style={{ minHeight: 20, alignItems: "center", borderWidth: 1 }}>
-    {console.log(props)}
     <Text>This box is the Custom View</Text>
   </View>
 );

@@ -23,25 +23,21 @@ export const AppSettings = () => {
             <Text style={styles.headerText}>App Settings</Text>
           </View>
 
-          {/* RESET APP */}
-          <ResetApp styles={styles} />
+          <ResetApp styles={itemStyles} />
 
-          {/* GORDON 360 WEBSITE */}
-          <Status360 styles={styles} />
+          <Status360 styles={itemStyles} />
 
-          {/* GORDON 360 SERVER */}
-          <StatusServer styles={styles} />
+          <StatusServer styles={itemStyles} />
 
           <View
             style={[
-              styles.listContainer,
-              { borderRadius: styles.statusContainer.borderRadius },
+              listStyles.listContainer,
+              { borderRadius: itemStyles.itemContainer.borderRadius },
             ]}
           >
-            {/* TEXTING HAPTICS */}
-            <TextingHaptics styles={styles} />
+            <TextingHaptics styles={listStyles} />
             <ListDivider />
-            {/* <SignOut /> */}
+            <SignOut styles={listStyles} />
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -49,6 +45,7 @@ export const AppSettings = () => {
   );
 };
 
+// Styles for the component
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: "white" },
   safeAreaView: { flex: 1, backgroundColor: "black" },
@@ -63,47 +60,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textDecorationLine: "underline",
   },
-  resetAllButton: {
-    borderWidth: 2,
-    borderColor: "#014983",
-    alignSelf: "flex-start",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 10,
-  },
-  statusContainer: {
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 15,
-    marginVertical: 10,
-  },
-  statusTextAndIconContainer: { flexDirection: "row", marginBottom: 10 },
-  statusIconContainer: {
-    marginRight: 20,
-  },
-  statusIcon: {
-    marginTop: 5,
-    backgroundColor: "white",
-    padding: 5,
-    borderRadius: 10,
-  },
-  statusTextContainer: { flex: 1 },
-  statusTextTitle: {
-    color: "white",
-    fontSize: 21,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  statusTextDate: {
-    color: "white",
-    fontSize: 17,
-    marginBottom: 5,
-    fontWeight: "normal",
-  },
-  statusTextDateBold: { fontWeight: "bold" },
-  statusTextCurrent: { color: "white", fontSize: 15, fontWeight: "bold" },
-  statusCheckerButton: {
+});
+
+// Button styles for the component
+const buttonStyles = StyleSheet.create({
+  itemButton: {
     backgroundColor: "white",
     alignSelf: "flex-end",
     paddingVertical: 7,
@@ -111,20 +72,69 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 5,
   },
-  statusCheckerButtonText: {
+  itemButtonText: {
     fontWeight: "bold",
     fontSize: 16,
+    color: "#354f86",
   },
-  statusTextCurrentContainer: {
+});
+
+// Style for singular items
+const itemStyles = StyleSheet.create({
+  ...buttonStyles,
+  itemContainer: {
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
+    marginVertical: 10,
+  },
+  itemTextAndIconContainer: { flexDirection: "row", marginBottom: 10 },
+  itemIconContainer: {
+    marginRight: 20,
+  },
+  itemIcon: {
+    marginTop: 5,
+    backgroundColor: "white",
+    padding: 5,
+    borderRadius: 10,
+  },
+  itemTextContainer: { flex: 1 },
+  itemTextTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  itemTextDate: {
+    color: "white",
+    fontSize: 15,
+    marginBottom: 5,
+    fontWeight: "normal",
+  },
+  itemTextDateBold: { fontWeight: "bold" },
+  itemTextCurrentContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
+  itemTextCurrent: { color: "white", fontSize: 15, fontWeight: "bold" },
+});
+
+// Styles for the list of items
+const listStyles = StyleSheet.create({
+  ...buttonStyles,
   listContainer: {
     marginVertical: 20,
     padding: 15,
+    paddingBottom: 5,
     borderWidth: 1,
     backgroundColor: "#013e83",
   },
-  listItemTitle: { fontSize: 20, fontWeight: "bold", color: "white" },
-  listItemText: {},
+  listItemTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 5,
+  },
+  listItemText: { color: "#e6f2ff", fontSize: 15, marginTop: 5 },
 });

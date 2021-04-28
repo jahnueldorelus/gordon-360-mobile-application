@@ -2,9 +2,9 @@
   "expoServerPort": 19000,
   "packagerPort": 19000,
   "packagerPid": null,
-  "expoServerNgrokUrl": null,
-  "packagerNgrokUrl": null,
-  "ngrokPid": null,
+  "expoServerNgrokUrl": "https://ue-5pb.jahnuel.gordon-360-app.exp.direct",
+  "packagerNgrokUrl": "https://packager.ue-5pb.jahnuel.gordon-360-app.exp.direct",
+  "ngrokPid": 12880,
   "webpackServerPort": null,
   "devToolsPort": 19002
 }

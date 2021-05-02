@@ -376,14 +376,19 @@ const slice = createSlice({
         if (
           moment(messageObj.createdAt).isAfter(state.rooms[roomID].lastUpdated)
         ) {
-          // Updates the last message property of the room
-          state.rooms[roomID].lastMessage = messageObj.text
-            ? messageObj.text
-            : messageObj.image
-            ? "(Image)"
-            : "";
-          // Updates the last updated property of the room
-          state.rooms[roomID].lastUpdated = messageObj.createdAt;
+          state.rooms[roomID] = {
+            ...state.rooms[roomID],
+            /**
+             * Updates the last message property of the room if the message object
+             * has a text along with it
+             */
+            lastMessage: messageObj.text
+              ? messageObj.text
+              : state.rooms[roomID].lastMessage,
+            // Updates the last updated property of the room
+            lastUpdated: messageObj.createdAt,
+          };
+
           // Updates the last updated property of the sorted list of rooms
           state.sortRoomList.filter((room) => {
             // The numbers must be converted to string first to properly compare
@@ -405,15 +410,9 @@ const slice = createSlice({
       if (serverSuccess) {
         const { roomID, messageObj } = action.passedData;
         const message = state.messages[roomID][messageObj.id];
-        const room = state.rooms[roomID];
         // Changes the message's pending status to false
         if (message) {
           message.pending = false;
-        }
-        // Updates the room's lastUpdated and lastMessage properties
-        if (room) {
-          room.lastMessage = messageObj.text;
-          room.lastUpdated = messageObj.createdAt;
         }
       }
     },

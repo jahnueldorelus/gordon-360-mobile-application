@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { CustomImageViewer } from "../../../../../../Components/CustomImageViewer";
 
 /**
  * Just a function that calls the real component MessageImage

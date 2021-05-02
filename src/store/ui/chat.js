@@ -9,6 +9,7 @@ const slice = createSlice({
     isChatOpenedAndVisible: false,
     roomImage: null,
     roomName: "",
+    shouldNavigateToChat: false,
   },
   reducers: {
     /**
@@ -34,6 +35,11 @@ const slice = createSlice({
       state.roomName = action.payload;
     },
 
+    // Set the value of navigating to the chat screen
+    setShouldNavigateToChat: (state, action) => {
+      state.shouldNavigateToChat = action.payload;
+    },
+
     /**
      * STATE RESET REDUCER
      */
@@ -43,6 +49,7 @@ const slice = createSlice({
       state.isChatOpenedAndVisible = false;
       state.roomImage = null;
       state.roomName = "";
+      state.shouldNavigateToChat = false;
     },
   },
 });
@@ -83,12 +90,26 @@ export const getRoomName = createSelector(
   (chat) => chat.roomName
 );
 
+/**
+ * Returns the value of navigating to the chat screen
+ */
+export const getShouldNavigateToChat = createSelector(
+  (state) => state.ui.chat,
+  (chat) => chat.shouldNavigateToChat
+);
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Sets the user selected room ID
- * @returns An action of selecting the room ID
  */
 export const setRoomID = createAction(slice.actions.selectedRoom.type);
+
+/**
+ * Sets the value of whether or not the app should navigate to the chat screen
+ */
+export const setShouldNavigateToChat = createAction(
+  slice.actions.setShouldNavigateToChat.type
+);
 
 /**
  * Sets the value of if a chat is opened and visible

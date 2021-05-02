@@ -183,11 +183,6 @@ export const removeNotificationsInTray = async (roomID) => {
   const notificationTray = await Notifications.getPresentedNotificationsAsync();
 
   notificationTray.forEach(async (notification, index) => {
-    console.log(
-      notification.request.identifier,
-      " = ",
-      parseInt(notification.request.content.data.roomID) === roomID
-    );
     if (
       notification.request.content.data.roomID &&
       parseInt(notification.request.content.data.roomID) === roomID

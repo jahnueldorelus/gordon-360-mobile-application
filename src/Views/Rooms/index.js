@@ -23,7 +23,11 @@ import {
 } from "../../store/entities/chat";
 import { getUserInfo } from "../../store/entities/profile";
 import { useDispatch, useSelector } from "react-redux";
-import { setRoomID } from "../../store/ui/chat";
+import {
+  setRoomID,
+  getShouldNavigateToChat,
+  setShouldNavigateToChat,
+} from "../../store/ui/chat";
 import { LoadingScreen } from "../../Components/LoadingScreen/index";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenNames } from "../../../ScreenNames";
@@ -54,6 +58,8 @@ export const RoomsList = () => {
    * This helps prevent multiple fetches for the user's messages froom being made
    */
   const shouldFetchMessages = useRef(true);
+  // Determines if the app should navigate directly to the chat screen
+  const shouldNavigateToChat = useSelector(getShouldNavigateToChat);
 
   // Re-fetches the user's messages if the rooms object is available
   useEffect(() => {
@@ -78,6 +84,23 @@ export const RoomsList = () => {
   useEffect(() => {
     dispatch(fetchRooms);
   }, []);
+
+  /**
+   * If the app should directly navigate to the chat screen
+   * (In Example: if a chat notification is clicked on), then the user
+   * is brought straight to the Chat screen
+   */
+  useEffect(() => {
+    if (shouldNavigateToChat) {
+      // Navigates to the chat screen
+      navigation.navigate(ScreenNames.chat);
+      /**
+       * Resets the state that determines if the app should
+       * navigate directly to the chat screen
+       */
+      dispatch(setShouldNavigateToChat(false));
+    }
+  }, [shouldNavigateToChat]);
 
   if (rooms && roomsWithNewMessages && userProfile && !dataLoading)
     return (

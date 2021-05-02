@@ -2,12 +2,12 @@ import React, { useEffect, useRef } from "react";
 import { AppBar } from "./src/Components/AppBar";
 import { View, StyleSheet, AppState } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { ChatView } from "./src/Views/Chat/ChatView";
-import { RoomsList } from "./src/Views/Rooms";
 import { Login } from "./src/Views/Login";
 import { AppSettings } from "./src/Views/AppSettings";
 import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
+import { ChatView } from "./src/Views/Chat/ChatView";
+import { RoomsList } from "./src/Views/Rooms";
 import {
   registerForPushNotificationsAsync,
   notificationResponseHandler,
@@ -139,13 +139,14 @@ export const Screen = (props) => {
       <View style={styles.screenView}>
         <Stack.Navigator
           /**
-           * Navigation gestures are disabled to important logic that must
+           * Navigation gestures are disabled since there's no callback
+           * for when this occurs and therefore creates a bug where important
+           * logic might run whenever the user changes screens
            */
           screenOptions={{ headerShown: false, gestureEnabled: false }}
         >
           <Stack.Screen name={ScreenNames.rooms}>
             {() => (
-              // Rooms Screen
               <View style={styles.screenView}>
                 <AppBar />
                 <RoomsList />
@@ -154,7 +155,6 @@ export const Screen = (props) => {
           </Stack.Screen>
           <Stack.Screen name={ScreenNames.chat}>
             {() => (
-              // Chat Screen
               <View style={styles.screenView}>
                 <AppBar />
                 <ChatView />
@@ -196,7 +196,7 @@ export const Screen = (props) => {
 
   // Returns the screen that's asked for through props
   if (props.screenName === ScreenNames.gordon360) return Gordon360Page();
-  else if (props.screenName === ScreenNames.messages) return Messages();
+  else if (props.screenName === ScreenNames.messages) return Messages(props);
   else if (props.screenName === ScreenNames.profile) return ProfilePage();
   else if (props.screenName === ScreenNames.settings) return Settings();
   else if (props.screenName === ScreenNames.login) return LoginPage();

@@ -2,7 +2,8 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform, Linking, Alert } from "react-native";
 import { setExpoToken } from "../../store/entities/Auth/auth";
-import { setRoomID } from "../../store/ui/chat";
+import { setRoomID, setShouldNavigateToChat } from "../../store/ui/chat";
+import { ScreenNames } from "../../../ScreenNames";
 
 // Notification Category Identifier
 export const NotificationType = {
@@ -45,9 +46,10 @@ export const notificationResponseHandler = async (
     const roomID = parseInt(notification.request.content.data.roomID);
     // Sets the user's selected room ID
     dispatch(setRoomID(roomID));
-    // Navigates to the chat where the message was received for and sets
-    // the navigation parameters with the room ID
-    navigation.navigate("Chat");
+    // Sets the value for the messages screen to navigate directly to the chat screen
+    dispatch(setShouldNavigateToChat(true));
+    // Navigates to the messages screen
+    navigation.navigate(ScreenNames.messages);
   }
 };
 

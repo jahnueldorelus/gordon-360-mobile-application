@@ -1,101 +1,28 @@
-import React, { useEffect, useRef } from "react";
-import { AppBar } from "./src/Components/AppBar";
-import { View, StyleSheet, AppState } from "react-native";
+import React, { useEffect } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { createStackNavigator } from "@react-navigation/stack";
-import { ChatView } from "./src/Views/Chat/ChatView";
-import { RoomsList } from "./src/Views/Rooms";
-import { Login } from "./src/Views/Login";
-import { AppSettings } from "./src/Views/AppSettings";
-import { Profile } from "./src/Views/Profile";
-import { Gordon360 } from "./src/Views/Gordon360";
-import {
-  registerForPushNotificationsAsync,
-  notificationResponseHandler,
-  notificationReceivedHandler,
-  handleAppStateChange,
-} from "./src/Services/Notifications/index";
-import * as Notifications from "expo-notifications";
-/**
- * The function below, "getFullMessageFromServer" is imported into this moodule
- * and passed into the functions from the Notifications module to prevent a
- * require cycle that could potentially cause issues.
- */
-import { getFullMessageFromServer } from "./src/store/entities/chat";
 import { sendExpoTokenToServer } from "./src/store/entities/Auth/auth";
 import {
   getExpoToken,
   getToken,
+  get360URL,
 } from "./src/store/entities/Auth/authSelectors";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllAppDataAfterLogIn } from "./src/Services/App/index";
+import { fetchAppDataAfterLogIn } from "./src/Services/App/index";
+import { NetworkProvider } from "react-native-offline";
+import { Screen } from "./screen";
+import { ScreenNames } from "./ScreenNames";
 
 export const Start = () => {
   // Redux Dispatch
   const dispatch = useDispatch();
   // Navigators
   const Drawer = createDrawerNavigator();
-  const Stack = createStackNavigator();
-  const notificationReceivedListener = useRef();
-  const notificationResponseListener = useRef();
-  const previousAppState = useRef(AppState.currentState);
-
+  // Gordon 360 URL
+  const gordon360URL = useSelector(get360URL);
   // The main user's Gordon 360 token
   const authToken = useSelector(getToken);
   // The main user's Expo token
   const expoToken = useSelector(getExpoToken);
-
-  /**
-   * Notification and Application State Listeners
-   */
-  useEffect(() => {
-    // Attempts to get the user's permission to allow notifications
-    registerForPushNotificationsAsync(dispatch);
-
-    // Notification Received Listener
-    notificationReceivedListener.current = Notifications.addNotificationReceivedListener(
-      (notification) =>
-        notificationReceivedHandler(
-          notification,
-          getFullMessageFromServer,
-          dispatch
-        )
-    );
-    // Notification Response Listener
-    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) =>
-        notificationResponseHandler(
-          response.notification,
-          getFullMessageFromServer,
-          dispatch
-        )
-    );
-
-    /**
-     * App State Listener
-     */
-    AppState.addEventListener("change", (nextAppState) =>
-      handleAppStateChange(
-        previousAppState,
-        nextAppState,
-        getFullMessageFromServer,
-        dispatch
-      )
-    );
-
-    // Removes the notification and app state listeners
-    return () => {
-      Notifications.removeNotificationSubscription(
-        notificationReceivedListener.current
-      );
-      Notifications.removeNotificationSubscription(
-        notificationResponseListener.current
-      );
-      AppState.removeEventListener("change", (nextAppState) =>
-        handleAppStateChange(nextAppState)
-      );
-    };
-  }, []);
 
   useEffect(() => {
     /**
@@ -106,78 +33,35 @@ export const Start = () => {
       dispatch(sendExpoTokenToServer);
     }
     // If the user is logged in, all of their data is fetched
-    else if (authToken) {
-      fetchAllAppDataAfterLogIn(dispatch);
+    if (authToken) {
+      fetchAppDataAfterLogIn(dispatch);
     }
   }, [authToken]);
 
-  // Gordon 360 Screen
-  const Gordon360Page = ({ navigation }) => {
-    return <Gordon360 navigation={navigation} />;
+  // Returns a screen based upon the current route
+  const AppScreen = ({ route }) => {
+    if (route.name === ScreenNames.gordon360) {
+      return <Screen screenName={ScreenNames.gordon360} />;
+    } else if (route.name === ScreenNames.messages)
+      return <Screen screenName={ScreenNames.messages} />;
+    else if (route.name === ScreenNames.profile)
+      return <Screen screenName={ScreenNames.profile} />;
+    else if (route.name === ScreenNames.settings)
+      return <Screen screenName={ScreenNames.settings} />;
+    else if (route.name === ScreenNames.login)
+      return <Screen screenName={ScreenNames.login} />;
   };
 
-  // Messages Screen
-  const Messages = () => {
-    return (
-      <View style={styles.screenView}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Rooms">
-            {(props) => (
-              // Rooms Screen
-              <View style={styles.screenView}>
-                <AppBar {...props} />
-                <RoomsList {...props} />
-              </View>
-            )}
-          </Stack.Screen>
-          <Stack.Screen name="Chat">
-            {(props) => (
-              // Chat Screen
-              <View style={styles.screenView}>
-                <ChatView {...props} />
-              </View>
-            )}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </View>
-    );
-  };
-
-  const Settings = ({ navigation }) => {
-    return (
-      <View style={styles.screenView}>
-        <AppBar navigation={navigation} />
-        <AppSettings />
-      </View>
-    );
-  };
-
-  // User Profile Screen
-  const ProfilePage = ({ navigation }) => {
-    return (
-      <View style={styles.screenView}>
-        <AppBar navigation={navigation} route="Profile" />
-        <Profile />
-      </View>
-    );
-  };
-
-  // Login Screen
-  const LoginPage = () => {
-    return (
-      <View style={styles.screenView}>
-        <Login />
-      </View>
-    );
-  };
-
-  const MainScreen = () => {
+  const InitialView = () => {
     if (authToken) {
       return (
-        <Drawer.Navigator initialRouteName="Gordon 360" drawerType="slide">
+        <Drawer.Navigator
+          initialRouteName={ScreenNames.gordon360}
+          drawerType="slide"
+        >
           <Drawer.Screen
-            name="Gordon 360"
-            component={Gordon360Page}
+            name={ScreenNames.gordon360}
+            component={AppScreen}
             /**
              * Prevent users from accessing the drawer navigator using gestures
              * Since the WebView uses gestures for navigating through the browser's
@@ -185,17 +69,20 @@ export const Start = () => {
              */
             options={{ swipeEnabled: false }}
           />
-          <Drawer.Screen name="Messages" component={Messages} />
-          <Drawer.Screen name="Profile" component={ProfilePage} />
-          <Drawer.Screen name="Settings" component={Settings} />
+          <Drawer.Screen name={ScreenNames.messages} component={AppScreen} />
+          <Drawer.Screen name={ScreenNames.profile} component={AppScreen} />
+          <Drawer.Screen name={ScreenNames.settings} component={AppScreen} />
         </Drawer.Navigator>
       );
     } else {
       return (
-        <Drawer.Navigator initialRouteName="Login" drawerType="slide">
+        <Drawer.Navigator
+          initialRouteName={ScreenNames.login}
+          drawerType="slide"
+        >
           <Drawer.Screen
-            name="Login"
-            component={LoginPage}
+            name={ScreenNames.login}
+            component={AppScreen}
             /**
              * Prevent users from accessing the drawer navigator using gestures
              */
@@ -206,9 +93,9 @@ export const Start = () => {
     }
   };
 
-  return MainScreen();
+  return (
+    <NetworkProvider pingServerUrl={gordon360URL}>
+      {InitialView()}
+    </NetworkProvider>
+  );
 };
-
-const styles = StyleSheet.create({
-  screenView: { flex: 1 },
-});

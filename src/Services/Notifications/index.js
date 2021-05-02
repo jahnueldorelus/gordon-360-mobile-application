@@ -1,34 +1,13 @@
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform, Linking, Alert } from "react-native";
-import * as Navigation from "../Navigation/index";
 import { setExpoToken } from "../../store/entities/Auth/auth";
+import { setRoomID } from "../../store/ui/chat";
 
 // Notification Category Identifier
 export const NotificationType = {
   newMessage: "new_message",
 };
-
-/**
- * Handles the display of the notifications when the app is in the foreground.
- * If the user is in a chat where a message is received, a notification won't show.
- * Otherwise, a notification will display.
- */
-Notifications.setNotificationHandler({
-  handleNotification: async (notification) => {
-    return isChatMessageAndUserInChat(notification)
-      ? {
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: true,
-        }
-      : {
-          shouldShowAlert: false,
-          shouldPlaySound: false,
-          shouldSetBadge: true,
-        };
-  },
-});
 
 /**
  * Handles all notifications received
@@ -54,22 +33,21 @@ export const notificationReceivedHandler = async (
  * @param {object} notification The notification received
  * @param {Function} getFullMessageFromServer Function that fetches the full message object
  * @param {*} dispatch Redux dispatch
+ * @param {object} navigation The app's navigation system
  */
 export const notificationResponseHandler = async (
   notification,
-  getFullMessageFromServer,
-  dispatch
+  dispatch,
+  navigation
 ) => {
   // If the notification is for a chat, the user is brought to the specified chat
   if (notification.request.content.data.roomID) {
-    Navigation.navigateToChat(
-      dispatch,
-      notification.request.content.data.roomID
-    );
-    // List of notifications in the notification tray
-    let notificationTray = await Notifications.getPresentedNotificationsAsync();
-    // The full message object is fetched from the server
-    dispatch(getFullMessageFromServer(notification.request), notificationTray);
+    const roomID = parseInt(notification.request.content.data.roomID);
+    // Sets the user's selected room ID
+    dispatch(setRoomID(roomID));
+    // Navigates to the chat where the message was received for and sets
+    // the navigation parameters with the room ID
+    navigation.navigate("Chat");
   }
 };
 
@@ -180,19 +158,3 @@ export const registerForPushNotificationsAsync = async (dispatch) => {
     });
   }
 };
-
-/**
- * Determines if a notification should appear.
- * If a notification is received for a chat that the user
- * is already in, no notification will appear. Otherwise, a notification
- * will display.
- */
-const isChatMessageAndUserInChat = (notification) =>
-  notification.request.content.data.roomID &&
-  notification.request.content.data.messageID &&
-  Navigation.getNavigationRoute().name === "Chat" &&
-  Navigation.getNavigationRoute().params.roomID &&
-  parseInt(notification.request.content.data.roomID) ===
-    Navigation.getNavigationRoute().params.roomID
-    ? false
-    : true;

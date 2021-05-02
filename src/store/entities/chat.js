@@ -8,6 +8,8 @@ import {
   getUserImageFromRoom,
 } from "../../Services/Messages/index";
 import * as Notifications from "expo-notifications";
+import { getUserInfo } from "./profile";
+import { getChatOpenedAndVisible } from "../ui/chat";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -24,10 +26,10 @@ const slice = createSlice({
     createRoomLoading: false,
     notificationIdentifiers: [],
     messages: {},
+    messagesLoading: [],
     messageSort: {},
-    fetchMessagesErrors: {},
     dataLoading: false,
-    fetchRoomsError: false,
+    chatRequestsError: { rooms: false, messages: false },
   },
   reducers: {
     /**
@@ -55,7 +57,7 @@ const slice = createSlice({
         newSortRoomList.filter((prevRoom) => prevRoom.id === newRoom.id)
           .length === 0
       ) {
-        newSortRoomList.push({
+        newSortRoomList.unshift({
           id: newRoom.id,
           lastUpdated: newRoom.lastUpdated,
         });
@@ -78,6 +80,7 @@ const slice = createSlice({
       }
     },
 
+    // Failed request for creating a new room
     newRoomReqFailed: (state, action) => {
       // Since there's no new room, default values are set
       state.newRoomCreated.roomCreated = false;
@@ -86,6 +89,7 @@ const slice = createSlice({
       state.createRoomLoading = false;
     },
 
+    // Sets that the request for creating a new room is pending
     setCreateRoomLoading: (state, action) => {
       state.createRoomLoading = true;
     },
@@ -120,11 +124,30 @@ const slice = createSlice({
       state.sortRoomList = newSortList.sort(
         (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
       );
+
+      // Saves that a request for the user's rooms was successful
+      state.chatRequestsError = { rooms: false, messages: false };
+    },
+
+    // User's rooms list request started
+    roomsReqStarted: (state, action) => {
+      // Resets the chat requests error
+      state.chatRequestsError = { rooms: false, messages: false };
+      // Saves that the users chat data is loading
+      state.dataLoading = true;
+      // Resets the list of current message requests
+      state.messagesLoading = [];
     },
 
     // User's rooms list request failed
     roomsReqFailed: (state, action) => {
-      state.fetchRoomsError = JSON.stringify(action.payload);
+      // Saves that the request for the user's rooms failed
+      state.chatRequestsError = { rooms: true, messages: false };
+      /**
+       * Since the request to fetch the rooms failed, no messages are fetched
+       * and the request for the user's chat data ends
+       */
+      state.dataLoading = false;
     },
 
     // Saves the room ID where a new notification was received
@@ -136,24 +159,29 @@ const slice = createSlice({
           action.passedData.roomID,
         ];
       }
+
+      // Adds the notification's identifier in the list of of notification identifiers if existent
+      if (action.passedData && action.passedData.notificationIdentifier) {
+        state.notificationIdentifiers.push(
+          action.passedData.notificationIdentifier
+        );
+      }
     },
 
     // Removes the room ID from the list of rooms with new messages
-    removeRoomIDFromNewMessages: (state, action) => {
+    handleRoomEnteredOrChanged: (state, action) => {
+      // A copy of the notification tray list
+      let notifcationTrayTemp = [...action.payload.notificationTray];
+
       // Check if the list of rooms with new messages contains the given room ID
       if (state.roomsWithNewMessages.includes(action.payload.roomID)) {
+        // Removes the room ID from the list of rooms with new messages
         state.roomsWithNewMessages = state.roomsWithNewMessages.filter(
           (id) => id !== action.payload.roomID
         );
 
-        // A copy of the notification tray list
-        let notifcationTrayTemp = [...action.payload.notificationTray];
-
-        /**
-         * Removes any notifications in the notification tray associated with the room
-         * and removes the notification's ID from the list of notification IDs
-         */
-        action.payload.notificationTray.forEach((notification, index) => {
+        // Removes the notification's ID from the list of notification IDs
+        notifcationTrayTemp.forEach((notification, index) => {
           if (
             notification.request.content.data.roomID &&
             parseInt(notification.request.content.data.roomID) ===
@@ -161,10 +189,6 @@ const slice = createSlice({
           ) {
             // Removes the notification from the copy of the notification tray
             notifcationTrayTemp.splice(index, 1);
-            // Removes the notification from the notifications tray
-            Notifications.dismissNotificationAsync(
-              notification.request.identifier
-            );
             // Removes the notification's ID from the list of notification IDs
             state.notificationIdentifiers = state.notificationIdentifiers.filter(
               (identifier) => identifier !== notification.request.identifier
@@ -179,6 +203,20 @@ const slice = createSlice({
         if (notifcationTrayTemp.length === 0)
           Notifications.setBadgeCountAsync(0);
       }
+
+      /**
+       * Removes any notifications in the list of notification identifiers
+       * that are not in the notification's tray
+       */
+      state.notificationIdentifiers.forEach((identifier, index) => {
+        if (
+          notifcationTrayTemp.filter(
+            (notification) => notification.request.identifier === identifier
+          ).length === 0
+        ) {
+          state.notificationIdentifiers.splice(index, 1);
+        }
+      });
     },
 
     /**
@@ -187,79 +225,70 @@ const slice = createSlice({
     // Adds the list of messages for a room
     userMessagesAdded: (state, action) => {
       // The room ID where all messages will be placed
-      let roomID = action.config.data;
+      let roomID = parseInt(action.config.data);
       // Temporary object that will contain all message objects
       let messages = {};
       // Creates a list for sorting the users messages based on room ID
       state.messageSort[roomID] = [];
-      // Deletes the error saved in the state if a fetch error for the room exists
-      if (state.fetchMessagesErrors[roomID])
-        delete state.fetchMessagesErrors[roomID];
 
       // Adds each message to the messages object
-      action.payload
-        // Sorted from newest to oldest date
-        .sort((a, b) => moment(b.createdAt) - moment(a.createdAt))
-        .forEach((message) => {
-          // Adds the message object to the object of messages
-          messages[message.message_id] = {
-            ...message,
-            // Modifies the message ID property
-            _id: message.message_id,
-            user: {
-              /**
-               * Modifies the avatar of the message's user to add the user's image
-               * from the room object the message belongs in
-               */
-              _id: message.user.user_id,
-              name: message.user.user_name,
-              avatar: getUserImageFromRoom(
-                message.user.user_id,
-                JSON.stringify(state.rooms[roomID])
-              ),
-            },
-          };
-          // Deletes unnecessary properties
-          delete messages[message.message_id].message_id;
-          delete messages[message.message_id].user_id;
-          // Adds the message's ID and date to a list for sorting
-          state.messageSort[roomID].push({
-            _id: message.message_id,
-            createdAt: message.createdAt,
-          });
-          /**
-           * Updated the room object's last updated and text property with the
-           * last message's date only if the message's date is newer than the
-           * room's last updated date
-           *
-           * Temporary: In the future, the back-end should correctly set these properties
-           */
-          if (
-            moment(message.createdAt).isSameOrAfter(
-              state.rooms[roomID].lastUpdated
-            )
-          ) {
-            state.rooms[roomID].lastMessage = message.text;
-            state.rooms[roomID].lastUpdated = message.createdAt;
-            state.sortRoomList.filter((room) => {
-              // The numbers must be converted to string first to properly compare
-              if (room.id.toString() === roomID.toString())
-                room.lastUpdated = message.createdAt;
-            });
-            // Sorts the rooms objects
-            state.sortRoomList.sort(
-              (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
-            );
-          }
+      action.payload.forEach((message, index) => {
+        // Adds the message object to the object of messages
+        messages[message.message_id] = {
+          ...message,
+          // Modifies the message ID property
+          _id: message.message_id,
+          user: {
+            /**
+             * Modifies the avatar of the message's user to add the user's image
+             * from the room object the message belongs in
+             */
+            _id: message.user.user_id,
+            name: message.user.user_name,
+            avatar: getUserImageFromRoom(
+              message.user.user_id,
+              JSON.stringify(state.rooms[roomID])
+            ),
+          },
+        };
+        // Deletes unnecessary properties
+        delete messages[message.message_id].message_id;
+        delete messages[message.message_id].user_id;
+        // Adds the message's ID and date to a list for sorting
+        state.messageSort[roomID].push({
+          _id: message.message_id,
+          createdAt: message.createdAt,
         });
+
+        // Updates the room's last message property with the last message of the room
+        if (index === 0) state.rooms[roomID].lastMessage = message.text;
+      });
 
       // Creates a new message object with the room id as the key
       state.messages[roomID] = messages;
+
+      // Removes the room ID from the list of loading messages
+      if (state.messagesLoading.includes(roomID)) {
+        state.messagesLoading = state.messagesLoading.filter(
+          (id) => id !== roomID
+        );
+      }
+
+      // If there are no more loading messages, the chat request loading is done
+      if (state.messagesLoading.length === 0) {
+        // Sets the data loading to false
+        state.dataLoading = false;
+      }
     },
 
     // User's messages list request started
     messagesReqStarted: (state, action) => {
-      state.messagesLoading = true;
+      // The requested messages room ID
+      const roomID = action.passedData;
+      // Saves the room ID for the room the messages are requested for
+      if (!state.messagesLoading.includes(roomID)) {
+        state.messagesLoading.push(roomID);
+      }
     },
 
     // Adds a message to the user's messsages based on room id
@@ -327,25 +356,35 @@ const slice = createSlice({
             ),
           },
         };
+
         // Adds the message to the room's sorted message list (at the beginning)
-        roomMessagesSorted.splice(0, 0, {
+        roomMessagesSorted.unshift({
           _id: messageObj._id,
           createdAt: messageObj.createdAt,
         });
+
         // Sorts the room's sorted message list
         roomMessagesSorted.sort(
           (a, b) => moment(b.createdAt) - moment(a.createdAt)
         );
+
         /**
-         * Updated the room object's last updated and text property with the
+         * Updates the room object's last updated and text property with the
          * last message's date only if the message's date is newer than the
          * room's last updated date
          */
         if (
           moment(messageObj.createdAt).isAfter(state.rooms[roomID].lastUpdated)
         ) {
-          state.rooms[roomID].lastMessage = messageObj.text;
+          // Updates the last message property of the room
+          state.rooms[roomID].lastMessage = messageObj.text
+            ? messageObj.text
+            : messageObj.image
+            ? "(Image)"
+            : "";
+          // Updates the last updated property of the room
           state.rooms[roomID].lastUpdated = messageObj.createdAt;
+          // Updates the last updated property of the sorted list of rooms
           state.sortRoomList.filter((room) => {
             // The numbers must be converted to string first to properly compare
             if (room.id.toString() === roomID.toString())
@@ -356,10 +395,6 @@ const slice = createSlice({
             (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
           );
         }
-        // Adds the notification's identifier in the list of of notification identifiers
-        state.notificationIdentifiers.push(
-          action.payload.notificationIdentifier
-        );
       }
     },
 
@@ -383,23 +418,42 @@ const slice = createSlice({
       }
     },
 
-    // User's rooms list request failed
+    // Saves that one of the user's messages request failed
     messageReqFailed: (state, action) => {
-      const error = JSON.parse(action.payload.error);
-      state.fetchMessagesErrors[error.config.data] = error.message;
-    },
+      // The requested messages room ID
+      const roomID = action.passedData;
 
-    /**
-     * FETCHING STATUS REDUCERS
-     */
-    // Loading the user's rooms and/or messages started
-    dataLoadingStarted: (state, action) => {
-      state.dataLoading = true;
-    },
+      // Removes the room ID from the list of loading messages
+      if (state.messagesLoading.includes(roomID)) {
+        // The index of the room ID in the list of loading messages
+        state.messagesLoading = state.messagesLoading.filter(
+          (id) => id !== roomID
+        );
+      }
 
-    // Loading the user's rooms and/or messages ended
-    dataLoadingEnded: (state, action) => {
-      state.dataLoading = false;
+      // Saves that a request for the user's messages failed
+      state.chatRequestsError = { room: false, messages: true };
+
+      // If there are no more loading messages, the chat request loading is done
+      if (state.messagesLoading.length === 0) {
+        state.dataLoading = false;
+      }
+
+      // Updates the room's last text property with the room's last message's text
+      if (state.messages[roomID] && state.rooms[roomID]) {
+        const room = state.rooms[roomID];
+        // Gets the room's last message's ID
+        const lastMessageID =
+          state.messageSort[roomID].length > 0
+            ? state.messageSort[roomID][0]._id
+            : null;
+        // Gets the room's last message's text if available
+        const lastMessageText = state.messages[roomID][lastMessageID]
+          ? state.messages[roomID][lastMessageID].text
+          : null;
+        // If the room has a last message the room's last message property is updated
+        if (lastMessageText) room.lastMessage = lastMessageText;
+      }
     },
 
     /**
@@ -419,9 +473,8 @@ const slice = createSlice({
       state.notificationIdentifiers = [];
       state.messages = {};
       state.messageSort = {};
-      state.fetchMessagesErrors = {};
       state.dataLoading = false;
-      state.fetchRoomsError = false;
+      state.chatRequestsError = { rooms: false, messages: false };
     },
   },
 });
@@ -533,6 +586,24 @@ export const getUserChatLoading = createSelector(
 );
 
 /**
+ * Returns an object that holds the values of whether the request
+ * for the user's list of rooms failed
+ */
+export const getChatRequestRoomsError = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.chatRequestsError.rooms
+);
+
+/**
+ * Returns an object that holds the values of whether the request
+ * for the user's messages failed
+ */
+export const getChatRequestMessagesError = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.chatRequestsError.messages
+);
+
+/**
  * Returns a boolean determining if a notification's ID is already in the list
  * of notification IDs
  */
@@ -541,6 +612,15 @@ const isNotificationHandled = (notificationIdentifier) =>
     (state) => state.entities.chat,
     (chat) => chat.notificationIdentifiers.includes(notificationIdentifier)
   );
+
+/**
+ * Returns the list of messages that are currently being requested and
+ * have not completed
+ */
+const getMessagesRequested = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.messagesLoading
+);
 
 /*********************************** ACTION CREATORS ***********************************/
 /**
@@ -555,7 +635,7 @@ export const fetchRooms = (dispatch, getState) => {
       useEndpoint: true,
       onSuccess: slice.actions.userRoomsAdded.type,
       onError: slice.actions.roomsReqFailed.type,
-      onStart: slice.actions.dataLoadingStarted.type,
+      onStart: slice.actions.roomsReqStarted.type,
     })
   );
 };
@@ -566,20 +646,27 @@ export const fetchRooms = (dispatch, getState) => {
  */
 export const fetchMessages = () => (dispatch, getState) => {
   // List of rooms ids to fetch each room's messages
-  const roomIDs = getUserRooms(getState());
+  const roomIDList = getUserRooms(getState());
+  // List of messages that were requested
+  const messagesRequested = getMessagesRequested(getState());
 
-  roomIDs.forEach((room) => {
-    dispatch(
-      apiRequested({
-        url: "/dm/messages",
-        method: "put",
-        data: room.id.toString(), // Make sure it's a string or may cause a request error with Axios
-        useEndpoint: true,
-        onSuccess: slice.actions.userMessagesAdded.type,
-        onError: slice.actions.messageReqFailed.type,
-        onEnd: slice.actions.dataLoadingEnded.type,
-      })
-    );
+  roomIDList.forEach((room) => {
+    const roomID = room.id;
+    // Fetches the rooms messages if a request hasn't been made
+    if (!messagesRequested.includes(roomID)) {
+      dispatch(
+        apiRequested({
+          url: "/dm/messages",
+          method: "put",
+          data: roomID.toString(), // Make sure it's a string or may cause a request error with Axios
+          useEndpoint: true,
+          onStart: slice.actions.messagesReqStarted.type,
+          onSuccess: slice.actions.userMessagesAdded.type,
+          onError: slice.actions.messageReqFailed.type,
+          passedData: roomID,
+        })
+      );
+    }
   });
 };
 
@@ -596,6 +683,8 @@ export const sendMessage = (stateMessage, backEndMessage) => (
   const roomID = getSelectedRoomID(getState());
   // The room object associated with the message
   const roomObj = getUserRoomByID(roomID)(getState());
+  // The main user's ID
+  const mainUserID = getUserInfo(getState()).ID;
 
   // Adds the message to the state
   dispatch({
@@ -615,7 +704,19 @@ export const sendMessage = (stateMessage, backEndMessage) => (
     ? `${backEndMessage.user.name}\n${backEndMessage.text}`
     : backEndMessage.text;
   // The push notification user IDs
-  backEndMessage.users_ids = roomObj.users.map((user) => user.id);
+  backEndMessage.users_ids = roomObj.users
+    .filter((user) => {
+      if (user.id !== mainUserID) return user;
+    })
+    .map((user) => user.id);
+
+  /**
+   * For Development Only
+   * This makes sure that the message sent only goes to the current
+   * user. This allows for the other users in a group to not receive
+   * multiple messages while testing the app.
+   */
+  // backEndMessage.users_ids = [mainUserID];
 
   dispatch(
     apiRequested({
@@ -642,17 +743,22 @@ export const getFullMessageFromServer = (request, notificationTray) => (
   dispatch,
   getState
 ) => {
+  // The message's room ID
+  const roomID = parseInt(request.content.data.roomID);
+  // The message ID
+  const messageID = request.content.data.messageID;
   /**
-   * Checks to see if the notification ID is in the list of notification IDs.
-   * This prevents an unnecessary fetch for the message's full object from being
-   * made since it has already been done.
+   * Checks to see if the notification ID is in the list of notification IDs and if
+   * the message already exists. If so, no fetch is done. Otherwise, the message is
+   * fetched from the server
    */
-  if (!isNotificationHandled(request.identifier)(getState())) {
-    // The message's room ID
-    const roomID = parseInt(request.content.data.roomID);
-    // The message ID
-    const messageID = request.content.data.messageID;
 
+  if (
+    // Checks if the notification's has already been handled
+    !isNotificationHandled(request.identifier)(getState()) &&
+    // Checks if the message is already saved in the state
+    !getState().entities.chat.messages[roomID][messageID]
+  ) {
     // Fetches the full message from the back-end
     dispatch(
       apiRequested({
@@ -678,13 +784,15 @@ export const getFullMessageFromServer = (request, notificationTray) => (
  * @param {number} roomID The room ID
  * @param {Array} notificationTray The list of notifications in the notifications tray
  */
-export const removeRoomIDFromNewMessages = (roomID, notificationTray) => (
+export const handleRoomEnteredOrChanged = (roomID, notificationTray) => (
   dispatch,
   getState
 ) => {
+  const isChatVisibleAndOpened = getChatOpenedAndVisible(getState());
+
   dispatch({
-    type: slice.actions.removeRoomIDFromNewMessages.type,
-    payload: { roomID, notificationTray },
+    type: slice.actions.handleRoomEnteredOrChanged.type,
+    payload: { roomID, notificationTray, isChatVisibleAndOpened },
   });
 };
 
@@ -726,19 +834,6 @@ export const resetNewRoomCreated = (dispatch, getState) => {
  */
 export const ent_ChatResetState = (dispatch, getState) => {
   dispatch({ type: slice.actions.resetState.type, payload: null });
-};
-
-/**
- * Fetches all data used by this slice from the server
- */
-export const ent_ChatFetchAllData = (dispatch, getState) => {
-  /**
-   * The messages aren't fetched due to the Rooms component. In there,
-   * there's a useEffect that handles fetching the user's messages after
-   * the user's rooms are fetched. Therefore, only fetching the user's rooms
-   * are required
-   */
-  dispatch(fetchRooms);
 };
 
 /*********************************** HELPER FUNCTIONS ***********************************/

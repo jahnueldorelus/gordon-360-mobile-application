@@ -73,6 +73,7 @@ export default ({ dispatch, getState }) => (next) => async (action) => {
       dispatch({
         type: onError,
         payload: { error: JSON.stringify(error) },
+        passedData,
       });
   }
 

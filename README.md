@@ -108,8 +108,8 @@
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system react-native-safe-area-context`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system react-native-safe-area-context`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat react-native-gesture-handler @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat react-native-gesture-handler @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -130,30 +130,15 @@
      - Install GiftedChat using any of the following commands.
        - `npm i react-native-gifted-chat`
        - `yarn add react-native-gifted-chat`
-     - Install Expo Linear Gradient using the following command.
-       - `expo install expo-linear-gradient`
+     - Install React Native Gesture Handler using any of the following commands.
+       - `npm i react-native-gesture-handler`
+       - `yarn add react-native-gesture-handler`
      - Install React Native AsyncStorage using any of the following commands.
        - `npm i @react-native-community/async-storage`
        - `yarn add @react-native-community/async-storage`
      - Install Bluebird using any of the following commands.
        - `npm i bluebird`
        - `yarn add bluebird`
-       <!-- - Install React Native Image-Viewer using any of the following commands.
-       - `npm i react-native-image-zoom-viewer`
-       - `yarn add react-native-image-zoom-viewer` -->
-     - Install React Native Safe Area Context using the following command.
-       - `expo install react-native-safe-area-context`
-     - Install Moment (Used for Date) using any of the following commands.
-       - `npm i moment`
-       - `yarn add moment`
-     - Install NetInfo using the following command.
-       - `expo install @react-native-community/netinfo`
-     - Install Expo Image Picker using the following command.
-       - `expo install expo-image-picker`
-     - Install Expo Haptics using the following command.
-       - `expo install expo-haptics`
-     - Install Expo File System using the following command.
-       - `expo install expo-file-system`
      - Install React Native Offline using any of the following commands.
        - `npm i react-native-offline`
        - `yarn add react-native-offline`
@@ -169,6 +154,19 @@
      - Install Redux Dev Tools Extension using any of the following commands.
        - `npm i redux-devtools-extension`
        - `yarn add redux-devtools-extension`
+     - Install Moment (Used for Date) using any of the following commands.
+       - `npm i moment`
+       - `yarn add moment`
+     - Install Expo Linear Gradient using the following command.
+       - `expo install expo-linear-gradient`
+     - Install NetInfo using the following command.
+       - `expo install @react-native-community/netinfo`
+     - Install Expo Image Picker using the following command.
+       - `expo install expo-image-picker`
+     - Install Expo Haptics using the following command.
+       - `expo install expo-haptics`
+     - Install Expo File System using the following command.
+       - `expo install expo-file-system`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

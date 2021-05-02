@@ -1,28 +1,90 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, Text, Image } from "react-native";
 import { StyleSheet } from "react-native";
-import { getRoomImage, getChatName } from "../../../../Services/Messages";
+import {
+  getRoomImage,
+  getChatName,
+  removeNotificationsInTray,
+} from "../../../../Services/Messages";
 import { Icon } from "react-native-elements";
 import { ChatInfo } from "../../../../Views/Chat/ChatInfo/index";
 import { getUserRoomByID } from "../../../../store/entities/chat";
-import { getSelectedRoomID } from "../../../../store/ui/chat";
+import {
+  getSelectedRoomID,
+  setChatOpenedAndVisible,
+  getChatOpenedAndVisible,
+} from "../../../../store/ui/chat";
 import { getUserInfo } from "../../../../store/entities/profile";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
+import { ScreenNames } from "../../../../../ScreenNames";
 
-export const AppbarChat = (props) => {
+export const AppbarChat = () => {
+  // Redux Dispatch
+  const dispatch = useDispatch();
+  // User's selected room ID
+  const userSelectedRoomID = useSelector(getSelectedRoomID);
+  // Reference to the user's selected room
+  const userSelectedRoomIDRef = useRef(userSelectedRoomID);
+  // Determines if a chat is opened and visible
+  const ischatOpenedAndVisible = useSelector(getChatOpenedAndVisible);
   // User's selected room
-  const roomID = useSelector(getSelectedRoomID);
-  // User's selected room
-  const userRoom = useSelector(getUserRoomByID(roomID));
+  const userRoom = useSelector(getUserRoomByID(userSelectedRoomID));
   // User's profile
   const userProfile = useSelector(getUserInfo);
   // Modal's visibility
   const [modalInfoVisible, setModaInfoVisible] = useState(false);
-  // React Native Navigation
+  // Reference to the modal's previous visibility
+  const prevRefModalInfoVisible = useRef(modalInfoVisible);
+  // App Navigation
   const navigation = useNavigation();
 
-  if (userRoom && userProfile)
+  // Determines if the chat is visible
+  useEffect(() => {
+    /**
+     * Handles whether the user's chat is visible
+     */
+    // If the modal info was exited, the chat is visible again
+    if (prevRefModalInfoVisible.current && !modalInfoVisible) {
+      dispatch(setChatOpenedAndVisible(true));
+    }
+    // If the modal info was entered, the chat isn't visible
+    else if (!prevRefModalInfoVisible.current && modalInfoVisible) {
+      dispatch(setChatOpenedAndVisible(false));
+    }
+
+    /**
+     * Handles whether or not the modal info should remain visible
+     * or be dismissed
+     */
+    // If the user's selected room ID changes, the modal is dismissed
+    if (userSelectedRoomID !== userSelectedRoomIDRef.current) {
+      setModaInfoVisible(false);
+    }
+
+    // Updates the modal info visibile reference
+    prevRefModalInfoVisible.current = modalInfoVisible;
+    // Updates the user selected room ID reference
+    userSelectedRoomIDRef.current = userSelectedRoomID;
+  }, [modalInfoVisible, userSelectedRoomID]);
+
+  // Sets the chat is visible and opened on first launch of this component
+  useEffect(() => {
+    dispatch(setChatOpenedAndVisible(true));
+  }, []);
+
+  /**
+   * Attempts to remove all notifications associated with the room whenever
+   * a chat is visible
+   */
+  useEffect(() => {
+    if (ischatOpenedAndVisible) removeNotificationsInTray(userSelectedRoomID);
+  }, [ischatOpenedAndVisible]);
+
+  if (
+    JSON.stringify(userRoom) !== JSON.stringify({}) &&
+    JSON.stringify(userProfile) !== JSON.stringify({})
+  ) {
     return (
       <View style={styles.appBarContainer}>
         <View style={styles.navigationButton}>
@@ -32,8 +94,10 @@ export const AppbarChat = (props) => {
             color="white"
             size={30}
             onPress={() => {
-              navigation.pop();
-              navigation.navigate("Rooms");
+              // Saves that a chat is no longer opened and visible
+              dispatch(setChatOpenedAndVisible(false));
+              // Navigates to the user's list of rooms
+              navigation.navigate(ScreenNames.rooms);
             }}
           />
         </View>
@@ -53,18 +117,22 @@ export const AppbarChat = (props) => {
             color="white"
             size={30}
             onPress={() => {
+              // Saves that a chat is no longer opened and visible
+              dispatch(setChatOpenedAndVisible(false));
+              // Opens the modal
               setModaInfoVisible(true);
             }}
           />
         </View>
-        <ChatInfo
-          {...props}
-          visible={modalInfoVisible}
-          setVisible={setModaInfoVisible}
-        />
+        <ChatInfo visible={modalInfoVisible} setVisible={setModaInfoVisible} />
       </View>
     );
-  else return <></>;
+  } else {
+    // Navigates to the user's list of rooms
+    navigation.navigate(ScreenNames.rooms);
+    // Returns an empty component
+    return null;
+  }
 };
 
 const styles = StyleSheet.create({

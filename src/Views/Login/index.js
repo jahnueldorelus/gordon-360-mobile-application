@@ -10,11 +10,11 @@ import {
   Platform,
   StatusBar,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
 import { Button } from "react-native-elements";
 import { Input } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView } from "react-native-gesture-handler";
 import { fetchToken, resetTokenError } from "../../store/entities/Auth/auth";
 import {
   getToken,
@@ -23,13 +23,10 @@ import {
 } from "../../store/entities/Auth/authSelectors";
 import { fetchProfile } from "../../store/entities/profile";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
 
 export const Login = () => {
   // Redux Dispatch
   const dispatch = useDispatch();
-  // App Navigation
-  const navigation = useNavigation();
 
   // The user's token
   const token = useSelector(getToken);

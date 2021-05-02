@@ -7,10 +7,8 @@ import {
   ActivityIndicator,
   View,
   TouchableOpacity,
-  Keyboard,
 } from "react-native";
 import { Icon } from "react-native-elements";
-import { CustomImageViewer } from "../../../../../../../Components/CustomImageViewer";
 
 const SelectedImages = (props) => {
   // A list that contains the dimensions of each image
@@ -59,13 +57,6 @@ const SelectedImages = (props) => {
     });
   }, [imageList]);
 
-  // Handles the visibility of the image viewer
-  const handleImageVisibility = (isVisibile) => {
-    let newModalConfig = { ...props.ModalHandler.modalConfig };
-    newModalConfig.visible = isVisibile;
-    props.ModalHandler.setModalConfig(newModalConfig);
-  };
-
   /**
    * Removes the image from the list of images
    * @param {number} imageIndex the index of the image in the list of images
@@ -110,36 +101,16 @@ const SelectedImages = (props) => {
             <TouchableOpacity
               key={index}
               onPress={() => {
-                // The image viewer component
-                const imageViewer = (
-                  <CustomImageViewer
-                    image={img}
-                    setVisible={handleImageVisibility}
-                  />
-                );
-
-                // Dismisses the keyboard if visible
-                Keyboard.dismiss();
-
-                // The new configuration for the modal
-                let newModalConfig = { ...props.ModalHandler.modalConfig };
-                /**
-                 * The modal's configuration is set to show the image in the image viewer
-                 */
-                newModalConfig.visible = true;
-                newModalConfig.content = imageViewer;
-                newModalConfig.height = 100;
-                newModalConfig.contain = false;
-                newModalConfig.cover = true;
-                newModalConfig.styles = {};
-                props.ModalHandler.setModalConfig(newModalConfig);
+                // Saves the image to be shown
+                props.ImageToViewHandler.setImage(img);
+                // Opens the image viewer
+                props.ImageToViewHandler.openImageViewer();
               }}
             >
               <ImageBackground
                 style={[styles.imageContainer, imageStyle]}
                 imageStyle={imageStyle}
                 source={{ uri: img }}
-                on
               >
                 <Icon
                   name="cancel"

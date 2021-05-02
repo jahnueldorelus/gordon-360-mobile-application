@@ -7,6 +7,7 @@ import { Appbar360 } from "./Components/360/index";
 import { AppbarProfile } from "./Components/Profile";
 import { AppbarSettings } from "./Components/Settings";
 import { useRoute } from "@react-navigation/native";
+import { ScreenNames } from "../../../ScreenNames";
 
 export const AppBar = (props) => {
   // React Route
@@ -28,11 +29,11 @@ export const AppBar = (props) => {
     <View style={styles.appBar}>
       <StatusBar barStyle="default" hidden={false} translucent={true} />
       <SafeAreaView>
-        {route.name === "Chat" && <AppbarChat {...props} />}
-        {route.name === "Rooms" && <AppbarRoom {...props} />}
-        {route.name === "Gordon 360" && <Appbar360 {...props} />}
-        {route.name === "Profile" && <AppbarProfile {...props} />}
-        {route.name === "Settings" && <AppbarSettings {...props} />}
+        {route.name === ScreenNames.chat && <AppbarChat />}
+        {route.name === ScreenNames.rooms && <AppbarRoom />}
+        {route.name === ScreenNames.gordon360 && <Appbar360 {...props} />}
+        {route.name === ScreenNames.profile && <AppbarProfile />}
+        {route.name === ScreenNames.settings && <AppbarSettings />}
       </SafeAreaView>
     </View>
   );

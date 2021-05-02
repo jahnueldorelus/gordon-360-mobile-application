@@ -4,13 +4,13 @@ import { GiftedChat } from "react-native-gifted-chat";
 import { getSelectedRoomID } from "../../../store/ui/chat";
 import { getUserInfo, getUserImage } from "../../../store/entities/profile";
 import {
-  removeRoomIDFromNewMessages,
-  getUserRoomsWithNewMessages,
+  handleRoomEnteredOrChanged,
   getUserMessagesByID,
   getUserRoomByID,
   sendMessage,
   correctedMessageObject,
 } from "../../../store/entities/chat";
+import { AppImageViewer } from "../../../Components/AppImageViewer";
 import * as Notifications from "expo-notifications";
 import { useDispatch, useSelector } from "react-redux";
 import { StyleSheet, View, LayoutAnimation } from "react-native";
@@ -28,14 +28,14 @@ import { renderMessageImage } from "./Components/MessageContainer/MessageImage";
 import { renderMessageText } from "./Components/MessageContainer/MessageText";
 import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
-import { CustomModal } from "../../../Components/CustomModal";
-import { AppBar } from "../../../Components/AppBar";
+import { CameraPermissionsDeviceSettings } from "../../../Components/CameraPermissionsDeviceSettings";
 import * as FileSystem from "expo-file-system";
 import { getNewMessageID } from "../../../Services/Messages/index";
 import moment from "moment";
 import { useNavigation } from "@react-navigation/native";
+import { ScreenNames } from "../../../../ScreenNames";
 
-export const ChatView = (props) => {
+export const ChatView = () => {
   // Redux Dispatch
   const dispatch = useDispatch();
   // App Navigation
@@ -50,14 +50,15 @@ export const ChatView = (props) => {
   const userProfile = useSelector(getUserInfo);
   // The user's image
   const userImage = useSelector(getUserImage);
+  // Image to show in the image viewer
+  const [imageToView, setImageToView] = useState(null);
+
   // GiftedChat's user format
   const user = {
     _id: userProfile.ID,
     avatar: userImage,
     name: `${userProfile.FirstName} ${userProfile.LastName}`,
   };
-  // The user's list of rooms with new messages
-  const roomsWithNewMessages = useSelector(getUserRoomsWithNewMessages);
 
   // The current text inside the input toolbar
   const [text, setText] = useState("");
@@ -65,32 +66,54 @@ export const ChatView = (props) => {
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
   // Determines if the actions buttons of the input toolbar should display
   const [showActions, setShowActions] = useState(false);
-  // Configuration for setting the custom modal
-  const [modalConfig, setModalConfig] = useState({
-    visible: false,
-    content: <></>,
-    height: 0,
-    contain: null,
-    cover: null,
-    styles: {},
-  });
+  // Determines if modal show displays asking the user to enable camera permissions in settings
+  const [showCamPermissSettings, setShowCamPermissSettings] = useState(false);
+  // Determines visibility of the image viewer
+  const [showImageViewer, setShowImageViewer] = useState(false);
 
-  // Removes the room ID from the list of rooms with new unseen messages
+  /**
+   * Since there's a change in the room, an attempt is made to remove the room's
+   * ID from the list of rooms with new messages. Also, all notifications in the
+   * notification's tray associated with the room are removed.
+   */
   useEffect(() => {
     // Gets the notifications in the notification tray
     const getNotificationsTray = async () =>
       await Notifications.getPresentedNotificationsAsync();
 
     getNotificationsTray().then((notificationTray) => {
-      /**
-       * If the list of rooms with new messages includes this chat's room ID,
-       * the room ID is removed from the list of rooms with new messages
-       */
-      if (roomsWithNewMessages.includes(roomID)) {
-        dispatch(removeRoomIDFromNewMessages(roomID, notificationTray));
-      }
+      dispatch(handleRoomEnteredOrChanged(roomID, notificationTray));
     });
   }, [roomID, userMessages]);
+
+  /**
+   * On first launch of this component, an attempt is made to remove the room's
+   * ID from the list of rooms with new messages. Also, all notifications in the
+   * notification's tray associated with the room are removed.
+   */
+  useEffect(() => {
+    // Gets the notifications in the notification tray
+    const getNotificationsTray = async () =>
+      await Notifications.getPresentedNotificationsAsync();
+
+    getNotificationsTray().then((notificationTray) => {
+      dispatch(handleRoomEnteredOrChanged(roomID, notificationTray));
+    });
+  }, []);
+
+  /**
+   * If an image is set to be shown, the image viewer will open. Otherwise,
+   * the image viewer will be closed (if opened) and the image to be shown
+   * will be reset
+   */
+  useEffect(() => {
+    if (imageToView) {
+      setShowImageViewer(true);
+    } else {
+      setShowImageViewer(false);
+      setImageToView(null);
+    }
+  }, [imageToView]);
 
   /**
    * Configures the animation for all components of GiftedChat so that
@@ -223,7 +246,6 @@ export const ChatView = (props) => {
   if (userMessages && user && currentRoom)
     return (
       <View style={{ flex: 1 }}>
-        <AppBar {...props} />
         <GiftedChat
           alignTop
           alwaysShowSend
@@ -242,8 +264,11 @@ export const ChatView = (props) => {
           ]}
           renderActions={(props) => {
             const ImageHandler = { selectedImages, setSelectedImages };
-            const ModalHandler = { modalConfig, setModalConfig };
-            return renderActions(props, ImageHandler, ModalHandler);
+            const CameraPermissionsHandler = {
+              visible: showCamPermissSettings,
+              setVisible: setShowCamPermissSettings,
+            };
+            return renderActions(props, ImageHandler, CameraPermissionsHandler);
           }}
           renderAvatar={
             // The opposite user avatars will only display if the chat is a group
@@ -259,19 +284,27 @@ export const ChatView = (props) => {
           // renderCustomView={renderCustomView}
           renderInputToolbar={(props) => {
             const ImageHandler = { selectedImages, setSelectedImages };
-            const ModalHandler = { modalConfig, setModalConfig };
+            const ImageToViewHandler = {
+              setImage: setImageToView,
+              openImageViewer: () => setShowImageViewer(true),
+            };
             const ActionHandler = { showActions, setShowActions };
+
             return renderInputToolbar(
               props,
               ImageHandler,
-              ModalHandler,
+              ImageToViewHandler,
               ActionHandler
             );
           }}
           renderMessage={renderMessage}
           renderMessageImage={(props) => {
-            const ModalHandler = { modalConfig, setModalConfig };
-            return renderMessageImage(props, ModalHandler);
+            const ImageToViewHandler = {
+              setImage: setImageToView,
+              openImageViewer: () => setShowImageViewer(true),
+            };
+
+            return renderMessageImage(props, ImageToViewHandler);
           }}
           renderMessageText={renderMessageText}
           renderSend={renderSend}
@@ -282,17 +315,26 @@ export const ChatView = (props) => {
           user={user}
         />
 
-        <CustomModal
-          content={modalConfig.content}
-          coverScreen={modalConfig.cover}
-          containInView={modalConfig.contain}
-          height={modalConfig.height}
-          visible={modalConfig.visible}
-          styles={modalConfig.styles}
+        {/* Camera Permissions */}
+        <CameraPermissionsDeviceSettings
+          visible={showCamPermissSettings}
+          setVisible={setShowCamPermissSettings}
+        />
+
+        {/* Image Viewer */}
+        <AppImageViewer
+          image={imageToView}
+          visible={showImageViewer}
+          setVisible={setShowImageViewer}
         />
       </View>
     );
-  else navigation.navigate("Messages");
+  else {
+    // Navigates back to the user's list of rooms
+    navigation.navigate(ScreenNames.rooms);
+    // Returns an empty component
+    return null;
+  }
 };
 
 const styles = StyleSheet.create({

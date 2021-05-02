@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
 import { getSelectedRoomID } from "../../../store/ui/chat";
 import { getUserInfo } from "../../../store/entities/profile";
 import { useSelector } from "react-redux";
+import { AppImageViewer } from "../../../Components/AppImageViewer/index";
 
 export const ChatInfo = (props) => {
   // The minimum height and width of each message image
@@ -26,6 +27,8 @@ export const ChatInfo = (props) => {
   const [viewWidth, setViewWidth] = useState();
   // Determines if the image viewer should display
   const [showImageViewer, setShowImageViewer] = useState(false);
+  // Image to show in the image viewer
+  const [imageToView, setImageToView] = useState(null);
   // User's selected room ID
   const roomID = useSelector(getSelectedRoomID);
   // User's selected room
@@ -36,6 +39,20 @@ export const ChatInfo = (props) => {
   const userRoomMessages = useSelector(getUserMessagesByID(roomID));
   // User's selected room images
   const userRoomImages = getRoomChatImages(userRoomMessages);
+
+  /**
+   * If an image is set to be shown, the image viewer will open. Otherwise,
+   * the image viewer will be closed (if opened) and the image to be shown
+   * will be reset
+   */
+  useEffect(() => {
+    if (imageToView) {
+      setShowImageViewer(true);
+    } else {
+      setShowImageViewer(false);
+      setImageToView(null);
+    }
+  }, [imageToView]);
 
   if (userRoom && userProfile && userRoomImages) {
     return (
@@ -55,6 +72,7 @@ export const ChatInfo = (props) => {
             </TouchableOpacity>
           </View>
           <ScrollView style={{ flex: 1 }}>
+            {/* USERSs */}
             <View style={styles.usersContainer}>
               <Text style={styles.usersContainerText}>Users</Text>
               {userRoom.users
@@ -94,6 +112,8 @@ export const ChatInfo = (props) => {
                   );
                 })}
             </View>
+
+            {/* IMAGES */}
             <View style={styles.imagesMainContainer}>
               <Text style={styles.imagesMainContainerText}>Images</Text>
               <View
@@ -105,7 +125,7 @@ export const ChatInfo = (props) => {
                 {userRoomImages.map((message, index) => {
                   return (
                     <TouchableHighlight
-                      onPress={() => setShowImageViewer(true)}
+                      onPress={() => setImageToView(message.image)}
                       key={index}
                       underlayColor="none"
                     >
@@ -130,6 +150,13 @@ export const ChatInfo = (props) => {
             </View>
           </ScrollView>
         </View>
+
+        {/* Image Viewer */}
+        <AppImageViewer
+          image={imageToView}
+          visible={showImageViewer}
+          setVisible={setShowImageViewer}
+        />
       </Modal>
     );
   } else return <></>;

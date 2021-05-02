@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, RefreshControl } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { View, StyleSheet, RefreshControl, ScrollView } from "react-native";
 import { ProfileInfo } from "./Components/ProfileInfo";
 import { AccountInfo } from "./Components/AccountInfo";
 import { Involvements } from "./Components/Involvements";

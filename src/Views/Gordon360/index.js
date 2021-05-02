@@ -2,25 +2,34 @@ import React, { useRef, useState } from "react";
 import { View, StyleSheet, LayoutAnimation } from "react-native";
 import { WebView } from "react-native-webview";
 import { NetworkConsumer } from "react-native-offline";
-import { CustomLoader } from "../../Components/CustomLoader";
+import { LoadingScreen } from "../../Components/LoadingScreen/index";
 import { AppBar } from "../../Components/AppBar";
 import { OfflineMessage } from "./Components/OfflineMessage";
 import { WebViewError } from "./Components/WebViewError";
 import { getToken, get360URL } from "../../store/entities/Auth/authSelectors";
 import { useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 
-export const Gordon360 = (props) => {
+export const Gordon360 = () => {
+  // App Navigation
+  const navigation = useNavigation();
+
+  // Reference to the web view
   const web = useRef(null);
 
   // The user's token
   const token = useSelector(getToken);
   // Gordon 360's URL
   const gordon360URL = useSelector(get360URL);
-
+  // Determines if the browser can go back a page
   const [canGoBack, setCanGoBack] = useState(false);
+  // Determines if the browser can go forward a page
   const [canGoForward, setCanGoForward] = useState(false);
+  // Determines if the webpage is loading
   const [loading, setLoading] = useState(false);
+  // Determines if a webpage fails to load
   const [loadingError, setLoadingError] = useState(null);
+  // The loading progress bar
   const [loadingProgress, setLoadingProgress] = useState("0%");
 
   // Configures the animation for the progress bar
@@ -30,7 +39,7 @@ export const Gordon360 = (props) => {
    * Received function from online.
    * Calculates the interpolator between two numbers. For example, if a = 0 and
    * b = 100, having t = 0.64 would return the number 64. Another example is a = 0,
-   * b = 50, and t = 0.5 which return the number 25.
+   * b = 50, and t = 0.5 which would return the number 25.
    * @param {Number} a The minimum number
    * @param {Number} b The maximum number
    * @param {Number} t The decimal percentage to interpolate. Value is
@@ -50,7 +59,7 @@ export const Gordon360 = (props) => {
             <View style={styles.screenView}>
               {/* The Appbar that shows the app's navigation and Web Browser controls */}
               <AppBar
-                navigation={props.navigation}
+                navigation={navigation}
                 route="Gordon_360"
                 web={web}
                 canGoBack={canGoBack}
@@ -109,7 +118,7 @@ export const Gordon360 = (props) => {
                 {/* Offline message that appears if the user goes offline */}
                 <OfflineMessage
                   isConnected={isConnected}
-                  navigation={props.navigation}
+                  navigation={navigation}
                 />
               </View>
             </View>
@@ -117,7 +126,7 @@ export const Gordon360 = (props) => {
         }}
       </NetworkConsumer>
     );
-  else return <CustomLoader />;
+  else return <LoadingScreen />;
 };
 
 let styles = StyleSheet.create({

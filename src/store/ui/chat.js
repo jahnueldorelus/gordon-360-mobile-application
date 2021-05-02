@@ -6,6 +6,7 @@ const slice = createSlice({
   name: "chat",
   initialState: {
     selectedRoomID: null,
+    isChatOpenedAndVisible: false,
     roomImage: null,
     roomName: "",
   },
@@ -18,10 +19,17 @@ const slice = createSlice({
       state.selectedRoomID = action.payload;
     },
 
+    // Sets the value of if a chat is opened and visible
+    setChatOpenedAndVisible: (state, action) => {
+      state.isChatOpenedAndVisible = action.payload;
+    },
+
+    // Sets the room image of creating a new room
     setRoomImage: (state, action) => {
       state.roomImage = action.payload;
     },
 
+    // Sets the room name of creating a new room
     setRoomName: (state, action) => {
       state.roomName = action.payload;
     },
@@ -32,6 +40,7 @@ const slice = createSlice({
     // Resets all the state's data
     resetState: (state, action) => {
       state.selectedRoomID = null;
+      state.isChatOpenedAndVisible = false;
       state.roomImage = null;
       state.roomName = "";
     },
@@ -48,6 +57,14 @@ export default slice.reducer;
 export const getSelectedRoomID = createSelector(
   (state) => state.ui.chat,
   (chat) => chat.selectedRoomID
+);
+
+/**
+ * Determines if a chat is opened
+ */
+export const getChatOpenedAndVisible = createSelector(
+  (state) => state.ui.chat,
+  (chat) => chat.isChatOpenedAndVisible
 );
 
 /**
@@ -74,8 +91,19 @@ export const getRoomName = createSelector(
 export const setRoomID = createAction(slice.actions.selectedRoom.type);
 
 /**
+ * Sets the value of if a chat is opened and visible
+ * @param {boolean} opened The value of if a chat is opened and visible
+ */
+export const setChatOpenedAndVisible = (opened) => (dispatch, getState) => {
+  dispatch({
+    type: slice.actions.setChatOpenedAndVisible.type,
+    payload: opened,
+  });
+};
+
+/**
  * Sets the room image for creating a room
- * @param image The image of the room
+ * @param {string} image The image of the room
  */
 export const setRoomImage = (image) => (dispatch, getState) => {
   dispatch({ type: slice.actions.setRoomImage.type, payload: image });
@@ -83,7 +111,7 @@ export const setRoomImage = (image) => (dispatch, getState) => {
 
 /**
  * Sets the room name for creating a room
- * @param name The name of the room
+ * @param {string} name The name of the room
  */
 export const setRoomName = (name) => (dispatch, getState) => {
   dispatch({ type: slice.actions.setRoomName.type, payload: name });

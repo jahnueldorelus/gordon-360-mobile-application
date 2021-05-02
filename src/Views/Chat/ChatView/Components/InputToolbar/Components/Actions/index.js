@@ -1,23 +1,22 @@
 import React from "react";
-import {
-  View,
-  TouchableOpacity,
-  Linking,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Icon } from "react-native-elements";
 
 /**
  * Returns the action buttons and passes in different handlers as props
- * @param {*} props The original props that GiftedChat created
- * @param {*} ImageHandler An Image handler that handles the user selected images
- * @param {*} ModalHandler Modal handler that handles the visibility and style of the custom modal
+ * @param {object} props The original props that GiftedChat created
+ * @param {object} ImageHandler An Image handler that handles the user selected images
+ * @param {object} CameraPermissionsHandler Modal handler that handles the visibility
+ *                                    of the camera permissions
  */
-export function renderActions(props, ImageHandler, ModalHandler) {
-  return <Actions ImageHandler={ImageHandler} ModalHandler={ModalHandler} />;
+export function renderActions(props, ImageHandler, CameraPermissionsHandler) {
+  return (
+    <Actions
+      ImageHandler={ImageHandler}
+      CameraPermissionsHandler={CameraPermissionsHandler}
+    />
+  );
 }
 
 /**
@@ -69,73 +68,12 @@ const Actions = (props) => (
           else {
             // If it's possible to ask for permission, the user is asked for permission
             if (permission.canAskAgain) {
-              ImagePicker.requestCameraPermissionsAsync();
+              await ImagePicker.requestCameraPermissionsAsync();
             }
-            // If it's not possible to ask for permission, the user is directed to their settings
-            // to enable permissions for the app
+            // If it's not possible to ask for permission, the user is directed to enable
+            // camera permissions in their device settings
             else {
-              // The new configuration for the modal
-              let newModalConfig = { ...props.ModalHandler.modalConfig };
-
-              /**
-               * The modal's configuration is set to allow the user to cancel
-               * choosing an image or go into the app's settings to enable the permission
-               * of accessing the camera.
-               */
-              newModalConfig.content = (
-                <View style={styles.modalContainer}>
-                  <SafeAreaView>
-                    <Text style={styles.modalTextTitle}>
-                      Please enable camera permissions for the app inside of
-                      Settings.
-                    </Text>
-                    <View style={styles.modalContainerActions}>
-                      <TouchableOpacity
-                        style={[styles.modalButtonCancel, styles.modalButton]}
-                        onPress={() => {
-                          // The new configuration for the modal
-                          let newModalConfigTwo = {
-                            ...props.ModalHandler.modalConfig,
-                          };
-                          newModalConfigTwo.visible = false;
-                          props.ModalHandler.setModalConfig(newModalConfigTwo);
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.modalButtonText,
-                            styles.modalButtonCancelText,
-                          ]}
-                        >
-                          Cancel
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.modalButtonSettings, styles.modalButton]}
-                        onPress={() => {
-                          Linking.openSettings();
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.modalButtonText,
-                            styles.modalButtonSettingsText,
-                          ]}
-                        >
-                          Open Settings
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </SafeAreaView>
-                </View>
-              );
-              newModalConfig.visible = true;
-              newModalConfig.height = 0;
-              newModalConfig.contain = false;
-              newModalConfig.cover = true;
-              newModalConfig.styles = styles.modalStyles;
-
-              props.ModalHandler.setModalConfig(newModalConfig);
+              props.CameraPermissionsHandler.setVisible(true);
             }
           }
         });

@@ -5,15 +5,15 @@ import { Icon } from "react-native-elements";
 
 /**
  * Returns the input toolbar and passes in different handlers as props
- * @param {Object} props The original props that GiftedChat created
- * @param {Object} ImageHandler An Image handler that handles the user selected images
- * @param {Object} ModalHandler Modal handler that handles the visibility and style of the custom modal
- * @param {Object} ActionHandler Handles the visibility of the action buttons in the input toolbar
+ * @param {object} props The original props that GiftedChat created
+ * @param {object} ImageHandler An Image handler that handles the user selected images
+ * @param {object} ImageToViewHandler Image viewer handler that handles what image should display
+ * @param {object} ActionHandler Handles the visibility of the action buttons in the input toolbar
  */
 export const renderInputToolbar = (
   props,
   ImageHandler,
-  ModalHandler,
+  ImageToViewHandler,
   ActionHandler
 ) => {
   /**
@@ -26,7 +26,7 @@ export const renderInputToolbar = (
     <InputToolbar
       {...props}
       ImageHandler={ImageHandler}
-      ModalHandler={ModalHandler}
+      ImageToViewHandler={ImageToViewHandler}
       ActionHandler={ActionHandler}
     />
   );
@@ -68,7 +68,7 @@ class InputToolbar extends Component {
     return (
       <SelectedImages
         ImageHandler={this.props.ImageHandler}
-        ModalHandler={this.props.ModalHandler}
+        ImageToViewHandler={this.props.ImageToViewHandler}
         showActions={this.props.ActionHandler.showActions}
       />
     );

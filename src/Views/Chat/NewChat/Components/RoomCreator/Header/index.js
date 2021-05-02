@@ -24,8 +24,6 @@ export const Header = (props) => {
             dispatch(setRoomImage(null));
             // Deletes the room name if existent
             dispatch(setRoomName(""));
-            // Closes the permission modal if opened
-            props.setModalConfig({ ...props.modalConfig, visible: false });
             // Closes this modal
             props.setVisible(false);
           }}

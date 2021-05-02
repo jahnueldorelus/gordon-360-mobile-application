@@ -11,9 +11,10 @@ import { CustomImageViewer } from "../../../../../../Components/CustomImageViewe
 /**
  * Just a function that calls the real component MessageImage
  * @param {JSON} props Props passed from parent
+ * @param {object} ImageToViewHandler Image viewer handler that handles what image should display
  */
-export const renderMessageImage = (props, ModalHandler) => {
-  return <MessageImage {...props} ModalHandler={ModalHandler} />;
+export const renderMessageImage = (props, ImageToViewHandler) => {
+  return <MessageImage {...props} ImageToViewHandler={ImageToViewHandler} />;
 };
 
 /**
@@ -24,21 +25,6 @@ const MessageImage = (props) => {
   // Get's the dimensions of the devices's screen
   const deviceHeight = Dimensions.get("window").height;
   const deviceWidth = Dimensions.get("window").width;
-
-  // Handles the visibility of the image viewer
-  const handleImageVisibility = (isVisibile) => {
-    let newModalConfig = { ...props.ModalHandler.modalConfig };
-    newModalConfig.visible = isVisibile;
-    props.ModalHandler.setModalConfig(newModalConfig);
-  };
-
-  // The image viewer component
-  const imageViewer = (
-    <CustomImageViewer
-      image={props.currentMessage.image}
-      setVisible={handleImageVisibility}
-    />
-  );
 
   // The styles of this component
   const styles = StyleSheet.create({
@@ -60,18 +46,10 @@ const MessageImage = (props) => {
     <View style={styles.container}>
       <TouchableOpacity
         onPress={() => {
-          // The new configuration for the modal
-          let newModalConfig = { ...props.ModalHandler.modalConfig };
-          /**
-           * The modal's configuration is set to show the image in the image viewer
-           */
-          newModalConfig.visible = true;
-          newModalConfig.content = imageViewer;
-          newModalConfig.height = 100;
-          newModalConfig.contain = false;
-          newModalConfig.cover = true;
-          newModalConfig.styles = {};
-          props.ModalHandler.setModalConfig(newModalConfig);
+          // Saves the image to be shown
+          props.ImageToViewHandler.setImage(props.currentMessage.image);
+          // Opens the image viewer
+          props.ImageToViewHandler.openImageViewer();
         }}
       >
         <Image

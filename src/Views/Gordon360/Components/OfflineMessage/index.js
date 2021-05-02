@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, StyleSheet } from "react-native";
+import { View, Text, SafeAreaView, StyleSheet, ScrollView } from "react-native";
 import { CustomModal } from "../../../../Components/CustomModal";
 import { Button, Icon } from "react-native-elements";
-import { ScrollView } from "react-native-gesture-handler";
 
 export const OfflineMessage = (props) => {
   const [minViewWidth, setMinViewWidth] = useState(0);

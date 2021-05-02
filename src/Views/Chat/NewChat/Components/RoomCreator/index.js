@@ -47,7 +47,7 @@ import { RoomImagePicker } from "./RoomImagePicker/index";
 import { useNavigation } from "@react-navigation/native";
 import { Header } from "./Header/index.js";
 import { GroupNameInput } from "./GroupNameInput/index";
-import { CameraPermissions } from "./CameraPermissions/index";
+import { CameraPermissionsDeviceSettings } from "../../../../../Components/CameraPermissionsDeviceSettings/index";
 import { LoadingScreen } from "../../../../../Components/LoadingScreen/index";
 import { getNewMessageID } from "../../../../../Services/Messages/index";
 import * as FileSystem from "expo-file-system";
@@ -84,12 +84,8 @@ export const RoomCreator = (props) => {
   // The last updated date of the new room created
   const newRoomCreatedLastUpdated = useSelector(getNewRoomCreatedLastUpdated);
 
-  // Configuration for setting the custom modal
-  const [modalConfig, setModalConfig] = useState({
-    visible: false,
-    content: <></>,
-    styles: {},
-  });
+  // Determines if modal show displays asking the user to enable camera permissions in settings
+  const [showCamPermissSettings, setShowCamPermissSettings] = useState(false);
 
   // The loading status of creating a room
   const createRoomLoading = useSelector(getCreateRoomLoading);
@@ -334,11 +330,7 @@ export const RoomCreator = (props) => {
             // If a room is not in the process of being created
             <View style={{ flex: 1, backgroundColor: "white" }}>
               {/* Header */}
-              <Header
-                setVisible={props.setVisible}
-                modalConfig={modalConfig}
-                setModalConfig={setModalConfig}
-              />
+              <Header setVisible={props.setVisible} />
 
               {/* Group Name Input */}
               <GroupNameInput
@@ -347,8 +339,7 @@ export const RoomCreator = (props) => {
 
               {/* Room Image */}
               <RoomImagePicker
-                modalConfig={modalConfig}
-                setModalConfig={setModalConfig}
+                setShowCamPermissSettings={setShowCamPermissSettings}
                 selectedUsersListLength={props.selectedUsersList.length}
                 setVisible={props.setVisible}
               />
@@ -357,67 +348,17 @@ export const RoomCreator = (props) => {
               {props.selectedUsers}
 
               {/* GiftedChat */}
-              <GiftedChat
-                alignTop
-                alwaysShowSend
-                bottomOffset={getBottomSpace()}
-                isCustomViewBottom
-                messages={[]}
-                messagesContainerStyle={styles.messagesContainer}
-                minInputToolbarHeight={minInputToolbarHeight()}
-                onInputTextChanged={setMessageText}
-                onSend={createRoom}
-                parsePatterns={(linkStyle) => [
-                  {
-                    pattern: /#(\w+)/,
-                    style: linkStyle,
-                  },
-                ]}
-                renderActions={(props) => {
-                  const ImageHandler = { selectedImages, setSelectedImages };
-                  const ModalHandler = { modalConfig, setModalConfig };
-                  return renderActions(props, ImageHandler, ModalHandler);
-                }}
-                renderAvatar={renderAvatar}
-                renderBubble={renderBubble}
-                renderComposer={renderComposer}
-                /**
-                 * Uncomment if you'd like to add a custom view to each message.
-                 * This view appears after a message's text and before the message's
-                 * status information (aka date, sent, delivered, etc.)
-                 */
-                // renderCustomView={renderCustomView}
-                renderInputToolbar={(props) => {
-                  const ImageHandler = { selectedImages, setSelectedImages };
-                  const ModalHandler = { modalConfig, setModalConfig };
-                  const ActionHandler = { showActions, setShowActions };
-                  return renderInputToolbar(
-                    props,
-                    ImageHandler,
-                    ModalHandler,
-                    ActionHandler
-                  );
-                }}
-                renderMessage={renderMessage}
-                renderMessageImage={(props) => {
-                  const ModalHandler = { modalConfig, setModalConfig };
-                  return renderMessageImage(props, ModalHandler);
-                }}
-                renderMessageText={renderMessageText}
-                renderSend={renderSend}
-                renderSystemMessage={renderSystemMessage}
-                scrollToBottom
-                text={messageText}
-                user={mainUser}
-              />
-
-              {/* Camera Permissions */}
-              <CameraPermissions modalConfig={modalConfig} />
             </View>
           ) : (
             // If a room is in the process of being created, a loading screen is shown
             <LoadingScreen loadingText="Creating New Chat" />
           )}
+
+          {/* Camera Permissions */}
+          <CameraPermissionsDeviceSettings
+            visible={showCamPermissSettings}
+            setVisible={setShowCamPermissSettings}
+          />
         </View>
       </SafeAreaView>
     </Modal>

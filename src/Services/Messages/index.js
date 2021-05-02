@@ -1,4 +1,5 @@
 import moment from "moment";
+import * as Notifications from "expo-notifications";
 
 /**
  * Returns all the images in a room
@@ -172,4 +173,29 @@ export const getNewMessageID = () => {
     "-" +
     Math.random().toString(36).substr(2, 12)
   );
+};
+
+/**
+ * Removes any notifications in the notification tray associated with the room
+ * @param {number} roomID The ID of the room
+ */
+export const removeNotificationsInTray = async (roomID) => {
+  const notificationTray = await Notifications.getPresentedNotificationsAsync();
+
+  notificationTray.forEach(async (notification, index) => {
+    console.log(
+      notification.request.identifier,
+      " = ",
+      parseInt(notification.request.content.data.roomID) === roomID
+    );
+    if (
+      notification.request.content.data.roomID &&
+      parseInt(notification.request.content.data.roomID) === roomID
+    ) {
+      // Removes the notification from the notifications tray
+      await Notifications.dismissNotificationAsync(
+        notification.request.identifier
+      );
+    }
+  });
 };

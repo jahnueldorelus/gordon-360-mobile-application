@@ -1,8 +1,5 @@
 import { ent_AuthResetState } from "../../store/entities/Auth/auth";
-import {
-  ent_ChatResetState,
-  ent_ChatFetchAllData,
-} from "../../store/entities/chat";
+import { ent_ChatResetState } from "../../store/entities/chat";
 import {
   ent_SettingsResetState,
   ent_SettingsFetchAllData,
@@ -25,7 +22,6 @@ import AsyncStorage from "@react-native-community/async-storage";
  *                                all data has been deleted
  */
 export const fetchAllAppData = (dispatch, callbackFunc) => {
-  dispatch(ent_ChatFetchAllData);
   dispatch(ent_SettingsFetchAllData);
   dispatch(ent_ProfileFetchAllData);
   // Calls callback function if available
@@ -33,13 +29,15 @@ export const fetchAllAppData = (dispatch, callbackFunc) => {
 };
 
 /**
- * Fetches all data used by the application from the server
+ * Fetches data used by the application from the server. Not all data is
+ * fetched as some data requires other data to be previously fetched first.
+ * Therefore, some data will only be fetched when the user enters the screen
+ * that requires it.
  * @param {Function} dispatch Redux dispatch
  * @param {Function} callbackFunc A callback function that runs after
  *                                all data has been deleted
  */
-export const fetchAllAppDataAfterLogIn = (dispatch, callbackFunc) => {
-  dispatch(ent_ChatFetchAllData);
+export const fetchAppDataAfterLogIn = (dispatch, callbackFunc) => {
   dispatch(ent_SettingsFetchAllData);
   dispatch(ent_ProfileFetchAllDataAfterLogIn);
   // Calls callback function if available

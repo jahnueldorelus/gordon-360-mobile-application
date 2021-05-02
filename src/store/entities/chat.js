@@ -456,6 +456,11 @@ const slice = createSlice({
       }
     },
 
+    // Resets the data loading property to show that no more requests are being made
+    stopDataLoading: (state, action) => {
+      state.dataLoading = false;
+    },
+
     /**
      * STATE RESET REDUCER
      */
@@ -649,6 +654,11 @@ export const fetchMessages = () => (dispatch, getState) => {
   const roomIDList = getUserRooms(getState());
   // List of messages that were requested
   const messagesRequested = getMessagesRequested(getState());
+
+  // If there are no rooms, the retrieval of messages ends
+  if (roomIDList.length === 0) {
+    dispatch({ type: slice.actions.stopDataLoading.type });
+  }
 
   roomIDList.forEach((room) => {
     const roomID = room.id;

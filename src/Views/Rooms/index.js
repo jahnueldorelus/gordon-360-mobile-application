@@ -59,7 +59,6 @@ export const RoomsList = () => {
   useEffect(() => {
     // If user's rooms is available
     if (JSON.stringify(rooms) !== JSON.stringify({})) {
-      console.log("Messages:", messages);
       /**
        * If the user's messages are unavailable or the user's room
        * and messages are being refreshed, and the fetching is allowed,

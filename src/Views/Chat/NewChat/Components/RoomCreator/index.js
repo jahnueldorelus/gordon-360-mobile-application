@@ -51,32 +51,28 @@ import { CameraPermissionsDeviceSettings } from "../../../../../Components/Camer
 import { LoadingScreen } from "../../../../../Components/LoadingScreen/index";
 import { getNewMessageID } from "../../../../../Services/Messages/index";
 import * as FileSystem from "expo-file-system";
+import { AppImageViewer } from "../../../../../Components/AppImageViewer/";
 import moment from "moment";
 
 export const RoomCreator = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
-
   // React Native Navigation
   const navigation = useNavigation();
-
   // The current text inside the input toolbar
   const [messageText, setMessageText] = useState(null);
   // A reference to the current text inside the input toolbar
   const previousMessage = useRef(messageText);
-
   // The room's name
   const roomName = useSelector(getRoomName);
-
   // The room's image
   const roomImage = useSelector(getRoomImage);
-
+  // Image to show in the image viewer
+  const [imageToView, setImageToView] = useState(roomImage);
   // The list of images the user has selected
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
-
   // Determines if the actions buttons of the input toolbar should display
   const [showActions, setShowActions] = useState(false);
-
   // Determines if a new room was created
   const newRoomCreated = useSelector(getNewRoomCreated);
   // The ID of the new room created
@@ -86,6 +82,8 @@ export const RoomCreator = (props) => {
 
   // Determines if modal show displays asking the user to enable camera permissions in settings
   const [showCamPermissSettings, setShowCamPermissSettings] = useState(false);
+  // Determines visibility of the image viewer
+  const [showImageViewer, setShowImageViewer] = useState(false);
 
   // The loading status of creating a room
   const createRoomLoading = useSelector(getCreateRoomLoading);
@@ -154,6 +152,20 @@ export const RoomCreator = (props) => {
     // If there are no selected users, the modal is exited
     if (props.selectedUsersList.length === 0) props.setVisible(false);
   }, [props.selectedUsersList]);
+
+  /**
+   * If an image is set to be shown, the image viewer will open. Otherwise,
+   * the image viewer will be closed (if opened) and the image to be shown
+   * will be reset
+   */
+  useEffect(() => {
+    if (imageToView) {
+      setShowImageViewer(true);
+    } else {
+      setShowImageViewer(false);
+      setImageToView(null);
+    }
+  }, [imageToView]);
 
   /**
    * Sends the message to the server
@@ -348,6 +360,77 @@ export const RoomCreator = (props) => {
               {props.selectedUsers}
 
               {/* GiftedChat */}
+              <GiftedChat
+                alignTop
+                alwaysShowSend
+                bottomOffset={getBottomSpace()}
+                isCustomViewBottom
+                messages={[]}
+                messagesContainerStyle={styles.messagesContainer}
+                minInputToolbarHeight={minInputToolbarHeight()}
+                onInputTextChanged={setMessageText}
+                onSend={createRoom}
+                parsePatterns={(linkStyle) => [
+                  {
+                    pattern: /#(\w+)/,
+                    style: linkStyle,
+                  },
+                ]}
+                renderActions={(props) => {
+                  const ImageHandler = { selectedImages, setSelectedImages };
+                  const CameraPermissionsHandler = {
+                    visible: showCamPermissSettings,
+                    setVisible: setShowCamPermissSettings,
+                  };
+                  return renderActions(
+                    props,
+                    ImageHandler,
+                    CameraPermissionsHandler
+                  );
+                }}
+                renderAvatar={renderAvatar}
+                renderBubble={(props) =>
+                  renderBubble({ ...props, currentRoom })
+                }
+                renderComposer={renderComposer}
+                /**
+                 * Uncomment if you'd like to add a custom view to each message.
+                 * This view appears after a message's text and before the message's
+                 * status information (aka date, sent, delivered, etc.)
+                 */
+                // renderCustomView={renderCustomView}
+                renderInputToolbar={(props) => {
+                  const ImageHandler = { selectedImages, setSelectedImages };
+                  const ImageToViewHandler = {
+                    setImage: setImageToView,
+                    openImageViewer: () => setShowImageViewer(true),
+                  };
+                  const ActionHandler = { showActions, setShowActions };
+
+                  return renderInputToolbar(
+                    props,
+                    ImageHandler,
+                    ImageToViewHandler,
+                    ActionHandler
+                  );
+                }}
+                renderMessage={renderMessage}
+                renderMessageImage={(props) => {
+                  const ImageToViewHandler = {
+                    setImage: setImageToView,
+                    openImageViewer: () => setShowImageViewer(true),
+                  };
+
+                  return renderMessageImage(props, ImageToViewHandler);
+                }}
+                renderMessageText={renderMessageText}
+                renderSend={renderSend}
+                renderSystemMessage={renderSystemMessage}
+                scrollToBottom
+                // showUserAvatar
+                text={messageText}
+                user={mainUser}
+              />
             </View>
           ) : (
             // If a room is in the process of being created, a loading screen is shown
@@ -358,6 +441,13 @@ export const RoomCreator = (props) => {
           <CameraPermissionsDeviceSettings
             visible={showCamPermissSettings}
             setVisible={setShowCamPermissSettings}
+          />
+
+          {/* Image Viewer */}
+          <AppImageViewer
+            image={imageToView}
+            visible={showImageViewer}
+            setVisible={setShowImageViewer}
           />
         </View>
       </SafeAreaView>

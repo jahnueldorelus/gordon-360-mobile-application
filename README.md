@@ -45,6 +45,12 @@
 
 <br/>
 
+## &nbsp;&nbsp;&nbsp;Final Presentation Slides
+
+- https://docs.google.com/presentation/d/1Y_X6unoZz11H5mlaSbJKe4WA6ddGGzveeY4cRbUIoYk/edit?usp=sharing
+
+<br/>
+
 ## 💿&nbsp;&nbsp;&nbsp;API - How the back-end is setup
 
 - https://github.com/gordon-cs/gordon-360-api

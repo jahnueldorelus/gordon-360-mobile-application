@@ -725,11 +725,11 @@ export const sendMessage = (stateMessage, backEndMessage) => (
     ? `${backEndMessage.user.name}\n${backEndMessage.text}`
     : backEndMessage.text;
   // The push notification user IDs
-  // backEndMessage.users_ids = roomObj.users
-  //   .filter((user) => {
-  //     if (user.id !== mainUserID) return user;
-  //   })
-  //   .map((user) => user.id);
+  backEndMessage.users_ids = roomObj.users
+    .filter((user) => {
+      if (user.id !== mainUserID) return user;
+    })
+    .map((user) => user.id);
 
   /**
    * For Development Only
@@ -737,7 +737,7 @@ export const sendMessage = (stateMessage, backEndMessage) => (
    * user. This allows for the other users in a group to not receive
    * multiple messages while testing the app.
    */
-  backEndMessage.users_ids = [mainUserID];
+  // backEndMessage.users_ids = [mainUserID];
 
   dispatch(
     apiRequested({

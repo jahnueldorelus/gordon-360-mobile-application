@@ -86,8 +86,6 @@
   - https://docs.expo.io/distribution/app-stores/
     <br/>
 
-## 👷&nbsp;&nbsp;&nbsp;Purpose
-
 ### Make sure to follow these steps exactly or else you may run into random bugs and glitches! To upgrade Expo, you must have "expo" as a command. That command should be available if you have `expo-cli` installed.
 
 - Update Expo's CLI using the command, '`npm install expo-cli`' if using NPM and, '`yarn add expo-cli`' if using Yarn.

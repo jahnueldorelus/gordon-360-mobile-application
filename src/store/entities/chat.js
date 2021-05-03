@@ -232,37 +232,39 @@ const slice = createSlice({
       state.messageSort[roomID] = [];
 
       // Adds each message to the messages object
-      action.payload.forEach((message, index) => {
-        // Adds the message object to the object of messages
-        messages[message.message_id] = {
-          ...message,
-          // Modifies the message ID property
-          _id: message.message_id,
-          user: {
-            /**
-             * Modifies the avatar of the message's user to add the user's image
-             * from the room object the message belongs in
-             */
-            _id: message.user.user_id,
-            name: message.user.user_name,
-            avatar: getUserImageFromRoom(
-              message.user.user_id,
-              JSON.stringify(state.rooms[roomID])
-            ),
-          },
-        };
-        // Deletes unnecessary properties
-        delete messages[message.message_id].message_id;
-        delete messages[message.message_id].user_id;
-        // Adds the message's ID and date to a list for sorting
-        state.messageSort[roomID].push({
-          _id: message.message_id,
-          createdAt: message.createdAt,
-        });
+      if (action.payload && action.payload.length > 0) {
+        action.payload.forEach((message, index) => {
+          // Adds the message object to the object of messages
+          messages[message.message_id] = {
+            ...message,
+            // Modifies the message ID property
+            _id: message.message_id,
+            user: {
+              /**
+               * Modifies the avatar of the message's user to add the user's image
+               * from the room object the message belongs in
+               */
+              _id: message.user.user_id,
+              name: message.user.user_name,
+              avatar: getUserImageFromRoom(
+                message.user.user_id,
+                JSON.stringify(state.rooms[roomID])
+              ),
+            },
+          };
+          // Deletes unnecessary properties
+          delete messages[message.message_id].message_id;
+          delete messages[message.message_id].user_id;
+          // Adds the message's ID and date to a list for sorting
+          state.messageSort[roomID].push({
+            _id: message.message_id,
+            createdAt: message.createdAt,
+          });
 
-        // Updates the room's last message property with the last message of the room
-        if (index === 0) state.rooms[roomID].lastMessage = message.text;
-      });
+          // Updates the room's last message property with the last message of the room
+          if (index === 0) state.rooms[roomID].lastMessage = message.text;
+        });
+      }
 
       // Creates a new message object with the room id as the key
       state.messages[roomID] = messages;
@@ -301,7 +303,7 @@ const slice = createSlice({
        */
       // If the message was fetched from the server
       if (action.passedData && action.passedData.singleMessageFromServer) {
-        roomID = action.passedData.roomID;
+        roomID = parseInt(action.passedData.roomID);
         messageObj = action.payload;
         // Sets the correct message ID property
         messageObj._id = messageObj.message_id;
@@ -327,6 +329,7 @@ const slice = createSlice({
         state.messages[roomID] = {};
         state.messageSort[roomID] = [];
       }
+
       // The messages of the room
       const roomMessages = state.messages[roomID];
       // The list of sorted messages of the room
@@ -626,6 +629,15 @@ const getMessagesRequested = createSelector(
   (chat) => chat.messagesLoading
 );
 
+/**
+ * Returns the message object based upon room ID
+ * @param {number} roomID The room ID of the messages to retrieve
+ */
+const getMessageObject = createSelector(
+  (state) => state.entities.chat,
+  (chat) => chat.messages[roomID]
+);
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Fetches the user's list of rooms
@@ -713,11 +725,11 @@ export const sendMessage = (stateMessage, backEndMessage) => (
     ? `${backEndMessage.user.name}\n${backEndMessage.text}`
     : backEndMessage.text;
   // The push notification user IDs
-  backEndMessage.users_ids = roomObj.users
-    .filter((user) => {
-      if (user.id !== mainUserID) return user;
-    })
-    .map((user) => user.id);
+  // backEndMessage.users_ids = roomObj.users
+  //   .filter((user) => {
+  //     if (user.id !== mainUserID) return user;
+  //   })
+  //   .map((user) => user.id);
 
   /**
    * For Development Only
@@ -725,7 +737,7 @@ export const sendMessage = (stateMessage, backEndMessage) => (
    * user. This allows for the other users in a group to not receive
    * multiple messages while testing the app.
    */
-  // backEndMessage.users_ids = [mainUserID];
+  backEndMessage.users_ids = [mainUserID];
 
   dispatch(
     apiRequested({
@@ -756,35 +768,37 @@ export const getFullMessageFromServer = (request, notificationTray) => (
   const roomID = parseInt(request.content.data.roomID);
   // The message ID
   const messageID = request.content.data.messageID;
-  /**
-   * Checks to see if the notification ID is in the list of notification IDs and if
-   * the message already exists. If so, no fetch is done. Otherwise, the message is
-   * fetched from the server
-   */
+  // Redux State
+  const state = getState();
 
-  if (
-    // Checks if the notification's has already been handled
-    !isNotificationHandled(request.identifier)(getState()) &&
-    // Checks if the message is already saved in the state
-    !getState().entities.chat.messages[roomID][messageID]
-  ) {
-    // Fetches the full message from the back-end
-    dispatch(
-      apiRequested({
-        url: "/dm/singleMessage",
-        method: "put",
-        data: { roomID, messageID },
-        useEndpoint: true,
-        onStart: slice.actions.addRoomIDToNewMessage.type,
-        onSuccess: slice.actions.addMessage.type,
-        passedData: {
-          notificationIdentifier: request.identifier,
-          notificationTray,
-          roomID,
-          singleMessageFromServer: true,
-        },
-      })
-    );
+  // Checks to make sure the state is availale
+  if (state && state.entities && state.entities.chat) {
+    /**
+     * Checks to see if the notification ID is in the list of notification IDs.
+     * If so, no fetch is done. Otherwise, the message is fetched from the server
+     */
+    if (
+      // Checks if the notification's has already been handled
+      !isNotificationHandled(request.identifier)(getState())
+    ) {
+      // Fetches the full message from the back-end
+      dispatch(
+        apiRequested({
+          url: "/dm/singleMessage",
+          method: "put",
+          data: { roomID, messageID },
+          useEndpoint: true,
+          onStart: slice.actions.addRoomIDToNewMessage.type,
+          onSuccess: slice.actions.addMessage.type,
+          passedData: {
+            notificationIdentifier: request.identifier,
+            notificationTray,
+            roomID,
+            singleMessageFromServer: true,
+          },
+        })
+      );
+    }
   }
 };
 

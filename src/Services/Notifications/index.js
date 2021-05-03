@@ -38,11 +38,20 @@ export const notificationReceivedHandler = async (
  */
 export const notificationResponseHandler = async (
   notification,
+  getFullMessageFromServer,
   dispatch,
   navigation
 ) => {
   // If the notification is for a chat, the user is brought to the specified chat
   if (notification.request.content.data.roomID) {
+    // List of notifications in the notification tray
+    let notificationTray = await Notifications.getPresentedNotificationsAsync();
+    // Sets the badge number of the app
+    await Notifications.setBadgeCountAsync(notificationTray.length);
+    // The full message object is fetched from the server
+    dispatch(getFullMessageFromServer(notification.request), notificationTray);
+
+    // The room ID of the notificatioon
     const roomID = parseInt(notification.request.content.data.roomID);
     // Sets the user's selected room ID
     dispatch(setRoomID(roomID));

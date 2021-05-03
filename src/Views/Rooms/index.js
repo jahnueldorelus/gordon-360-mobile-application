@@ -82,6 +82,7 @@ export const RoomsList = () => {
 
   // Fetches the user's room on first launch of this component
   useEffect(() => {
+    shouldFetchMessages.current = true;
     dispatch(fetchRooms);
   }, []);
 
@@ -91,7 +92,9 @@ export const RoomsList = () => {
    * is brought straight to the Chat screen
    */
   useEffect(() => {
-    if (shouldNavigateToChat) {
+    // The user will be directed straight to the chat screen only if there's
+    // no chat data being loaded
+    if (shouldNavigateToChat && !dataLoading && !shouldFetchMessages.current) {
       // Navigates to the chat screen
       navigation.navigate(ScreenNames.chat);
       /**
@@ -100,7 +103,7 @@ export const RoomsList = () => {
        */
       dispatch(setShouldNavigateToChat(false));
     }
-  }, [shouldNavigateToChat]);
+  }, [shouldNavigateToChat, dataLoading]);
 
   if (rooms && roomsWithNewMessages && userProfile && !dataLoading)
     return (

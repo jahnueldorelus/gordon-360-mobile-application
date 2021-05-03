@@ -66,7 +66,12 @@ export const Screen = (props) => {
     // Notification Response Listener
     notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) =>
-        notificationResponseHandler(response.notification, dispatch, navigation)
+        notificationResponseHandler(
+          response.notification,
+          getFullMessageFromServer,
+          dispatch,
+          navigation
+        )
     );
 
     /**

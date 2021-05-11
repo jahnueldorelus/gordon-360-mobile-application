@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -8,7 +8,7 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { getRoomName, getRoomImage } from "../../Services/Messages";
+import { getRoomName, getRoomImage, getImage } from "../../Services/Messages";
 import { getReadableDateFormat } from "../../Services/Messages/index";
 import { ListItem, Icon } from "react-native-elements";
 import {
@@ -60,6 +60,8 @@ export const RoomsList = () => {
   const shouldFetchMessages = useRef(true);
   // Determines if the app should navigate directly to the chat screen
   const shouldNavigateToChat = useSelector(getShouldNavigateToChat);
+  // Object of room images
+  const [roomImages, setRoomImages] = useState({});
 
   // Re-fetches the user's messages if the rooms object is available
   useEffect(() => {
@@ -78,6 +80,29 @@ export const RoomsList = () => {
         shouldFetchMessages.current = false;
       }
     }
+
+    // Gets and sets the image for each room
+    rooms.forEach((room) => {
+      // Checks to make sure an image isn't already existing for the room
+      if (!roomImages[room.id]) {
+        getImage(room.image).then((image) => {
+          // If an image is available, it's saved
+          if (image)
+            setRoomImages({
+              ...roomImages,
+              [room.id]: {
+                uri: `data:image/gif;base64,${image}`,
+              },
+            });
+          // Since there's no image available, the default image is used
+          else
+            setRoomImages({
+              ...roomImages,
+              [room.id]: getRoomImage(room, userProfile.ID),
+            });
+        });
+      }
+    });
   }, [rooms]);
 
   // Fetches the user's room on first launch of this component
@@ -163,9 +188,10 @@ export const RoomsList = () => {
                 }}
               >
                 <Image
-                  source={getRoomImage(room.item, userProfile.ID)}
+                  source={roomImages[room.item.id]}
                   style={styles.listItemImage}
                 />
+
                 <ListItem.Content>
                   <View style={styles.listItemHeader}>
                     <View style={styles.listItemHeaderTitleContainer}>

@@ -14,6 +14,7 @@ import { ui_ChatResetState } from "../../store/ui/chat";
 import { ui_PeopleSearchResetState } from "../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../store/ui/peopleSearchFilter";
 import AsyncStorage from "@react-native-community/async-storage";
+import { persistor } from "../../store/configuration/configureStore";
 
 /**
  * Fetches all data used by the application from the server
@@ -61,10 +62,13 @@ export const resetApp = (dispatch, callbackFunc) => {
   dispatch(ui_PeopleSearchFilterResetState);
 
   // Resets storage
-  AsyncStorage.clear().then(() => {
-    // Calls callback function if available
-    if (callbackFunc) callbackFunc();
-  });
+  AsyncStorage.clear();
+  // Resets redux perist
+  persistor.purge();
+  // Saves the state immediately to save the user's authentication
+  persistor.flush();
+  // Calls callback function if available
+  if (callbackFunc) callbackFunc();
 };
 
 /**
@@ -85,8 +89,9 @@ export const signOutApp = (dispatch, callbackFunc) => {
   dispatch(ui_PeopleSearchFilterResetState);
 
   // Resets storage
-  AsyncStorage.clear().then(() => {
-    // Calls callback function if available
-    if (callbackFunc) callbackFunc();
-  });
+  AsyncStorage.clear();
+  // Resets redux perist
+  persistor.purge();
+  // Calls callback function if available
+  if (callbackFunc) callbackFunc();
 };

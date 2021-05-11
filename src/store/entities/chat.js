@@ -6,6 +6,7 @@ import moment from "moment";
 import {
   getRoomName,
   getUserImageFromRoom,
+  saveImageAndGetID,
 } from "../../Services/Messages/index";
 import * as Notifications from "expo-notifications";
 import { getUserInfo } from "./profile";
@@ -28,8 +29,10 @@ const slice = createSlice({
     messages: {},
     messagesLoading: [],
     messageSort: {},
+    tempMessages: {},
     dataLoading: false,
     chatRequestsError: { rooms: false, messages: false },
+    base64Images: {},
   },
   reducers: {
     /**
@@ -37,17 +40,17 @@ const slice = createSlice({
      */
     addRoom: (state, action) => {
       // Creates a copy of the rooms sort list
-      let newSortRoomList = state.sortRoomList.slice();
+      const newSortRoomList = state.sortRoomList.slice();
+      // Formats the room object to be parsed correctly
+      const newRoom = correctedRoomObject(action.payload);
 
-      /**
-       * Formats the room object to be parsed correctly
-       */
-      let newRoom = correctedRoomObject(action.payload);
-
-      // Corrects the room ID property
-      newRoom.id = action.payload.id;
-      // Corrects the room image property
-      newRoom.image = action.payload.image;
+      // Corrects the room ID property if room was received locally and not from server
+      if (
+        action.passedData &&
+        action.passedData.singleRoomFromServer &&
+        !action.passedData.singleRoomFromServer
+      )
+        newRoom.id = action.payload.id;
 
       /**
        * Checks to make sure there's not a duplicate room. If there is,
@@ -67,8 +70,18 @@ const slice = createSlice({
           (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
         );
 
+        // Temporary holds the room's image
+        const oldImage = newRoom.image;
+        // Deletes the image property of the room
+        delete newRoom.image;
         // Adds the room to the rooms object
         state.rooms[newRoom.id] = newRoom;
+        // Sets the room's image
+        slice.caseReducers.saveImage(state, {
+          image: oldImage,
+          roomID: newRoom.id,
+        });
+
         // Shows in the state that a new room was created and sets it's ID
         state.newRoomCreated = {
           roomCreated: true,
@@ -77,6 +90,21 @@ const slice = createSlice({
         };
         // Resets the room creating loading
         state.createRoomLoading = false;
+
+        /**
+         * Checks to see if the room has any temporary messages.
+         * If so those messages are saved to the state and deleted
+         * from the object of temporary messages
+         */
+        if (state.tempMessages[newRoom.id]) {
+          const tempMessages = state.tempMessages[newRoom.id];
+          tempMessages.forEach((messageAction) => {
+            // Saves the message to the state
+            slice.caseReducers.addMessage(state, messageAction);
+          });
+          // Deletes the temporary messages
+          delete state.tempMessages[newRoom.id];
+        }
       }
     },
 
@@ -103,11 +131,17 @@ const slice = createSlice({
     userRoomsAdded: (state, action) => {
       // New sort list
       let newSortList = [];
+
       // Goes through the list of rooms and modifies its properties
       action.payload.forEach((obj) => {
         const room = obj[0];
         // Checks to make sure the room object is existent
         if (room) {
+          // The room's image
+          const oldImage = room.roomImage;
+          // Deletes the room's image as it will be set later
+          delete room.roomImage;
+
           // Adds room data to the sort list
           newSortList.push({
             id: room.room_id,
@@ -117,6 +151,12 @@ const slice = createSlice({
           state.rooms[room.room_id] = {
             ...correctedRoomObject(room),
           };
+
+          // Sets the room's image
+          slice.caseReducers.saveImage(state, {
+            image: oldImage,
+            roomID: room.room_id,
+          });
         }
       });
 
@@ -225,9 +265,11 @@ const slice = createSlice({
     // Adds the list of messages for a room
     userMessagesAdded: (state, action) => {
       // The room ID where all messages will be placed
-      let roomID = parseInt(action.config.data);
-      // Temporary object that will contain all message objects
-      let messages = {};
+      const roomID = parseInt(action.config.data);
+      // An object that will contain all message objects
+      const messages = {};
+      // A list that holds each message's image
+      const images = [];
       // Creates a list for sorting the users messages based on room ID
       state.messageSort[roomID] = [];
 
@@ -252,6 +294,10 @@ const slice = createSlice({
               ),
             },
           };
+
+          // Add the message's image to the list of images
+          images.push({ messageID: message.message_id, image: message.image });
+
           // Deletes unnecessary properties
           delete messages[message.message_id].message_id;
           delete messages[message.message_id].user_id;
@@ -268,6 +314,18 @@ const slice = createSlice({
 
       // Creates a new message object with the room id as the key
       state.messages[roomID] = messages;
+
+      // Sets the image of each message
+      images.forEach((obj) => {
+        slice.caseReducers.saveImage(state, {
+          image: obj.image,
+          roomID,
+          messageID: obj.messageID,
+        });
+      });
+
+      // Removes any temporary messages saved for the room
+      delete state.tempMessages[roomID];
 
       // Removes the room ID from the list of loading messages
       if (state.messagesLoading.includes(roomID)) {
@@ -298,110 +356,134 @@ const slice = createSlice({
       // The room ID and message object
       let roomID, messageObj;
 
-      /**
-       * Correctly parses the data since it may have different formats
-       */
-      // If the message was fetched from the server
-      if (action.passedData && action.passedData.singleMessageFromServer) {
-        roomID = parseInt(action.passedData.roomID);
-        messageObj = action.payload;
-        // Sets the correct message ID property
-        messageObj._id = messageObj.message_id;
-        delete messageObj.message_id;
-        // Sets the correct user property
-        messageObj.user = {
-          _id: messageObj.user_id,
-          name: messageObj.user_name,
-          avatar: messageObj.user_avatar,
-        };
+      // If the room doesn't exist, the data is saved temporarily
+      if (!state.rooms[action.payload.roomID]) {
+        // If temporary messages hasn't been created for the room, it's created
+        if (!state.tempMessages[roomID]) state.tempMessages[roomID] = [];
+        // Saves the reducer's action to the temporary messages
+        state.tempMessages[roomID].push(action);
       }
-      // If the message was passed locally
+      // If the room does exist
       else {
-        roomID = action.payload.roomID;
-        messageObj = action.payload.messageObj;
-      }
-
-      /**
-       * Checks to see if the room has messages. If not, new objects are
-       * created to add messages to
-       */
-      if (!state.messages[roomID]) {
-        state.messages[roomID] = {};
-        state.messageSort[roomID] = [];
-      }
-
-      // The messages of the room
-      const roomMessages = state.messages[roomID];
-      // The list of sorted messages of the room
-      let roomMessagesSorted = state.messageSort[roomID];
-
-      /**
-       * Checks to see if a message with the same ID is already saved.
-       * If so, the message is not saved to prevent past messages from being
-       * overwritten.
-       */
-      if (!roomMessages[messageObj._id]) {
-        // Adds the message to the room's object of messages
-        roomMessages[messageObj._id] = {
-          // Creates a copy of the message object
-          ...messageObj,
-          // Modifies the user of the objects
-          user: {
-            // Creates a copy of the message's user object
-            ...messageObj.user,
-            /**
-             * Modifies the avatar of the message's user to add the user's image
-             * from the room object the message belongs in
-             */
-            avatar: getUserImageFromRoom(
-              messageObj.user._id,
-              JSON.stringify(state.rooms[roomID])
-            ),
-          },
-        };
-
-        // Adds the message to the room's sorted message list (at the beginning)
-        roomMessagesSorted.unshift({
-          _id: messageObj._id,
-          createdAt: messageObj.createdAt,
-        });
-
-        // Sorts the room's sorted message list
-        roomMessagesSorted.sort(
-          (a, b) => moment(b.createdAt) - moment(a.createdAt)
-        );
+        /**
+         * Correctly parses the data since it may have different formats
+         */
+        // If the message was fetched from the server
+        if (action.passedData && action.passedData.singleMessageFromServer) {
+          roomID = parseInt(action.passedData.roomID);
+          messageObj = action.payload;
+          // Sets the correct message ID property
+          messageObj._id = messageObj.message_id;
+          delete messageObj.message_id;
+          // Sets the correct user property
+          messageObj.user = {
+            _id: messageObj.user_id,
+            name: messageObj.user_name,
+            avatar: messageObj.user_avatar,
+          };
+        }
+        // If the message was passed locally
+        else {
+          roomID = action.payload.roomID;
+          messageObj = action.payload.messageObj;
+        }
 
         /**
-         * Updates the room object's last updated and text property with the
-         * last message's date only if the message's date is newer than the
-         * room's last updated date
+         * Checks to see if the room has messages. If not, new objects are
+         * created to add messages to
          */
-        if (
-          moment(messageObj.createdAt).isAfter(state.rooms[roomID].lastUpdated)
-        ) {
-          state.rooms[roomID] = {
-            ...state.rooms[roomID],
-            /**
-             * Updates the last message property of the room if the message object
-             * has a text along with it
-             */
-            lastMessage: messageObj.text
-              ? messageObj.text
-              : state.rooms[roomID].lastMessage,
-            // Updates the last updated property of the room
-            lastUpdated: messageObj.createdAt,
+        if (!state.messages[roomID]) {
+          state.messages[roomID] = {};
+          state.messageSort[roomID] = [];
+        }
+
+        // The messages of the room
+        const roomMessages = state.messages[roomID];
+        // The list of sorted messages of the room
+        let roomMessagesSorted = state.messageSort[roomID];
+
+        /**
+         * Checks to see if a message with the same ID is already saved.
+         * If so, the message is not saved to prevent past messages from being
+         * overwritten.
+         */
+        if (!roomMessages[messageObj._id]) {
+          // The message's image
+          const messageImage = messageObj.image;
+          // Deletes the message's image as it will be set later
+          delete messageObj.image;
+
+          // Adds the message to the room's object of messages
+          roomMessages[messageObj._id] = {
+            // Creates a copy of the message object
+            ...messageObj,
+            // Modifies the user of the objects
+            user: {
+              // Creates a copy of the message's user object
+              ...messageObj.user,
+              /**
+               * Modifies the avatar of the message's user to add the user's image
+               * from the room object the message belongs in
+               */
+              avatar: getUserImageFromRoom(
+                messageObj.user._id,
+                JSON.stringify(state.rooms[roomID])
+              ),
+            },
           };
 
-          // Updates the last updated property of the sorted list of rooms
-          state.sortRoomList.filter((room) => {
-            // The numbers must be converted to string first to properly compare
-            if (room.id.toString() === roomID.toString())
-              room.lastUpdated = messageObj.createdAt;
+          // Sets the message's image
+          slice.caseReducers.saveImage(state, {
+            image: messageImage,
+            roomID,
+            messageID: messageObj._id,
           });
-          // Sorts the rooms objects
-          state.sortRoomList.sort(
-            (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
+
+          // Adds the message to the room's sorted message list (at the beginning)
+          roomMessagesSorted.unshift({
+            _id: messageObj._id,
+            createdAt: messageObj.createdAt,
+          });
+
+          // Sorts the room's sorted message list
+          roomMessagesSorted.sort(
+            (a, b) => moment(b.createdAt) - moment(a.createdAt)
           );
+
+          /**
+           * Updates the room object's last updated and text property with the
+           * last message's date only if the message's date is newer than the
+           * room's last updated date
+           */
+          if (
+            moment(messageObj.createdAt).isAfter(
+              state.rooms[roomID].lastUpdated
+            )
+          ) {
+            state.rooms[roomID] = {
+              ...state.rooms[roomID],
+              /**
+               * Updates the last message property of the room if the message object
+               * has a text along with it
+               */
+              lastMessage: messageObj.text
+                ? messageObj.text
+                : state.rooms[roomID].lastMessage,
+              // Updates the last updated property of the room
+              lastUpdated: messageObj.createdAt,
+            };
+
+            // Updates the last updated property of the sorted list of rooms
+            state.sortRoomList.filter((room) => {
+              // The numbers must be converted to string first to properly compare
+              if (room.id.toString() === roomID.toString())
+                room.lastUpdated = messageObj.createdAt;
+            });
+            // Sorts the rooms objects
+            state.sortRoomList.sort(
+              (a, b) => moment(b.lastUpdated) - moment(a.lastUpdated)
+            );
+          }
         }
       }
     },
@@ -464,6 +546,27 @@ const slice = createSlice({
     },
 
     /**
+     * IMAGE REDUCER
+     */
+    saveImage: (state, data) => {
+      // The array of the base64 images
+      const imageID = saveImageAndGetID(
+        data.image,
+        data.roomID,
+        data.messageID
+      );
+
+      /**
+       * Saves the image to its corresponding room or message object
+       */
+      // If the image belongs to a message object, the image is saved to the message
+      if (data.roomID && data.messageID)
+        state.messages[data.roomID][data.messageID].image = imageID;
+      // If the image belongs to a room object, the image is saved to the room
+      else state.rooms[data.roomID].image = imageID;
+    },
+
+    /**
      * STATE RESET REDUCER
      */
     // Resets all the state's data
@@ -480,8 +583,10 @@ const slice = createSlice({
       state.notificationIdentifiers = [];
       state.messages = {};
       state.messageSort = {};
+      state.tempMessages = {};
       state.dataLoading = false;
       state.chatRequestsError = { rooms: false, messages: false };
+      state.base64Images = {};
     },
   },
 });
@@ -739,19 +844,19 @@ export const sendMessage = (stateMessage, backEndMessage) => (
    */
   // backEndMessage.users_ids = [mainUserID];
 
-  dispatch(
-    apiRequested({
-      url: "/dm/text",
-      method: "put",
-      data: backEndMessage,
-      useEndpoint: true,
-      onSuccess: slice.actions.updateMessagePending.type,
-      passedData: {
-        roomID,
-        messageObj: backEndMessage,
-      },
-    })
-  );
+  // dispatch(
+  //   apiRequested({
+  //     url: "/dm/text",
+  //     method: "put",
+  //     data: backEndMessage,
+  //     useEndpoint: true,
+  //     onSuccess: slice.actions.updateMessagePending.type,
+  //     passedData: {
+  //       roomID,
+  //       messageObj: backEndMessage,
+  //     },
+  //   })
+  // );
 };
 
 /**
@@ -766,39 +871,51 @@ export const getFullMessageFromServer = (request, notificationTray) => (
 ) => {
   // The message's room ID
   const roomID = parseInt(request.content.data.roomID);
+  // The rooms object
+  const roomObj = getRooms(getState());
   // The message ID
   const messageID = request.content.data.messageID;
-  // Redux State
-  const state = getState();
 
-  // Checks to make sure the state is availale
-  if (state && state.entities && state.entities.chat) {
-    /**
-     * Checks to see if the notification ID is in the list of notification IDs.
-     * If so, no fetch is done. Otherwise, the message is fetched from the server
-     */
-    if (
-      // Checks if the notification's has already been handled
-      !isNotificationHandled(request.identifier)(getState())
-    ) {
-      // Fetches the full message from the back-end
+  /**
+   * Checks to see if the notification ID is in the list of notification IDs.
+   * If so, no fetch is done. Otherwise, the message is fetched from the server
+   */
+  if (
+    // Checks if the notification's has already been handled
+    !isNotificationHandled(request.identifier)(getState())
+  ) {
+    // Fetches the full message from the back-end
+    dispatch(
+      apiRequested({
+        url: "/dm/singleMessage",
+        method: "put",
+        data: { roomID, messageID },
+        useEndpoint: true,
+        onStart: slice.actions.addRoomIDToNewMessage.type,
+        onSuccess: slice.actions.addMessage.type,
+        passedData: {
+          notificationIdentifier: request.identifier,
+          notificationTray,
+          roomID,
+          singleMessageFromServer: true,
+        },
+      })
+    );
+
+    // Checks to see if the room is existent. If not, the room is fetched
+    if (!roomObj[roomID])
       dispatch(
         apiRequested({
-          url: "/dm/singleMessage",
-          method: "put",
-          data: { roomID, messageID },
+          url: "/dm/singleRoom",
+          method: "post",
+          data: roomID.toString(), // Make sure it's a string or may cause a request error with Axios,
           useEndpoint: true,
-          onStart: slice.actions.addRoomIDToNewMessage.type,
-          onSuccess: slice.actions.addMessage.type,
+          onSuccess: slice.actions.addRoom.type,
           passedData: {
-            notificationIdentifier: request.identifier,
-            notificationTray,
-            roomID,
-            singleMessageFromServer: true,
+            singleRoomFromServer: true,
           },
         })
       );
-    }
   }
 };
 
@@ -867,8 +984,8 @@ export const ent_ChatResetState = (dispatch, getState) => {
  * @returns {Array} A list of the messages based upon the room ID
  */
 const getListMessagesByID = (chat, roomID) => {
-  // If the chat object and room ID is available
-  if (JSON.stringify(chat) !== JSON.stringify({}) && roomID) {
+  // If the room ID is available
+  if (roomID) {
     /**
      * Gets the list of messages for a room that's sorted in order from
      * newest to oldest date
@@ -878,7 +995,9 @@ const getListMessagesByID = (chat, roomID) => {
      * Returns a mapping of each text to retrieve the full message object
      * Conversion: { _id, createdAt } -> { _id, text, user_id, user, image, etc. }
      */
-    return messages.map((text) => chat.messages[roomID][text._id]);
+    return messages
+      ? messages.map((text) => chat.messages[roomID][text._id])
+      : [];
   }
   // If the chat object or room is not available, an empty list is returned
   else return [];
@@ -897,7 +1016,7 @@ const correctedRoomObject = (room) => {
     group: room.group,
     createdAt: room.createdAt,
     lastUpdated: room.lastUpdated,
-    lastMessage: room.lastMessage,
+    lastMessage: room.lastMessage ? room.lastMessage : "",
     users: room.users.map((user) => {
       return {
         id: user.user_id,

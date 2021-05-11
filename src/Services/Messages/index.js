@@ -1,5 +1,9 @@
 import moment from "moment";
 import * as Notifications from "expo-notifications";
+import * as FileSystem from "expo-file-system";
+
+// The directory where all images are stored
+const imageDir = FileSystem.documentDirectory + "Images/";
 
 /**
  * Returns all the images in a room
@@ -25,23 +29,25 @@ export const getRoomChatImages = (messages) => {
  * @param {string} mainUserID The ID of the main user
  */
 export const getRoomImage = (room, mainUserID) => {
-  // If a room image is available
-  if (room.image) {
-    return { uri: "data:image/gif;base64," + room.image };
+  // Checks that the room exists
+  if (room.id) {
+    // If there's no room image and the chat is a group
+    if (room.group) {
+      return require("./Images/default-group-image.png");
+    }
+    // If there's no room image and the chat is not a group
+    else if (!room.group) {
+      // Gets the other user in the group
+      const otherUser = room.users.filter((user) => user.id !== mainUserID)[0];
+      // If the other user has an image, their image is returned. Otherwise it's the default user image
+      return otherUser.image
+        ? {
+            uri: "data:image/gif;base64," + getImage(otherUser.image),
+          }
+        : require("./Images/default-non-group-image.png");
+    }
   }
-  // If there's no room image and the chat is a group
-  else if (room.group) {
-    return require("./Images/default-group-image.png");
-  }
-  // If there's no room image and the chat is not a group
-  else if (!room.group) {
-    // Gets the other user in the group
-    const otherUser = room.users.filter((user) => user.id !== mainUserID)[0];
-    // If the other user has an image, their image is returned. Otherwise it's the default user image
-    return otherUser.image
-      ? { uri: "data:image/gif;base64," + otherUser.image }
-      : require("./Images/default-non-group-image.png");
-  }
+  return null;
 };
 
 /**
@@ -193,4 +199,64 @@ export const removeNotificationsInTray = async (roomID) => {
       );
     }
   });
+};
+
+/**
+ * Converts base64 into an array of the base64 content
+ * @param {string} image An image in base64 format
+ * @param {number} roomID The ID of the room the image belongs to
+ * @param {string} messageID The ID of the messsage the image belongs too
+ * @returns {string} The ID of the image
+ */
+export const saveImageAndGetID = (image, roomID, messageID) => {
+  if (image) {
+    // The image's ID
+    const imageID =
+      roomID && messageID
+        ? `message-${messageID}-image.b64`
+        : `room-${roomID}-image.b64`;
+    // Saves the image to the device
+    saveImage(image, imageID);
+    // Returns the image's ID
+    return imageID;
+  }
+  return null;
+};
+
+/**
+ * Gets an image from the device
+ * @param {string} imageID The ID of the image
+ * @return {Promise} A promise containing the base64 format of the image
+ */
+export const getImage = (imageID) => {
+  if (imageID) {
+    let image = null;
+    /**
+     * Reads the file of given image ID
+     * @param {string} imageID  The ID of the image
+     */
+    const readImage = async (imageID) => {
+      image = await FileSystem.readAsStringAsync(imageDir + imageID);
+      return image;
+    };
+
+    return readImage(imageID);
+  } else return null;
+};
+
+/**
+ * Saves an image to the device
+ * @param {string} image An image in base64 format
+ * @param {string} imageID The ID of the image
+ */
+const saveImage = async (image, imageID) => {
+  // Checks to see if the image folder exists. If it doesn't, it's created
+  const dirInfo = await FileSystem.getInfoAsync(imageDir);
+  if (!dirInfo.exists) {
+    await FileSystem.makeDirectoryAsync(imageDir, { intermediates: true });
+  }
+
+  // Writes the base64 image to a file if it's not already there
+  if (!(await FileSystem.getInfoAsync(imageDir + imageID).exists))
+    await FileSystem.writeAsStringAsync(imageDir + imageID, image);
 };

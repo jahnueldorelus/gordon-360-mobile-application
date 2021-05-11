@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Share,
 } from "react-native";
+import { getImage } from "../../Services/Messages";
 import { Icon } from "react-native-elements";
 import * as FileSystem from "expo-file-system";
 import PropTypes from "prop-types";
@@ -33,8 +34,13 @@ export const AppImageViewer = (props) => {
     const getBase64Format = async (image) => {
       // Checks to make sure an image is existent
       if (image) {
+        // If the image is an array of base64 content
+        if (Array.isArray(image)) {
+          const newImageURI = "data:image/gif;base64," + getImage(image);
+          setImageURI(newImageURI);
+        }
         // If the image is a path to the image on the local device, it's converted to base64
-        if (image.includes("file:")) {
+        else if (image.includes("file:")) {
           const newImageURI =
             "data:image/gif;base64," +
             (await FileSystem.readAsStringAsync(image, {
@@ -130,7 +136,7 @@ const styles = StyleSheet.create({
 });
 
 AppImageViewer.propTypes = {
-  image: PropTypes.string,
+  image: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
   visible: PropTypes.bool.isRequired,
   setVisible: PropTypes.func.isRequired,
 };

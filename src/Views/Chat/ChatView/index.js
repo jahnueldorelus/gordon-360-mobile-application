@@ -107,13 +107,13 @@ export const ChatView = () => {
    * will be reset
    */
   useEffect(() => {
-    if (imageToView) {
+    if (imageToView && showImageViewer) {
       setShowImageViewer(true);
     } else {
       setShowImageViewer(false);
       setImageToView(null);
     }
-  }, [imageToView]);
+  }, [imageToView, showImageViewer]);
 
   /**
    * Configures the animation for all components of GiftedChat so that
@@ -141,6 +141,7 @@ export const ChatView = () => {
         date: messageDate.format("YYYY-MM-DDTHH:mm:ss.SSS"),
         // ID is created similar to the format of GiftedChat
         id: getNewMessageID(),
+        // Reads the image from the user's device
         image: await FileSystem.readAsStringAsync(image, {
           encoding: FileSystem.EncodingType.Base64,
         }),
@@ -313,6 +314,12 @@ export const ChatView = () => {
           // showUserAvatar
           text={text}
           user={user}
+          infiniteScroll={false}
+          // onLoadEarlier={() => {
+          //   console.log("Loading Earlier Messages");
+          // }}
+          // loadEarlier={true}
+          // isLoadingEarlier={false}
         />
 
         {/* Camera Permissions */}

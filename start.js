@@ -8,6 +8,7 @@ import {
 } from "./src/store/entities/Auth/authSelectors";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAppDataAfterLogIn } from "./src/Services/App/index";
+import { loadImages } from "./src/Services/Messages/index";
 import { NetworkProvider } from "react-native-offline";
 import { Screen } from "./screen";
 import { ScreenNames } from "./ScreenNames";
@@ -37,6 +38,13 @@ export const Start = () => {
       fetchAppDataAfterLogIn(dispatch);
     }
   }, [authToken]);
+
+  useEffect(() => {
+    /**
+     * Loads all images into the state to be used in message chats
+     */
+    loadImages(dispatch);
+  }, []);
 
   // Returns a screen based upon the current route
   const AppScreen = ({ route }) => {

@@ -1,12 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
-import { getSelectedRoomID } from "../ui/chat";
+import { getSelectedRoomID, setImage } from "../ui/chat";
 import moment from "moment";
 import {
   getRoomName,
   getUserImageFromRoom,
   saveImageAndGetID,
+  getImageID,
 } from "../../Services/Messages/index";
 import * as Notifications from "expo-notifications";
 import { getUserInfo } from "./profile";
@@ -549,7 +550,7 @@ const slice = createSlice({
      * IMAGE REDUCER
      */
     saveImage: (state, data) => {
-      // The array of the base64 images
+      // Saves the image to the device's storage
       const imageID = saveImageAndGetID(
         data.image,
         data.roomID,
@@ -811,6 +812,19 @@ export const sendMessage = (stateMessage, backEndMessage) => (
   const roomObj = getUserRoomByID(roomID)(getState());
   // The main user's ID
   const mainUserID = getUserInfo(getState()).ID;
+
+  /**
+   * Saves the message's image if it exists
+   * WARNING: Make sure to only use the backEndMessage variable for
+   * dispatching to set the image since it's untouched. This is due
+   * to the variable stateMessage being modified by the dispatch
+   * to "addMessage" that causes errors when accessing its data.
+   */
+  if (backEndMessage.image && backEndMessage.id) {
+    dispatch(
+      setImage(getImageID(roomID, backEndMessage.id), backEndMessage.image)
+    );
+  }
 
   // Adds the message to the state
   dispatch({

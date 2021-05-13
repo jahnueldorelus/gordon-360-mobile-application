@@ -1,6 +1,7 @@
 import moment from "moment";
 import * as Notifications from "expo-notifications";
 import * as FileSystem from "expo-file-system";
+import { setImage } from "../../store/ui/chat";
 
 // The directory where all images are stored
 const imageDir = FileSystem.documentDirectory + "Images/";
@@ -211,10 +212,7 @@ export const removeNotificationsInTray = async (roomID) => {
 export const saveImageAndGetID = (image, roomID, messageID) => {
   if (image) {
     // The image's ID
-    const imageID =
-      roomID && messageID
-        ? `message-${messageID}-image.b64`
-        : `room-${roomID}-image.b64`;
+    const imageID = getImageID(roomID, messageID);
     // Saves the image to the device
     saveImage(image, imageID);
     // Returns the image's ID
@@ -224,20 +222,38 @@ export const saveImageAndGetID = (image, roomID, messageID) => {
 };
 
 /**
+ * Gets the ID of an image
+ * @param {number} roomID The ID of the room the image belongs to
+ * @param {string} messageID The ID of the message the image belongs to
+ */
+export const getImageID = (roomID, messageID) => {
+  return roomID && messageID
+    ? `room.${roomID}.message.${messageID}.image`
+    : roomID
+    ? `room.${roomID}.image`
+    : null;
+};
+
+/**
  * Gets an image from the device
  * @param {string} imageID The ID of the image
  * @return {Promise} A promise containing the base64 format of the image
  */
 export const getImage = (imageID) => {
   if (imageID) {
-    let image = null;
     /**
      * Reads the file of given image ID
      * @param {string} imageID  The ID of the image
      */
     const readImage = async (imageID) => {
-      image = await FileSystem.readAsStringAsync(imageDir + imageID);
-      return image;
+      // The image's filepath
+      const imageFilepath = imageDir + imageID;
+      // The file information
+      const imageInfo = await FileSystem.getInfoAsync(imageFilepath);
+      // Returns the image if it exists. Otherwise, returns nothing
+      if (imageInfo.exists)
+        return await FileSystem.readAsStringAsync(imageFilepath);
+      else return null;
     };
 
     return readImage(imageID);
@@ -259,4 +275,37 @@ const saveImage = async (image, imageID) => {
   // Writes the base64 image to a file if it's not already there
   if (!(await FileSystem.getInfoAsync(imageDir + imageID).exists))
     await FileSystem.writeAsStringAsync(imageDir + imageID, image);
+};
+
+/**
+ * Loads images from the device to be used is message chats
+ * @param {object} dispatch Redux dispatch
+ */
+export const loadImages = async (dispatch) => {
+  // Checks to see if the image folder exists. If it doesn't, it's created
+  const dirInfo = await FileSystem.getInfoAsync(imageDir);
+
+  if (dirInfo.exists) {
+    // Retrieves all file names in the image folder
+    const imageFiles = await FileSystem.readDirectoryAsync(imageDir);
+
+    // Iterates through each file and adds the image to the state
+    imageFiles.forEach(async (fileName) => {
+      const base64String = await FileSystem.readAsStringAsync(
+        imageDir + fileName
+      );
+      // Dispatches to save the image to the state
+      dispatch(setImage(fileName, base64String));
+    });
+  }
+};
+
+/**
+ * Deletes all the chat images saved to the device
+ */
+export const deleteSavedImages = async () => {
+  // Checks to see if the image folder exists before attempting to delete it
+  const dirInfo = await FileSystem.getInfoAsync(imageDir);
+
+  if (dirInfo.exists) await FileSystem.deleteAsync(imageDir);
 };

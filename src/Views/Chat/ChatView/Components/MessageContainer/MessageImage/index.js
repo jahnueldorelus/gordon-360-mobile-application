@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -6,7 +6,8 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { getImage } from "../../../../../../Services/Messages";
+import { getImageContent } from "../../../../../../store/ui/chat";
+import { useSelector } from "react-redux";
 
 /**
  * Just a function that calls the real component MessageImage
@@ -22,56 +23,50 @@ export const renderMessageImage = (props, ImageToViewHandler) => {
  * @param {JSON} props Props passed from parent
  */
 const MessageImage = (props) => {
+  // The content of the image
+  const imageSource = useSelector(getImageContent(props.currentMessage.image));
+
   // Get's the dimensions of the devices's screen
   const deviceHeight = Dimensions.get("window").height;
   const deviceWidth = Dimensions.get("window").width;
-
-  // The image of the message
-  const [messageImage, setMessageImage] = useState(null);
-
-  useEffect(() => {
-    // Checks to make sure an image isn't already existing for the message
-    if (!messageImage) {
-      getImage(props.currentMessage.image).then((image) => {
-        // If an image is available, it's saved
-        if (image) setMessageImage(image);
-      });
-    }
-  }, [props.currentMessage.image]);
-
-  // The styles of this component
-  const styles = StyleSheet.create({
-    container: {
-      paddingHorizontal: 10,
-      paddingTop: 10,
-      marginBottom: 6,
-    },
-    image: {
-      maxWidth: (deviceWidth / 3) * 2, // Allows up to two-thirds of the screen
-      minWidth: 200, // The minimum width of an image
-      height: deviceHeight / 4,
-      borderRadius: 5,
-      resizeMode: "contain",
-    },
-  });
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         onPress={() => {
           // Saves the image to be shown
-          props.ImageToViewHandler.setImage(messageImage);
+          props.ImageToViewHandler.setImage(imageSource);
           // Opens the image viewer
           props.ImageToViewHandler.openImageViewer();
         }}
       >
         <Image
-          style={styles.image}
+          style={[
+            styles.image,
+            {
+              maxWidth: (deviceWidth / 3) * 2, // Allows up to two-thirds of the screen
+              height: deviceHeight / 4,
+            },
+          ]}
           source={{
-            uri: "data:image/gif;base64," + messageImage,
+            uri: "data:image/gif;base64," + imageSource,
           }}
         />
       </TouchableOpacity>
     </View>
   );
 };
+
+// The styles of this component
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    marginBottom: 6,
+  },
+  image: {
+    minWidth: 200, // The minimum width of an image
+    borderRadius: 5,
+    resizeMode: "contain",
+  },
+});

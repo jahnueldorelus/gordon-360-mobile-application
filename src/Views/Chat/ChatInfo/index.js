@@ -6,7 +6,6 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
-  TouchableHighlight,
   Image,
 } from "react-native";
 import { getRoomChatImages } from "../../../Services/Messages";
@@ -19,12 +18,11 @@ import { getSelectedRoomID } from "../../../store/ui/chat";
 import { getUserInfo } from "../../../store/entities/profile";
 import { useSelector } from "react-redux";
 import { AppImageViewer } from "../../../Components/AppImageViewer/index";
+import { MessageImage } from "./Components/messageImage";
 
 export const ChatInfo = (props) => {
-  // The minimum height and width of each message image
-  const [minImageWidthAndHeight, setMinImageWidthAndHeight] = useState(200);
   // The view width of the image container
-  const [viewWidth, setViewWidth] = useState();
+  const [viewWidth, setViewWidth] = useState(0);
   // Determines if the image viewer should display
   const [showImageViewer, setShowImageViewer] = useState(false);
   // Image to show in the image viewer
@@ -46,13 +44,13 @@ export const ChatInfo = (props) => {
    * will be reset
    */
   useEffect(() => {
-    if (imageToView) {
+    if (imageToView && showImageViewer) {
       setShowImageViewer(true);
     } else {
       setShowImageViewer(false);
       setImageToView(null);
     }
-  }, [imageToView]);
+  }, [imageToView, showImageViewer]);
 
   if (userRoom && userProfile && userRoomImages) {
     return (
@@ -124,26 +122,13 @@ export const ChatInfo = (props) => {
               >
                 {userRoomImages.map((message, index) => {
                   return (
-                    <TouchableHighlight
-                      onPress={() => setImageToView(message.image)}
+                    <MessageImage
                       key={index}
-                      underlayColor="none"
-                    >
-                      <Image
-                        source={{
-                          uri: "data:image/gif;base64," + message.image,
-                        }}
-                        style={{
-                          ...styles.imagesContainerImage,
-                          width: viewWidth
-                            ? Math.min(viewWidth, minImageWidthAndHeight)
-                            : minImageWidthAndHeight,
-                          height: viewWidth
-                            ? Math.min(viewWidth, minImageWidthAndHeight)
-                            : minImageWidthAndHeight,
-                        }}
-                      />
-                    </TouchableHighlight>
+                      image={message.image}
+                      viewWidth={viewWidth}
+                      setImageToView={setImageToView}
+                      setShowImageViewer={setShowImageViewer}
+                    />
                   );
                 })}
               </View>
@@ -232,11 +217,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flexWrap: "wrap",
     alignItems: "center",
-  },
-  imagesContainerImage: {
-    margin: 5,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#3C6AA8",
   },
 });

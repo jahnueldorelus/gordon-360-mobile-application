@@ -13,6 +13,7 @@ import {
   getSelectedRoomID,
   setChatOpenedAndVisible,
   getChatOpenedAndVisible,
+  getImageContent,
 } from "../../../../store/ui/chat";
 import { getUserInfo } from "../../../../store/entities/profile";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +39,8 @@ export const AppbarChat = () => {
   const prevRefModalInfoVisible = useRef(modalInfoVisible);
   // App Navigation
   const navigation = useNavigation();
+  // The image of the room
+  const imageSource = useSelector(getImageContent(userRoom.image));
 
   // Determines if the chat is visible
   useEffect(() => {
@@ -104,7 +107,13 @@ export const AppbarChat = () => {
         <View style={styles.chatName}>
           <Image
             style={styles.image}
-            source={getRoomImage(userRoom, userProfile.ID)}
+            source={
+              imageSource
+                ? {
+                    uri: `data:image/gif;base64,${imageSource}`,
+                  }
+                : getRoomImage(userRoom, userProfile.ID)
+            }
           />
           <Text style={styles.text} numberOfLines={1}>
             {getChatName(userRoom, userProfile.ID)}

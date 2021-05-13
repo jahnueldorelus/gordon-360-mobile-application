@@ -8,7 +8,7 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { getRoomName, getRoomImage, getImage } from "../../Services/Messages";
+import { getRoomName, getRoomImage } from "../../Services/Messages";
 import { getReadableDateFormat } from "../../Services/Messages/index";
 import { ListItem, Icon } from "react-native-elements";
 import {
@@ -28,6 +28,7 @@ import {
   getShouldNavigateToChat,
   setShouldNavigateToChat,
 } from "../../store/ui/chat";
+import { RoomImage } from "./Components/roomImage";
 import { LoadingScreen } from "../../Components/LoadingScreen/index";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenNames } from "../../../ScreenNames";
@@ -60,8 +61,6 @@ export const RoomsList = () => {
   const shouldFetchMessages = useRef(true);
   // Determines if the app should navigate directly to the chat screen
   const shouldNavigateToChat = useSelector(getShouldNavigateToChat);
-  // Object of room images
-  const [roomImages, setRoomImages] = useState({});
 
   // Re-fetches the user's messages if the rooms object is available
   useEffect(() => {
@@ -80,29 +79,6 @@ export const RoomsList = () => {
         shouldFetchMessages.current = false;
       }
     }
-
-    // Gets and sets the image for each room
-    rooms.forEach((room) => {
-      // Checks to make sure an image isn't already existing for the room
-      if (!roomImages[room.id]) {
-        getImage(room.image).then((image) => {
-          // If an image is available, it's saved
-          if (image)
-            setRoomImages({
-              ...roomImages,
-              [room.id]: {
-                uri: `data:image/gif;base64,${image}`,
-              },
-            });
-          // Since there's no image available, the default image is used
-          else
-            setRoomImages({
-              ...roomImages,
-              [room.id]: getRoomImage(room, userProfile.ID),
-            });
-        });
-      }
-    });
   }, [rooms]);
 
   // Fetches the user's room on first launch of this component
@@ -187,10 +163,7 @@ export const RoomsList = () => {
                   navigation.navigate(ScreenNames.chat);
                 }}
               >
-                <Image
-                  source={roomImages[room.item.id]}
-                  style={styles.listItemImage}
-                />
+                <RoomImage room={room.item} />
 
                 <ListItem.Content>
                   <View style={styles.listItemHeader}>
@@ -283,19 +256,6 @@ const styles = StyleSheet.create({
   },
   listItemHeaderIcon: {
     marginLeft: 10,
-  },
-  listItemImage: {
-    borderColor: "#014983",
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   listSubTitleDate: {
     fontWeight: "bold",

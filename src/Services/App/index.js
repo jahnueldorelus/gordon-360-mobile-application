@@ -13,6 +13,7 @@ import {
 import { ui_ChatResetState } from "../../store/ui/chat";
 import { ui_PeopleSearchResetState } from "../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../store/ui/peopleSearchFilter";
+import { deleteSavedImages } from "../../Services/Messages/index";
 import AsyncStorage from "@react-native-community/async-storage";
 import { persistor } from "../../store/configuration/configureStore";
 
@@ -61,6 +62,8 @@ export const resetApp = (dispatch, callbackFunc) => {
   dispatch(ui_PeopleSearchResetState);
   dispatch(ui_PeopleSearchFilterResetState);
 
+  // Deletes all chat images saved to the device
+  deleteSavedImages();
   // Resets storage
   AsyncStorage.clear();
   // Resets redux perist
@@ -88,6 +91,8 @@ export const signOutApp = (dispatch, callbackFunc) => {
   dispatch(ui_PeopleSearchResetState);
   dispatch(ui_PeopleSearchFilterResetState);
 
+  // Deletes all chat images saved to the device
+  deleteSavedImages();
   // Resets storage
   AsyncStorage.clear();
   // Resets redux perist

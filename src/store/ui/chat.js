@@ -10,6 +10,7 @@ const slice = createSlice({
     roomImage: null,
     roomName: "",
     shouldNavigateToChat: false,
+    chatImages: {},
   },
   reducers: {
     /**
@@ -40,6 +41,10 @@ const slice = createSlice({
       state.shouldNavigateToChat = action.payload;
     },
 
+    addChatImage: (state, action) => {
+      state.chatImages[action.payload.imageID] = action.payload.content;
+    },
+
     /**
      * STATE RESET REDUCER
      */
@@ -50,6 +55,7 @@ const slice = createSlice({
       state.roomImage = null;
       state.roomName = "";
       state.shouldNavigateToChat = false;
+      state.chatImages = {};
     },
   },
 });
@@ -98,6 +104,16 @@ export const getShouldNavigateToChat = createSelector(
   (chat) => chat.shouldNavigateToChat
 );
 
+/**
+ * Returns the content of a chat image
+ * @param {string} imageID The ID of the image
+ */
+export const getImageContent = (imageID) =>
+  createSelector(
+    (state) => state.ui.chat,
+    (chat) => (imageID ? chat.chatImages[imageID] : null)
+  );
+
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Sets the user selected room ID
@@ -136,6 +152,21 @@ export const setRoomImage = (image) => (dispatch, getState) => {
  */
 export const setRoomName = (name) => (dispatch, getState) => {
   dispatch({ type: slice.actions.setRoomName.type, payload: name });
+};
+
+/**
+ * Saves an image to the state
+ * @param {string} imageID The ID of the image
+ * @param {string} content The content of the image
+ */
+export const setImage = (imageID, content) => (dispatch, getState) => {
+  // Checks if the image's ID and content exists
+  if (imageID && content) {
+    dispatch({
+      type: slice.actions.addChatImage.type,
+      payload: { imageID, content },
+    });
+  }
 };
 
 /**

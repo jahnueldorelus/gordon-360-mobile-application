@@ -1,5 +1,4 @@
 import { createSlice, createAction } from "@reduxjs/toolkit";
-import { createSelector } from "reselect";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -7,10 +6,11 @@ const slice = createSlice({
   initialState: {
     selectedRoomID: null,
     isChatOpenedAndVisible: false,
-    roomImage: null,
-    roomName: "",
+    newRoomImage: null,
+    newRoomName: "",
     shouldNavigateToChat: false,
     chatImages: {},
+    shouldLoadFullChat: false,
   },
   reducers: {
     /**
@@ -27,13 +27,13 @@ const slice = createSlice({
     },
 
     // Sets the room image of creating a new room
-    setRoomImage: (state, action) => {
-      state.roomImage = action.payload;
+    setNewRoomImage: (state, action) => {
+      state.newRoomImage = action.payload;
     },
 
     // Sets the room name of creating a new room
-    setRoomName: (state, action) => {
-      state.roomName = action.payload;
+    setNewRoomName: (state, action) => {
+      state.newRoomName = action.payload;
     },
 
     // Set the value of navigating to the chat screen
@@ -41,8 +41,14 @@ const slice = createSlice({
       state.shouldNavigateToChat = action.payload;
     },
 
+    // Adds an image from a chat whether it's a room or message image
     addChatImage: (state, action) => {
       state.chatImages[action.payload.imageID] = action.payload.content;
+    },
+
+    // Sets the value of loading the user's chat data
+    setLoadFullChat: (state, action) => {
+      state.shouldLoadFullChat = action.payload === true ? true : false;
     },
 
     /**
@@ -52,10 +58,11 @@ const slice = createSlice({
     resetState: (state, action) => {
       state.selectedRoomID = null;
       state.isChatOpenedAndVisible = false;
-      state.roomImage = null;
-      state.roomName = "";
+      state.newRoomImage = null;
+      state.newRoomName = "";
       state.shouldNavigateToChat = false;
       state.chatImages = {};
+      state.shouldLoadFullChat = true;
     },
   },
 });
@@ -63,62 +70,18 @@ const slice = createSlice({
 /*************************** DEFAULT REDUCER ***************************/
 export default slice.reducer;
 
-/*********************************** SELECTORS ***********************************/
-/**
- * Returns the user's selected room ID
- */
-export const getSelectedRoomID = createSelector(
-  (state) => state.ui.chat,
-  (chat) => chat.selectedRoomID
-);
-
-/**
- * Determines if a chat is opened
- */
-export const getChatOpenedAndVisible = createSelector(
-  (state) => state.ui.chat,
-  (chat) => chat.isChatOpenedAndVisible
-);
-
-/**
- * Returns the room's image for creating a new room
- */
-export const getRoomImage = createSelector(
-  (state) => state.ui.chat,
-  (chat) => chat.roomImage
-);
-
-/**
- * Returns the room's name for creating a new room
- */
-export const getRoomName = createSelector(
-  (state) => state.ui.chat,
-  (chat) => chat.roomName
-);
-
-/**
- * Returns the value of navigating to the chat screen
- */
-export const getShouldNavigateToChat = createSelector(
-  (state) => state.ui.chat,
-  (chat) => chat.shouldNavigateToChat
-);
-
-/**
- * Returns the content of a chat image
- * @param {string} imageID The ID of the image
- */
-export const getImageContent = (imageID) =>
-  createSelector(
-    (state) => state.ui.chat,
-    (chat) => (imageID ? chat.chatImages[imageID] : null)
-  );
-
 /*********************************** ACTION CREATORS ***********************************/
 /**
  * Sets the user selected room ID
  */
 export const setRoomID = createAction(slice.actions.selectedRoom.type);
+
+/**
+ * Sets the value of whether or not the user's full chat data should be fetched
+ */
+export const setLoadFullChatData = createAction(
+  slice.actions.setLoadFullChat.type
+);
 
 /**
  * Sets the value of whether or not the app should navigate to the chat screen
@@ -142,16 +105,16 @@ export const setChatOpenedAndVisible = (opened) => (dispatch, getState) => {
  * Sets the room image for creating a room
  * @param {string} image The image of the room
  */
-export const setRoomImage = (image) => (dispatch, getState) => {
-  dispatch({ type: slice.actions.setRoomImage.type, payload: image });
+export const setNewRoomImage = (image) => (dispatch, getState) => {
+  dispatch({ type: slice.actions.setNewRoomImage.type, payload: image });
 };
 
 /**
  * Sets the room name for creating a room
  * @param {string} name The name of the room
  */
-export const setRoomName = (name) => (dispatch, getState) => {
-  dispatch({ type: slice.actions.setRoomName.type, payload: name });
+export const setNewRoomName = (name) => (dispatch, getState) => {
+  dispatch({ type: slice.actions.setNewRoomName.type, payload: name });
 };
 
 /**

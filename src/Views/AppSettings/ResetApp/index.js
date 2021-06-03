@@ -41,6 +41,7 @@ export const ResetApp = (props) => {
         </View>
       </View>
       <TouchableOpacity
+        activeOpacity={0.75}
         onPress={() =>
           Alert.alert(
             "Resetting Application",
@@ -53,7 +54,7 @@ export const ResetApp = (props) => {
                  * from the server and navigate to the messages screen
                  */
                 onPress: () =>
-                  resetApp(dispatch, () =>
+                  resetApp(dispatch, true, () =>
                     fetchAllAppData(dispatch, navigation.navigate("Gordon 360"))
                   ),
               },

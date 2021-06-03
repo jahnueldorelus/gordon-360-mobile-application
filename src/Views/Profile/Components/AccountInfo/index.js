@@ -282,7 +282,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 10,
     padding: 10,
-    margin: 5,
     minWidth: 100,
   },
   accountTitle: {

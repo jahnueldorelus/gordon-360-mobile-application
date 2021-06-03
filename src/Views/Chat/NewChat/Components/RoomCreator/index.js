@@ -8,13 +8,18 @@ import {
   Alert,
 } from "react-native";
 import {
-  getRoomImage,
-  setRoomImage,
-  getRoomName,
-  setRoomName,
+  getNewRoomImage,
+  getNewRoomName,
+} from "../../../../../store/ui/Chat/chatSelectors";
+import {
+  setNewRoomImage,
+  setNewRoomName,
   setRoomID,
-} from "../../../../../store/ui/chat";
-import { ui_PeopleSearchResetState } from "../../../../../store/ui/peopleSearch";
+} from "../../../../../store/ui/Chat/chat";
+import {
+  ui_PeopleSearchResetState,
+  getSearchResultImages,
+} from "../../../../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../../../../store/ui/peopleSearchFilter";
 import {
   createNewRoom,
@@ -23,26 +28,13 @@ import {
   getNewRoomCreatedID,
   getNewRoomCreatedLastUpdated,
   getCreateRoomLoading,
-  correctedMessageObject,
+  parseChatObject,
   sendMessage,
+  saveUserImagesList,
 } from "../../../../../store/entities/chat";
 import { useDispatch, useSelector } from "react-redux";
-import { GiftedChat } from "react-native-gifted-chat";
-import { getBottomSpace } from "react-native-iphone-x-helper";
-import { renderActions } from "../../../ChatView/Components/InputToolbar/Components/Actions";
-import { renderAvatar } from "../../../ChatView/Components/MessageContainer/Avatar";
-import { renderBubble } from "../../../ChatView/Components/MessageContainer/Bubble";
-import { renderComposer } from "../../../ChatView/Components/InputToolbar/Components/Composer";
-import { renderInputToolbar } from "../../../ChatView/Components/InputToolbar";
-import { renderMessage } from "../../../ChatView/Components/MessageContainer/Message";
-import { renderMessageImage } from "../../../ChatView/Components/MessageContainer/MessageImage";
-import { renderMessageText } from "../../../ChatView/Components/MessageContainer/MessageText";
-import { renderSend } from "../../../ChatView/Components/InputToolbar/Components/Send";
-import { renderSystemMessage } from "../../../ChatView/Components/MessageContainer/SystemMessage";
-import {
-  getUserInfo,
-  getUserImage,
-} from "../../../../../store/entities/profile";
+import ChatUI from "../../../ChatView/Components/ChatUI/index";
+import { getUserInfo } from "../../../../../store/entities/profile";
 import { RoomImagePicker } from "./RoomImagePicker/index";
 import { useNavigation } from "@react-navigation/native";
 import { Header } from "./Header/index.js";
@@ -53,6 +45,7 @@ import { getNewMessageID } from "../../../../../Services/Messages/index";
 import * as FileSystem from "expo-file-system";
 import { AppImageViewer } from "../../../../../Components/AppImageViewer/";
 import moment from "moment";
+import { getDeviceOrientation } from "../../../../../store/ui/app";
 
 export const RoomCreator = (props) => {
   // Redux Dispatch
@@ -64,21 +57,23 @@ export const RoomCreator = (props) => {
   // A reference to the current text inside the input toolbar
   const previousMessage = useRef(messageText);
   // The room's name
-  const roomName = useSelector(getRoomName);
+  const roomName = useSelector(getNewRoomName);
   // The room's image
-  const roomImage = useSelector(getRoomImage);
+  const roomImage = useSelector(getNewRoomImage);
   // Image to show in the image viewer
   const [imageToView, setImageToView] = useState(roomImage);
   // The list of images the user has selected
   const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
-  // Determines if the actions buttons of the input toolbar should display
-  const [showActions, setShowActions] = useState(false);
   // Determines if a new room was created
   const newRoomCreated = useSelector(getNewRoomCreated);
   // The ID of the new room created
   const newRoomCreatedID = useSelector(getNewRoomCreatedID);
   // The last updated date of the new room created
   const newRoomCreatedLastUpdated = useSelector(getNewRoomCreatedLastUpdated);
+  // The object of the search result's people's images
+  const searchResultImages = useSelector(getSearchResultImages);
+  // The device's orientation
+  const screenOrientation = useSelector(getDeviceOrientation);
 
   // Determines if modal show displays asking the user to enable camera permissions in settings
   const [showCamPermissSettings, setShowCamPermissSettings] = useState(false);
@@ -93,22 +88,22 @@ export const RoomCreator = (props) => {
   // The user's profile
   const userProfile = useSelector(getUserInfo);
 
-  // The user's image
-  const userImage = useSelector(getUserImage);
-
-  // GiftedChat's user format
-  const mainUser = {
-    _id: userProfile.ID,
-    avatar: userImage,
-    name: `${userProfile.FirstName} ${userProfile.LastName}`,
-  };
-
   useEffect(() => {
     /**
-     * If a new room was created, all temporary states are reset
+     * If a new room was created, the images of the users in the new room
+     * are saved, all temporary states are reset,
      * and the user is navigated to the new room
      */
     if (createRoomLoadingRef.current && newRoomCreated) {
+      // Saves the images of the users in the new room
+      dispatch(
+        saveUserImagesList(
+          props.data.selectedUsersList.map((user) => ({
+            pref: searchResultImages[user.AD_Username],
+            username: user.AD_Username,
+          }))
+        )
+      );
       // Saves the room as the selected room ID
       dispatch(setRoomID(newRoomCreatedID));
       // Sends the message to the server
@@ -116,23 +111,23 @@ export const RoomCreator = (props) => {
       // Delets the previous message
       previousMessage.current = null;
       // Deletes the user selected room image
-      dispatch(setRoomImage(null));
+      dispatch(setNewRoomImage(null));
       // Deletes the user selected room name
-      dispatch(setRoomName(""));
+      dispatch(setNewRoomName(""));
       // Sets the value of new chat being created back to false
-      dispatch(resetNewRoomCreated);
+      dispatch(resetNewRoomCreated());
       // Exists out the new chat modal
-      props.setNewChatModalVisible(false);
+      props.data.setNewChatModalVisible(false);
       // Deletes the last searched text
-      props.setLastSearchedText(null);
+      props.data.setLastSearchedText(null);
       // Deletes selected users
-      props.setSelectedUsers({});
+      props.data.setSelectedUsers({});
       // Deletes people search results
-      dispatch(ui_PeopleSearchResetState);
+      dispatch(ui_PeopleSearchResetState());
       // Deletes people search filters
       dispatch(ui_PeopleSearchFilterResetState);
       // Closes the modal to display the chat of the new room
-      props.setVisible(false);
+      props.data.setVisible(false);
       // Navigates to the chat screen
       navigation.navigate("Chat");
     }
@@ -150,8 +145,8 @@ export const RoomCreator = (props) => {
 
   useEffect(() => {
     // If there are no selected users, the modal is exited
-    if (props.selectedUsersList.length === 0) props.setVisible(false);
-  }, [props.selectedUsersList]);
+    if (props.data.selectedUsersList.length === 0) props.data.setVisible(false);
+  }, [props.data.selectedUsersList]);
 
   /**
    * If an image is set to be shown, the image viewer will open. Otherwise,
@@ -173,7 +168,7 @@ export const RoomCreator = (props) => {
    */
   const sendMessageToServer = async (sentMessage) => {
     // Reformats the message object for the back-end to parse correctly
-    const newMessage = correctedMessageObject(sentMessage);
+    const newMessage = parseChatObject(sentMessage);
 
     // The initial message date is the last updated date of the new room
     let messageDate = moment(newRoomCreatedLastUpdated);
@@ -258,10 +253,11 @@ export const RoomCreator = (props) => {
    * @param {object} messageObj The message object
    */
   const createRoom = async (messageObj) => {
+    // Reformats the message object for the back-end to parse correctly
+    const message = parseChatObject(messageObj[0]);
+
     // Saves the message's text to a reference since GiftedChat automatically erases it
-    previousMessage.current = messageObj[0];
-    // Gets the message object to send to the back-end
-    const message = correctedMessageObject(messageObj[0]);
+    previousMessage.current = message;
 
     /**
      * Deletes the user's avatar. This is due to privacy reasons as not every person
@@ -273,18 +269,19 @@ export const RoomCreator = (props) => {
     // Formatted message for the back-end to parse
     const backEndMessage = {
       ...message,
-      id: message._id,
     };
 
     // Creates a list of selected users
-    const usernames = props.selectedUsersList.map((user) => user.AD_Username);
+    const usernames = props.data.selectedUsersList.map(
+      (user) => user.AD_Username
+    );
     // Adds the main user's username
     usernames.push(userProfile.AD_Username);
 
     // The room object to send to the back-end
     const room = {
       name: roomName.trim(),
-      group: props.selectedUsersList.length > 1 ? true : false,
+      group: props.data.selectedUsersList.length > 1 ? true : false,
       image: roomImage,
       usernames,
       // TEMP - REMOVE MESSAGE PROPERTY IN FUTURE
@@ -296,140 +293,57 @@ export const RoomCreator = (props) => {
     dispatch(createNewRoom(room));
   };
 
-  /**
-   * Configures the minimum height of the input toolbar.
-   * Do not delete or change the values below unless you change its
-   * corresponding values in its respective components.
-   * See documentation for bug "Text_Input"
-   */
-  const minInputToolbarHeight = () => {
-    /**
-     * Minimum height is 66. This height is required for the input toolbar to display
-     * correctly without a spacing bug between the input toolbar and keyboard
-     */
-    let minHeight = 66;
-
-    /**
-     * If there are selected images, an added spacing of 161 is required to
-     * display the images without a spacing bug between the input toolbar and keyboard.
-     * The spacing required is 161 because each image has a height of 150 including
-     * 11 for spacing.
-     */
-    if (JSON.parse(selectedImages).length > 0) minHeight += 161;
-
-    /**
-     * If the action buttons will be displayed, an added spacing of 45 is required to
-     * display the buttons without a spacing bug between the input toolbar and keyboard.
-     * The spacing required is 45 because each button has a height of 40 including 5
-     * for spacing
-     */
-    if (showActions) minHeight += 45;
-
-    return minHeight;
-  };
-
   return (
     <Modal
-      visible={props.visible}
+      visible={props.data.visible}
       presentationStyle="pageSheet"
       animationType="slide"
-      onRequestClose={() => props.setVisible(false)}
-      onDismiss={() => props.setVisible(false)}
+      onRequestClose={() => props.data.setVisible(false)}
+      onDismiss={() => props.data.setVisible(false)}
     >
       <SafeAreaView style={styles.mainContainerSafeArea}>
         <View style={styles.mainContainerView}>
           {!createRoomLoading ? (
             // If a room is not in the process of being created
-            <View style={{ flex: 1, backgroundColor: "white" }}>
-              {/* Header */}
-              <Header setVisible={props.setVisible} />
+            <View
+              style={[
+                styles.roomCreationView,
+                {
+                  // Determines if the view should appear in portrait or landscape mode
+                  flexDirection:
+                    screenOrientation === "landscape" ? "row" : "column",
+                },
+              ]}
+            >
+              <View style={styles.roomCreationViewInfo}>
+                {/* Header */}
+                <Header setVisible={props.data.setVisible} />
 
-              {/* Group Name Input */}
-              <GroupNameInput
-                selectedUsersListLength={props.selectedUsersList.length}
-              />
+                {/* Group Name Input */}
+                <GroupNameInput
+                  selectedUsersListLength={props.data.selectedUsersList.length}
+                />
 
-              {/* Room Image */}
-              <RoomImagePicker
-                setShowCamPermissSettings={setShowCamPermissSettings}
-                selectedUsersListLength={props.selectedUsersList.length}
-                setVisible={props.setVisible}
-              />
+                {/* Room Image */}
+                <RoomImagePicker
+                  setShowCamPermissSettings={setShowCamPermissSettings}
+                  selectedUsersListLength={props.data.selectedUsersList.length}
+                  setVisible={props.data.setVisible}
+                />
 
-              {/* Selected Users */}
-              {props.selectedUsers}
+                {/* Selected Users */}
+                {props.data.selectedUsers}
+              </View>
 
               {/* GiftedChat */}
-              <GiftedChat
-                alignTop
-                alwaysShowSend
-                bottomOffset={getBottomSpace()}
-                isCustomViewBottom
-                messages={[]}
-                messagesContainerStyle={styles.messagesContainer}
-                minInputToolbarHeight={minInputToolbarHeight()}
-                onInputTextChanged={setMessageText}
+              <ChatUI
                 onSend={createRoom}
-                parsePatterns={(linkStyle) => [
-                  {
-                    pattern: /#(\w+)/,
-                    style: linkStyle,
-                  },
-                ]}
-                renderActions={(props) => {
-                  const ImageHandler = { selectedImages, setSelectedImages };
-                  const CameraPermissionsHandler = {
-                    visible: showCamPermissSettings,
-                    setVisible: setShowCamPermissSettings,
-                  };
-                  return renderActions(
-                    props,
-                    ImageHandler,
-                    CameraPermissionsHandler
-                  );
-                }}
-                renderAvatar={renderAvatar}
-                renderBubble={(props) =>
-                  renderBubble({ ...props, currentRoom })
-                }
-                renderComposer={renderComposer}
-                /**
-                 * Uncomment if you'd like to add a custom view to each message.
-                 * This view appears after a message's text and before the message's
-                 * status information (aka date, sent, delivered, etc.)
-                 */
-                // renderCustomView={renderCustomView}
-                renderInputToolbar={(props) => {
-                  const ImageHandler = { selectedImages, setSelectedImages };
-                  const ImageToViewHandler = {
-                    setImage: setImageToView,
-                    openImageViewer: () => setShowImageViewer(true),
-                  };
-                  const ActionHandler = { showActions, setShowActions };
-
-                  return renderInputToolbar(
-                    props,
-                    ImageHandler,
-                    ImageToViewHandler,
-                    ActionHandler
-                  );
-                }}
-                renderMessage={renderMessage}
-                renderMessageImage={(props) => {
-                  const ImageToViewHandler = {
-                    setImage: setImageToView,
-                    openImageViewer: () => setShowImageViewer(true),
-                  };
-
-                  return renderMessageImage(props, ImageToViewHandler);
-                }}
-                renderMessageText={renderMessageText}
-                renderSend={renderSend}
-                renderSystemMessage={renderSystemMessage}
-                scrollToBottom
-                // showUserAvatar
+                messages={[]}
+                selectedRoom={{}}
                 text={messageText}
-                user={mainUser}
+                setText={setMessageText}
+                selectedImages={selectedImages}
+                setSelectedImages={setSelectedImages}
               />
             </View>
           ) : (
@@ -464,6 +378,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "white",
     flex: 1,
+  },
+  roomCreationView: { flex: 1, backgroundColor: "white" },
+  roomCreationViewInfo: {
+    flex: 1,
+    borderRightColor: "black",
+    borderRightWidth: 1,
   },
   messagesContainer: {
     backgroundColor: "white",

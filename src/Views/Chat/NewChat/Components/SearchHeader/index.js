@@ -18,6 +18,7 @@ import {
 import { Icon, SearchBar } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
+import { getDeviceOrientation } from "../../../../../store/ui/app";
 
 export const SearchHeader = (props) => {
   // Configures the animation for the component
@@ -28,6 +29,8 @@ export const SearchHeader = (props) => {
 
   // The object of seleced filters
   const selectedFilterData = useSelector(getSelectedItemsAndNames);
+  // The device's orientation
+  const screenOrientation = useSelector(getDeviceOrientation);
 
   // The user's search text
   const [searchedText, setSearchedText] = useState("");
@@ -69,11 +72,11 @@ export const SearchHeader = (props) => {
 
   const submitSearch = () => {
     // Closes filter if opened
-    props.setFilterVisible(false);
+    props.data.setFilterVisible(false);
     // Dismisses the Keyboard if opened
     Keyboard.dismiss();
     // Saves the searched text as the last searched text
-    props.setLastSearchedText(searchedText);
+    props.data.setLastSearchedText(searchedText);
     // Searches for people based upon the user's search text
     searchUsers();
   };
@@ -84,23 +87,27 @@ export const SearchHeader = (props) => {
       colors={["#014983", "#015483"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
-      style={styles.gradient}
+      style={[
+        styles.gradient,
+        { flex: screenOrientation === "landscape" ? 1 : 0 },
+      ]}
     >
       <View style={styles.title}>
         <Text style={styles.titleText}>Create a New Chat</Text>
         <TouchableOpacity
+          activeOpacity={0.75}
           title="Close Modal"
           onPress={() => {
             // Resets the saved states
-            props.setSelectedUsers({});
+            props.data.setSelectedUsers({});
             setSearchedText("");
-            props.setLastSearchedText("");
+            props.data.setLastSearchedText("");
             dispatch(ui_PeopleSearchFilterResetState);
-            dispatch(ui_PeopleSearchResetState);
+            dispatch(ui_PeopleSearchResetState());
             // Ensures the filters are closed
-            props.setFilterVisible(false);
+            props.data.setFilterVisible(false);
             // Closes out the Modal
-            props.setVisible(false);
+            props.data.setVisible(false);
           }}
         >
           <Icon name="close" type="material" color="white" size={30} />
@@ -109,7 +116,7 @@ export const SearchHeader = (props) => {
       <View style={styles.searchBar}>
         <SearchBar
           placeholder="Search People Here..."
-          onFocus={() => props.setFilterVisible(false)}
+          onFocus={() => props.data.setFilterVisible(false)}
           value={searchedText}
           round
           lightTheme
@@ -149,9 +156,9 @@ export const SearchHeader = (props) => {
         )}
         <View style={styles.filterAndSearchContainer}>
           <TouchableOpacity
-            underlayColor="none"
+            activeOpacity={0.75}
             onPress={() => {
-              props.setFilterVisible(!props.filterVisible);
+              props.data.setFilterVisible(!props.data.filterVisible);
               Keyboard.dismiss();
             }}
             containerStyle={styles.filterButtonContainer}
@@ -165,12 +172,12 @@ export const SearchHeader = (props) => {
                 containerStyle={styles.filterButtonIcon}
               />
               <Text style={styles.filterButtonText}>
-                {props.filterVisible ? "Close Filters" : "Open Filters"}
+                {props.data.filterVisible ? "Close Filters" : "Open Filters"}
               </Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
-            underlayColor="none"
+            activeOpacity={0.75}
             disabled={!canSearchUsers()}
             onPress={() => {
               submitSearch();
@@ -180,7 +187,7 @@ export const SearchHeader = (props) => {
             <View
               style={[
                 styles.searchButton,
-                { opacity: canSearchUsers() ? 1 : 0.15 },
+                { opacity: canSearchUsers() ? 1 : 0.4 },
               ]}
             >
               <Icon

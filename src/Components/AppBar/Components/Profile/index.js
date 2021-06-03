@@ -11,6 +11,7 @@ export const AppbarProfile = () => {
   return (
     <View style={styles.appBarContainer}>
       <TouchableOpacity
+        activeOpacity={0.75}
         onPress={() => {
           navigation.openDrawer();
         }}

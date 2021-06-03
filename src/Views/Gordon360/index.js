@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { View, StyleSheet, LayoutAnimation } from "react-native";
+import { SafeAreaView, View, StyleSheet, LayoutAnimation } from "react-native";
 import { WebView } from "react-native-webview";
 import { NetworkConsumer } from "react-native-offline";
 import { LoadingScreen } from "../../Components/LoadingScreen/index";
@@ -66,7 +66,7 @@ export const Gordon360 = () => {
                 canGoForward={canGoForward}
                 isConnected={isConnected}
               />
-              <View style={styles.screenView}>
+              <SafeAreaView style={styles.screenView}>
                 {/* The Progress Bar that displays when the Web Browser's loading */}
                 {loading && (
                   <View style={styles.loadingBarContainer}>
@@ -120,7 +120,7 @@ export const Gordon360 = () => {
                   isConnected={isConnected}
                   navigation={navigation}
                 />
-              </View>
+              </SafeAreaView>
             </View>
           );
         }}
@@ -130,7 +130,7 @@ export const Gordon360 = () => {
 };
 
 let styles = StyleSheet.create({
-  screenView: { flex: 1 },
+  screenView: { flex: 1, backgroundColor: "black" },
   loadingBarContainer: { height: 4 },
   loadingBar: {
     height: 4,

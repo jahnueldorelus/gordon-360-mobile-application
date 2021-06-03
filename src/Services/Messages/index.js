@@ -1,7 +1,7 @@
 import moment from "moment";
 import * as Notifications from "expo-notifications";
 import * as FileSystem from "expo-file-system";
-import { setImage } from "../../store/ui/chat";
+import { setImage } from "../../store/ui/Chat/chat";
 
 // The directory where all images are stored
 const imageDir = FileSystem.documentDirectory + "Images/";
@@ -18,32 +18,32 @@ export const getRoomChatImages = (messages) => {
       // Filters out all message objects that doesn't contain an image
       .filter((text) => text.createdAt && text.image)
       // Sorts the list of message objects by date of creation from newest to oldest
-      .sort((a, b) => moment(a.createdAt) - moment(b.createdAt));
+      .sort((a, b) => moment(b.createdAt) - moment(a.createdAt));
   return images;
 };
 
 /**
  * Gets the image of the room.
- * This is specifically for setting the source of an React Native
+ * This is specifically for setting the source of a React Native
  * Image component.
  * @param {object} room The object of the room
  * @param {string} mainUserID The ID of the main user
  */
 export const getRoomImage = (room, mainUserID) => {
-  // Checks that the room exists
-  if (room.id) {
+  // Checks that the room and main user ID exists
+  if (room && room.id && mainUserID) {
     // If there's no room image and the chat is a group
     if (room.group) {
       return require("./Images/default-group-image.png");
     }
-    // If there's no room image and the chat is not a group
+    // If the chat is not a group
     else if (!room.group) {
       // Gets the other user in the group
       const otherUser = room.users.filter((user) => user.id !== mainUserID)[0];
       // If the other user has an image, their image is returned. Otherwise it's the default user image
       return otherUser.image
         ? {
-            uri: "data:image/gif;base64," + getImage(otherUser.image),
+            uri: "data:image/gif;base64," + otherUser.image,
           }
         : require("./Images/default-non-group-image.png");
     }
@@ -71,13 +71,16 @@ export const getRoomName = (room, mainUserID) => {
       let names = "";
       // If there are 2 people in the room (not including the main user)
       if (otherUsers.length === 2) {
-        names = `${otherUsers[0].username} and ${otherUsers[1].username}`;
+        names = `${getNameFromUsername(
+          otherUsers[0].username
+        )} and ${getNameFromUsername(otherUsers[1].username)}`;
       } else {
         // If there's more than 2 people in the room (not including the main user)
         otherUsers.forEach((user, index, arr) => {
           // Adds a comma to a user's name except for the last user
-          if (index !== arr.length - 1) names += `${user.username}, `;
-          else names += `and ${user.username}`;
+          if (index !== arr.length - 1)
+            names += `${getNameFromUsername(user.username)}, `;
+          else names += `and ${getNameFromUsername(user.username)}`;
         });
       }
       return names;
@@ -87,7 +90,9 @@ export const getRoomName = (room, mainUserID) => {
      * Since the room is not a group (2 users only), the name of the other user
      * (not the main user), is returned
      */
-    return room.users.filter((user) => user.id !== mainUserID)[0].username;
+    return getNameFromUsername(
+      room.users.filter((user) => user.id !== mainUserID)[0].username
+    );
   }
 };
 
@@ -115,7 +120,9 @@ export function getChatName(room, mainUserID) {
      * Since the room is not a group (2 users only), the name of the other user
      * (not the main user), is returned
      */
-    return room.users.filter((user) => user.id !== mainUserID)[0].username;
+    return getNameFromUsername(
+      room.users.filter((user) => user.id !== mainUserID)[0].username
+    );
   }
 }
 
@@ -151,17 +158,14 @@ export const getReadableDateFormat = (date) => {
  * @param {string} userID The user's ID
  * @param {object} room The room object
  */
-export const getUserImageFromRoom = (userID, room) => {
-  // Checks to see if the room is stringified before parsing it
-  try {
-    room = JSON.parse(room);
-  } catch (err) {} // If error occurs, then the object is not stringified
+export const getUserImageFromRoom = (userID, room = {}) => {
+  if (userID && JSON.stringify(room) !== JSON.stringify({})) {
+    // The user object to retrieve from the room
+    const user = room.users.filter((user) => user.id === userID);
 
-  // The user object to retrieve from the room
-  const user = room.users.filter((user) => user.id === userID)[0];
-
-  // If the user is not null, their image is returned
-  return JSON.stringify(user) !== JSON.stringify([]) ? user.image : "";
+    // If the user is not null, their image is returned
+    return user.length === 1 && user[0].image ? user[0].image : null;
+  }
 };
 
 /**
@@ -203,28 +207,44 @@ export const removeNotificationsInTray = async (roomID) => {
 };
 
 /**
- * Converts base64 into an array of the base64 content
+ * Saves an image to the user's device
  * @param {string} image An image in base64 format
  * @param {number} roomID The ID of the room the image belongs to
- * @param {string} messageID The ID of the messsage the image belongs too
- * @returns {string} The ID of the image
+ * @param {string} messageID (If available) The ID of the messsage the image belongs to
  */
-export const saveImageAndGetID = (image, roomID, messageID) => {
-  if (image) {
+export const saveImageToDevice = (image, roomID, messageID) => {
+  if (image && roomID) {
     // The image's ID
     const imageID = getImageID(roomID, messageID);
-    // Saves the image to the device
-    saveImage(image, imageID);
-    // Returns the image's ID
-    return imageID;
+    // Writes the image to the device
+    writeImageToDevice(image, imageID);
   }
-  return null;
+};
+
+/**
+ * Writes an image to the device
+ * @param {string} image An image in base64 format
+ * @param {string} imageID The ID of the image
+ */
+const writeImageToDevice = async (image, imageID) => {
+  // Checks to make sure an image and image ID is available
+  if (image && imageID) {
+    // Checks to see if the image folder exists. If it doesn't, it's created
+    const dirInfo = await FileSystem.getInfoAsync(imageDir);
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(imageDir, { intermediates: true });
+    }
+
+    // Writes the base64 image to a file if it's not already there
+    if (!(await FileSystem.getInfoAsync(imageDir + imageID).exists))
+      await FileSystem.writeAsStringAsync(imageDir + imageID, image);
+  }
 };
 
 /**
  * Gets the ID of an image
  * @param {number} roomID The ID of the room the image belongs to
- * @param {string} messageID The ID of the message the image belongs to
+ * @param {string} messageID (If available) The ID of the message the image belongs to
  */
 export const getImageID = (roomID, messageID) => {
   return roomID && messageID
@@ -261,23 +281,6 @@ export const getImage = (imageID) => {
 };
 
 /**
- * Saves an image to the device
- * @param {string} image An image in base64 format
- * @param {string} imageID The ID of the image
- */
-const saveImage = async (image, imageID) => {
-  // Checks to see if the image folder exists. If it doesn't, it's created
-  const dirInfo = await FileSystem.getInfoAsync(imageDir);
-  if (!dirInfo.exists) {
-    await FileSystem.makeDirectoryAsync(imageDir, { intermediates: true });
-  }
-
-  // Writes the base64 image to a file if it's not already there
-  if (!(await FileSystem.getInfoAsync(imageDir + imageID).exists))
-    await FileSystem.writeAsStringAsync(imageDir + imageID, image);
-};
-
-/**
  * Loads images from the device to be used is message chats
  * @param {object} dispatch Redux dispatch
  */
@@ -308,4 +311,17 @@ export const deleteSavedImages = async () => {
   const dirInfo = await FileSystem.getInfoAsync(imageDir);
 
   if (dirInfo.exists) await FileSystem.deleteAsync(imageDir);
+};
+
+/**
+ * Gets the user's full name including their nick name
+ * @param {string} username The username of the user
+ */
+export const getNameFromUsername = (username) => {
+  const nameSplit = username.split(".");
+
+  return (
+    // Creates user's first name and last name
+    `${nameSplit[0].trim()} ${nameSplit[1].trim()}`
+  );
 };

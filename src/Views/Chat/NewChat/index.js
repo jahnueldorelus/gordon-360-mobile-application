@@ -5,6 +5,8 @@ import {
   Modal,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
+  Dimensions,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { getPeopleSearchResults } from "../../../store/ui/peopleSearch";
@@ -14,45 +16,26 @@ import { SearchResults } from "./Components/SearchResults/index";
 import { SearchFilter } from "./Components/SearchFilter/index";
 import { RoomCreator } from "./Components/RoomCreator/index";
 import { useSelector } from "react-redux";
+import { getUserRooms } from "../../../store/entities/chat";
+import { getDeviceOrientation } from "../../../store/ui/app";
 
 export const NewChat = (props) => {
   // The user's previous search text
   const [lastSearchedText, setLastSearchedText] = useState("");
-
   // Object of selected users
   const [selectedUsers, setSelectedUsers] = useState({});
-
   // People Search filter visibility
   const [filterVisible, setFilterVisible] = useState(false);
-
   // People Search filter visibility
   const [roomMessageVisible, setRoomMessageVisible] = useState(false);
-
   // The people search's result
   const searchResult = useSelector(getPeopleSearchResults);
-
-  /**
-   * Gets the user's full name including their nick name
-   * @param {Object} user
-   */
-  const getUserFullName = (user) => {
-    // Checks to make sure each user field is defined
-    const firstname = user.FirstName ? user.FirstName : "";
-    const lastname = user.LastName ? user.LastName : "";
-    const nickname = user.NickName ? user.NickName : firstname;
-
-    return (
-      // Creates user's first name and last name
-      `${firstname.trim()} ${lastname.trim()}` +
-      // Adds the user's nick name if they have one
-      `${
-        nickname.trim() === firstname.trim()
-          ? ""
-          : // Don't remove the space at the beginning
-            " (" + nickname.trim() + ")"
-      }`
-    );
-  };
+  // Determines if select all checkbox is selected
+  const [isAllSelected, setIsAllSelected] = useState(false);
+  // User rooms
+  const userRooms = useSelector(getUserRooms);
+  // The device's orientation
+  const screenOrientation = useSelector(getDeviceOrientation);
 
   /**
    * Sorts the user objects alphabetically.
@@ -89,6 +72,35 @@ export const NewChat = (props) => {
           0
     );
 
+  // The search results of users sorted in alphabetical order
+  const searchResultList = sortUsersAlphabetically(searchResult);
+
+  // The list of selected users
+  const selectedUsersList = Object.values(selectedUsers);
+
+  /**
+   * Gets the user's full name including their nick name
+   * @param {Object} user
+   */
+  const getUserFullName = (user) => {
+    // Checks to make sure each user field is defined
+    const firstname = user.FirstName ? user.FirstName : "";
+    const lastname = user.LastName ? user.LastName : "";
+    const nickname = user.NickName ? user.NickName : firstname;
+
+    return (
+      // Creates user's first name and last name
+      `${firstname.trim()} ${lastname.trim()}` +
+      // Adds the user's nick name if they have one
+      `${
+        nickname.trim() === firstname.trim()
+          ? ""
+          : // Don't remove the space at the beginning
+            " (" + nickname.trim() + ")"
+      }`
+    );
+  };
+
   /**
    * Determines whether to select or deselect a user
    * @param {Object} user The user's information
@@ -113,19 +125,64 @@ export const NewChat = (props) => {
     }
   };
 
+  /**
+   * Determines if a chat with the selected users already exist
+   * @returns {boolean} Determines if a chat already exists
+   */
+  const doesChatExist = () => {
+    // Determines if the chat exists
+    const chatAlreadyExists = false;
+
+    // Parses through the user's list of chats
+    userRooms.every((room) => {
+      // If a chat already exists, the list of the user's chats stops iterating
+      if (chatAlreadyExists) return false;
+      // console.log(room);
+
+      // If a chat has the same length as the selected users
+      if (room.users.length === selectedUsersList.length) {
+        // Determines if every user in the chat is in the list of selected users
+        let allUsersPresent = true;
+
+        // List of usernames of each user in the chat
+        const roomUsers = room.users.map((user) => user.username);
+        // List of usernames of each user in the selected users list
+        const selectedUsersNames = selectedUsersList.map(
+          (user) => user.AD_Username
+        );
+
+        // console.log({ room: roomUsers, selected: selectedUsers });
+        // Checks to see if each user in the list is located in the list of selected users
+        roomUsers.every((user) => {
+          // If a user in a chat isn't present in the list of selected users
+          if (!selectedUsersNames.includes(user)) {
+            // Sets that not all users in the chat are present in the list of selected users
+            allUsersPresent = false;
+            // Stops the iteration of the list of users in the chat
+            return false;
+          }
+        });
+
+        // If all the users are present, then the chat already exists
+        if (allUsersPresent) chatAlreadyExists = true;
+      }
+    });
+
+    // console.log("Chat already exists:", chatAlreadyExists);
+    return chatAlreadyExists;
+  };
+
   // Returns the JSX of the selected users
   const getSelectedUsers = () => (
     <SelectedUsers
-      handleSelected={handleSelected}
-      getUserFullName={getUserFullName}
-      selectedUsers={selectedUsersList}
+      data={{
+        handleSelected,
+        getUserFullName,
+        isAllSelected,
+        selectedUsers: selectedUsersList,
+      }}
     />
   );
-
-  // The search results of users sorted in alphabetical order
-  const searchResultList = sortUsersAlphabetically(searchResult);
-  // The list of selected users
-  const selectedUsersList = Object.values(selectedUsers);
 
   return (
     <Modal
@@ -133,46 +190,62 @@ export const NewChat = (props) => {
       presentationStyle="pageSheet"
       animationType="slide"
     >
-      <SafeAreaView style={styles.safeAreaView}>
+      <SafeAreaView
+        style={[
+          styles.safeAreaView,
+          {
+            flexDirection: screenOrientation === "landscape" ? "row" : "column",
+          },
+        ]}
+      >
         <SearchHeader
-          setLastSearchedText={setLastSearchedText}
-          setSelectedUsers={setSelectedUsers}
-          searchResultList={searchResultList}
-          setVisible={props.setVisible}
-          filterVisible={filterVisible}
-          setFilterVisible={setFilterVisible}
+          data={{
+            setLastSearchedText,
+            setSelectedUsers,
+            searchResultList,
+            setVisible: props.setVisible,
+            filterVisible,
+            setFilterVisible,
+          }}
         />
-        <View
-          pointerEvents={filterVisible ? "none" : "auto"}
-          style={[styles.safeAreaView, { opacity: filterVisible ? 0.6 : 1 }]}
-        >
+        <View style={styles.resultsView}>
           {getSelectedUsers()}
 
           <SearchResults
-            lastSearchedText={lastSearchedText}
-            searchResultList={searchResultList}
-            selectedUsers={selectedUsers}
-            setSelectedUsers={setSelectedUsers}
-            getUserFullName={getUserFullName}
-            handleSelected={handleSelected}
+            data={{
+              lastSearchedText,
+              searchResultList,
+              selectedUsers,
+              setSelectedUsers,
+              getUserFullName,
+              handleSelected,
+              isAllSelected,
+              setIsAllSelected,
+            }}
           />
 
           {selectedUsersList.length > 0 && (
             <View>
               <TouchableOpacity
-                underlayColor="none"
-                onPress={() => setRoomMessageVisible(true)}
-                style={{
-                  position: "absolute",
-                  bottom: 25,
-                  right: 25,
-                  backgroundColor: "#2f3d49",
-                  borderRadius: 50,
-                  paddingVertical: 10,
-                  paddingHorizontal: 15,
-                  flexDirection: "row",
-                  alignItems: "center",
+                activeOpacity={0.75}
+                onPress={() => {
+                  if (doesChatExist()) {
+                    Alert.alert(
+                      "Existent Chat",
+                      "A chat already exists with the users you've selected. Please remove or add more users to create a new chat.",
+                      [
+                        {
+                          text: "Okay",
+                          onPress: () => {}, // Does nothing
+                          style: "cancel",
+                        },
+                      ]
+                    );
+                  } else {
+                    setRoomMessageVisible(true);
+                  }
                 }}
+                style={styles.createChatButton}
               >
                 <Icon
                   name={"comments"}
@@ -190,18 +263,29 @@ export const NewChat = (props) => {
               </TouchableOpacity>
             </View>
           )}
+
+          {
+            /**
+             * Blocks the user from selecting any users or
+             * removing selected users while the people search
+             * filter is visible
+             */
+            filterVisible && <View style={styles.contentBlocker} />
+          }
         </View>
         <SearchFilter visible={filterVisible} setVisible={setFilterVisible} />
 
         {/* MODAL for finalizing and add a message to the new room */}
         <RoomCreator
-          visible={roomMessageVisible}
-          setVisible={setRoomMessageVisible}
-          selectedUsers={getSelectedUsers()}
-          selectedUsersList={selectedUsersList}
-          setNewChatModalVisible={props.setVisible}
-          setSelectedUsers={setSelectedUsers}
-          setLastSearchedText={setLastSearchedText}
+          data={{
+            visible: roomMessageVisible,
+            setVisible: setRoomMessageVisible,
+            selectedUsers: getSelectedUsers(),
+            selectedUsersList,
+            setNewChatModalVisible: props.setVisible,
+            setSelectedUsers,
+            setLastSearchedText,
+          }}
         />
       </SafeAreaView>
     </Modal>
@@ -210,4 +294,25 @@ export const NewChat = (props) => {
 
 const styles = StyleSheet.create({
   safeAreaView: { flex: 1, backgroundColor: "black" },
+  resultsView: { flex: 1, backgroundColor: "black" },
+  contentBlocker: {
+    position: "absolute",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    bottom: 0,
+    right: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  },
+  createChatButton: {
+    position: "absolute",
+    bottom: 25,
+    right: 25,
+    backgroundColor: "#2f3d49",
+    borderRadius: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    alignItems: "center",
+  },
 });

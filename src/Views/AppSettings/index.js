@@ -7,48 +7,52 @@ import { StatusServer } from "./StatusServer/index";
 import { TextingHaptics } from "./TextingHaptics/index";
 import { SignOut } from "./SignOut/index";
 import { ListDivider } from "./ListDivider/index";
+import { getDeviceOrientation } from "../../store/ui/app";
+import { useSelector } from "react-redux";
 
 export const AppSettings = () => {
+  // The device's orientation
+  const screenOrientation = useSelector(getDeviceOrientation);
+
   return (
-    <View style={styles.mainContainer}>
-      <SafeAreaView style={styles.safeAreaView}>
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.headerContainer}>
-            <Icon
-              name="cogs"
-              type="font-awesome-5"
-              color={"#013e70"}
-              size={75}
-            />
-            <Text style={styles.headerText}>App Settings</Text>
-          </View>
+    <ScrollView style={styles.scrollView}>
+      <SafeAreaView
+        style={[
+          styles.safeAreaView,
+          {
+            paddingHorizontal: screenOrientation === "landscape" ? "10%" : 0,
+          },
+        ]}
+      >
+        <View style={styles.headerContainer}>
+          <Icon name="cogs" type="font-awesome-5" color={"#013e70"} size={75} />
+          <Text style={styles.headerText}>App Settings</Text>
+        </View>
 
-          <ResetApp styles={itemStyles} />
+        <ResetApp styles={itemStyles} />
 
-          <Status360 styles={itemStyles} />
+        <Status360 styles={itemStyles} />
 
-          <StatusServer styles={itemStyles} />
+        <StatusServer styles={itemStyles} />
 
-          <View
-            style={[
-              listStyles.listContainer,
-              { borderRadius: itemStyles.itemContainer.borderRadius },
-            ]}
-          >
-            <TextingHaptics styles={listStyles} />
-            <ListDivider />
-            <SignOut styles={listStyles} />
-          </View>
-        </ScrollView>
+        <View
+          style={[
+            listStyles.listContainer,
+            { borderRadius: itemStyles.itemContainer.borderRadius },
+          ]}
+        >
+          <TextingHaptics styles={listStyles} />
+          <ListDivider />
+          <SignOut styles={listStyles} />
+        </View>
       </SafeAreaView>
-    </View>
+    </ScrollView>
   );
 };
 
 // Styles for the component
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, backgroundColor: "white" },
-  safeAreaView: { flex: 1, backgroundColor: "black" },
+  safeAreaView: { flex: 1 },
   scrollView: { flex: 1, paddingHorizontal: "5%", backgroundColor: "white" },
   headerContainer: {
     marginVertical: 20,

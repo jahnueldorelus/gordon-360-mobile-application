@@ -1,5 +1,12 @@
 import React, { useRef, useEffect } from "react";
-import { Text, StyleSheet, TextInput, Keyboard, Animated } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  TextInput,
+  Keyboard,
+  Animated,
+  SafeAreaView,
+} from "react-native";
 import { Icon } from "react-native-elements";
 import {
   getSelectedFilterName,
@@ -77,75 +84,82 @@ export const FocusedTextInput = (props) => {
           },
         ]}
       >
-        <Icon
-          name="clipboard"
-          type="font-awesome-5"
-          color="#224d85"
-          size={20}
-        />
-        <Text style={styles.filterContentSectionTitle}>
-          {props.focusedTextInput.sectionName}:
-        </Text>
-        <TextInput
-          ref={focusedTextInputRef}
-          selectTextOnFocus
-          returnKeyType="done"
-          style={styles.filterContentSectionSelectedItemInput}
-          value={props.focusedTextInput.selected}
-          onSubmitEditing={({ nativeEvent }) => {
-            /**
-             * Saves the text so that the input could be reset first.
-             * This is for UI purposes so that the text input disappears
-             * quicker.
-             */
-            const text = nativeEvent.text;
+        <SafeAreaView style={{ flexDirection: "row", alignItems: "center" }}>
+          <Icon
+            name={
+              props.focusedTextInput.sectionIcon
+                ? props.focusedTextInput.sectionIcon
+                : "clipboard"
+            }
+            type="font-awesome-5"
+            color="#224d85"
+            size={20}
+          />
+          <Text style={styles.filterContentSectionTitle}>
+            {props.focusedTextInput.sectionName}:
+          </Text>
+          <TextInput
+            ref={focusedTextInputRef}
+            selectTextOnFocus
+            returnKeyType="done"
+            style={styles.filterContentSectionSelectedItemInput}
+            value={props.focusedTextInput.selected}
+            onSubmitEditing={({ nativeEvent }) => {
+              /**
+               * Saves the text so that the input could be reset first.
+               * This is for UI purposes so that the text input disappears
+               * quicker.
+               */
+              const text = nativeEvent.text;
 
-            // Resets the focused input text reference and data
-            props.setFocusedTextInput({});
-            focusedTextInputRef.current = null;
+              // Resets the focused input text reference and data
+              props.setFocusedTextInput({});
+              focusedTextInputRef.current = null;
 
-            // Saves the new text to redux
-            dispatch(
-              setSelectedFilterSectionItem(
-                filterName,
-                props.focusedTextInput.sectionName,
-                text
-              )
-            );
-          }}
-          onChangeText={(text) => {
-            props.setFocusedTextInput({
-              ...props.focusedTextInput,
-              selected: text,
-            });
-          }}
-        />
-        <Icon
-          disabled={!props.focusedTextInput.selected}
-          name={"eraser"}
-          type="font-awesome-5"
-          color="#224d85"
-          size={22}
-          onPress={() =>
-            props.setFocusedTextInput({
-              ...props.focusedTextInput,
-              selected: "",
-            })
-          }
-          containerStyle={styles.filterContentSectionActionsRemoveInput}
-          disabledStyle={styles.filterContentSectionActionsRemoveInputDisabled}
-        />
-        <Icon
-          name={"times"}
-          type="font-awesome-5"
-          color="#224d85"
-          size={22}
-          onPress={() => {
-            props.setFocusedTextInput({});
-            focusedTextInputRef.current = null;
-          }}
-          containerStyle={styles.filterContentSectionActionsDismissInput}
-        />
+              dispatch(
+                setSelectedFilterSectionItem(
+                  filterName,
+                  props.focusedTextInput.sectionName,
+                  text ? text : ""
+                )
+              );
+            }}
+            onChangeText={(text) => {
+              props.setFocusedTextInput({
+                ...props.focusedTextInput,
+                selected: text,
+              });
+            }}
+          />
+          <Icon
+            disabled={!props.focusedTextInput.selected}
+            name={"eraser"}
+            type="font-awesome-5"
+            color="#224d85"
+            size={22}
+            onPress={() =>
+              props.setFocusedTextInput({
+                ...props.focusedTextInput,
+                selected: "",
+              })
+            }
+            containerStyle={styles.filterContentSectionActionsRemoveInput}
+            disabledStyle={
+              styles.filterContentSectionActionsRemoveInputDisabled
+            }
+          />
+          <Icon
+            name={"times"}
+            type="font-awesome-5"
+            color="#224d85"
+            size={22}
+            onPress={() => {
+              props.setFocusedTextInput({});
+              focusedTextInputRef.current = null;
+            }}
+            containerStyle={styles.filterContentSectionActionsDismissInput}
+          />
+        </SafeAreaView>
       </Animated.View>
     );
   // If the filter modal isn't visible
@@ -161,6 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     position: "absolute",
     bottom: 0,
+    alignSelf: "center",
   },
   filterContentSectionTitle: {
     marginLeft: 10,

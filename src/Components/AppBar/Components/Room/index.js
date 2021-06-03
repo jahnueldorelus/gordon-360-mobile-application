@@ -4,16 +4,21 @@ import { StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
 import { NewChat } from "../../../../Views/Chat/NewChat";
 import { useNavigation } from "@react-navigation/native";
+import { getUserChatLoading } from "../../../../store/entities/chat";
+import { useSelector } from "react-redux";
 
 export const AppbarRoom = (props) => {
   // Modal's visibility
   const [modalInfoVisible, setModaInfoVisible] = useState(false);
   // React Native Navigation
   const navigation = useNavigation();
+  // The user's chat loading status
+  const dataLoading = useSelector(getUserChatLoading);
 
   return (
     <View style={styles.appBarContainer}>
       <TouchableOpacity
+        activeOpacity={0.75}
         onPress={() => {
           navigation.openDrawer();
         }}
@@ -28,6 +33,13 @@ export const AppbarRoom = (props) => {
           type="font-awesome-5"
           color="white"
           size={25}
+          /**
+           * Disables the user from opening the new chat
+           * component when the user's chat data is being
+           * retrieved
+           */
+          disabled={dataLoading}
+          disabledStyle={styles.iconDisabled}
           onPress={() => {
             setModaInfoVisible(true);
           }}
@@ -59,5 +71,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
+  iconDisabled: { backgroundColor: "transparent", opacity: 0.4 },
   newChat: { marginRight: 10 },
 });

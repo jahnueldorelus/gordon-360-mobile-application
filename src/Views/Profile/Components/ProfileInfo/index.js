@@ -1,14 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions } from "react-native";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useSelector } from "react-redux";
 import { getUserInfo, getUserImage } from "../../../../store/entities/profile";
+import { AppImageViewer } from "../../../../Components/AppImageViewer";
 
 export const ProfileInfo = () => {
   // User's profile info
   const userInfo = useSelector(getUserInfo);
   // User's image
   const userImage = useSelector(getUserImage);
+  // Image to show in the image viewer
+  const [imageToView, setImageToView] = useState(null);
+  // Determines if the image viewer should display
+  const [showImageViewer, setShowImageViewer] = useState(false);
+
+  /**
+   * If an image is set to be shown, the image viewer will open. Otherwise,
+   * the image viewer will be closed (if opened) and the image to be shown
+   * will be reset
+   */
+  useEffect(() => {
+    if (imageToView && showImageViewer) {
+      setShowImageViewer(true);
+    } else {
+      setShowImageViewer(false);
+      setImageToView(null);
+    }
+  }, [imageToView, showImageViewer]);
 
   /**
    * Returns the class of a student
@@ -67,16 +86,27 @@ export const ProfileInfo = () => {
     <View style={styles.profileView}>
       <View style={styles.profileViewImageContainer}>
         {/********************** User Image **********************/}
-        <Image
-          source={
-            userImage
-              ? { uri: `data:image/gif;base64,${userImage}` }
-              : require("./Images/user.png")
-          }
-          style={
-            userImage ? styles.profileViewImage : styles.profileViewImageDefault
-          }
-        />
+        <TouchableOpacity
+          activeOpacity={0.75}
+          underlayColor="none"
+          onPress={() => {
+            setImageToView(userImage);
+            setShowImageViewer(true);
+          }}
+        >
+          <Image
+            source={
+              userImage
+                ? { uri: `data:image/gif;base64,${userImage}` }
+                : require("./Images/user.png")
+            }
+            style={
+              userImage
+                ? styles.profileViewImage
+                : styles.profileViewImageDefault
+            }
+          />
+        </TouchableOpacity>
       </View>
       {/********************** User Info **********************/}
       <View style={styles.profileViewTextContainer}>
@@ -100,6 +130,13 @@ export const ProfileInfo = () => {
           </Text>
         </View>
       </View>
+
+      {/* Image Viewer */}
+      <AppImageViewer
+        image={imageToView}
+        visible={showImageViewer}
+        setVisible={setShowImageViewer}
+      />
     </View>
   );
 };
@@ -116,14 +153,14 @@ const styles = StyleSheet.create({
   profileViewImageContainer: {
     padding: 8,
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
+    // shadowColor: "#000",
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 2,
+    // },
+    // shadowOpacity: 0.23,
+    // shadowRadius: 2.62,
+    // elevation: 4,
   },
   profileViewImage: {
     width: Dimensions.get("screen").width / 2,
@@ -131,8 +168,9 @@ const styles = StyleSheet.create({
     maxWidth: 300,
     maxHeight: 300,
     alignSelf: "center",
-    borderRadius: 100,
+    borderRadius: 150,
     borderWidth: 0.1,
+    borderColor: "black",
   },
   profileViewImageDefault: {
     width: Dimensions.get("screen").width / 2,

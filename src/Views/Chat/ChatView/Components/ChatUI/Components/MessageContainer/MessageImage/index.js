@@ -6,7 +6,11 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { getImageContent } from "../../../../../../store/ui/chat";
+import {
+  getImageContent,
+  getSelectedRoomID,
+} from "../../../../../../../../store/ui/Chat/chatSelectors";
+import { getMessageImageByID } from "../../../../../../../../store/entities/chat";
 import { useSelector } from "react-redux";
 
 /**
@@ -23,8 +27,14 @@ export const renderMessageImage = (props, ImageToViewHandler) => {
  * @param {JSON} props Props passed from parent
  */
 const MessageImage = (props) => {
+  // The selected room's ID
+  const roomID = useSelector(getSelectedRoomID);
+  // The message's image (which should be it's image ID)
+  const messageImage = useSelector(
+    getMessageImageByID(roomID, props.currentMessage._id)
+  );
   // The content of the image
-  const imageSource = useSelector(getImageContent(props.currentMessage.image));
+  const imageSource = useSelector(getImageContent(messageImage));
 
   // Get's the dimensions of the devices's screen
   const deviceHeight = Dimensions.get("window").height;
@@ -33,6 +43,7 @@ const MessageImage = (props) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity
+        activeOpacity={0.75}
         onPress={() => {
           // Saves the image to be shown
           props.ImageToViewHandler.setImage(imageSource);

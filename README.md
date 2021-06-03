@@ -112,8 +112,8 @@
 
    - To install all dependencies in one command, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
 
-     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat react-native-gesture-handler @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system`
-     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat react-native-gesture-handler @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system`
+     - `npm i --save expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat react-native-gesture-handler @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension moment react-error-boundary react-native-exception-handler && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system sentry-expo`
+     - `yarn add expo-cli react-native-webview react-native-elements react-native-vector-icons @react-navigation/stack react-native-gifted-chat react-native-gesture-handler @react-native-community/async-storage bluebird react-native-offline reselect @reduxjs/toolkit redux redux-devtools-extension moment react-error-boundary react-native-exception-handler && expo install expo-linear-gradient @react-native-community/netinfo expo-image-picker expo-haptics expo-file-system sentry-expo`
 
    - To install dependencies separately, use any of the following commands. If using npm, make sure to run `npm audit fix` after installation.
      - Install Expo using any of the following commands.
@@ -161,6 +161,12 @@
      - Install Moment (Used for Date) using any of the following commands.
        - `npm i moment`
        - `yarn add moment`
+     - Install React Error Boundary using any of the following commands.
+       - `npm i react-error-boundary`
+       - `yarn add react-error-boundary`
+     - Install React Native Exception Handler using any of the following commands.
+       - `npm i react-native-exception-handler`
+       - `yarn add react-native-exception-handler`
      - Install Expo Linear Gradient using the following command.
        - `expo install expo-linear-gradient`
      - Install NetInfo using the following command.
@@ -171,6 +177,10 @@
        - `expo install expo-haptics`
      - Install Expo File System using the following command.
        - `expo install expo-file-system`
+     - Install Expo Sentry using the following command.
+       - `expo install sentry-expo`
+     - Install Expo Screen Orientation using the following command.
+       - `expo install expo-screen-orientation`
 
 2. You can open your application using any of the following commands depending on your preference.
    - Start the server only:

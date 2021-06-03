@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAction, createSlice } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
 import { Promise } from "bluebird";
@@ -8,6 +8,7 @@ import {
   getAPI,
   getAPIEndpoint,
 } from "../entities/Auth/authSelectors";
+import { getUserInfo } from "../entities/profile";
 
 /*********************************** SLICE ***********************************/
 const slice = createSlice({
@@ -25,12 +26,8 @@ const slice = createSlice({
      */
     // Adds the result of the people search
     peopleAdded: (state, action) => {
-      /**
-       * If there are people in the result list
-       * The comparison must be done with stringified version as JS recognizes
-       * the action.payload as an object
-       */
-      if (JSON.stringify(action.payload) !== JSON.stringify([])) {
+      // If there are people in the result list
+      if (action.payload.length > 0) {
         /**
          * If the fetch result is the same as the results currently saved,
          * then the search request is ended since the results are already available
@@ -71,10 +68,10 @@ const slice = createSlice({
           // Saves the person's image if available
           state.peopleSearchImages[username] = pref
             ? // Saves the preferred image if available
-              "data:image/png;base64," + pref
+              pref
             : def
             ? // Saves the default image if preferred image is unavailable
-              "data:image/png;base64," + def
+              def
             : // Saves nothing if no image is available
               null;
         }
@@ -94,7 +91,7 @@ const slice = createSlice({
     personImageRequestAdded: (state, action) => {
       action.payload.searchResultList.forEach((person) => {
         if (!state.peopleSearchImageRequests[person])
-          state.peopleSearchImageRequests[person] = person;
+          state.peopleSearchImageRequests[person] = true;
       });
     },
 
@@ -106,6 +103,17 @@ const slice = createSlice({
     // People Search request started
     peopleReqStarted: (state, action) => {
       state.loading = true;
+    },
+
+    // People Search request failed
+    peopleReqFailed: (state, action) => {
+      state.data = {};
+      state.loading = false;
+      // Resets the list of searched images and images requested
+      state.peopleSearchImages = {};
+      state.peopleSearchImageRequests = {};
+      // Saves the search request as the previous request
+      state.previousRequestURL = action.url;
     },
 
     /**
@@ -130,8 +138,12 @@ export default slice.reducer;
  * Returns the result of the people search
  */
 export const getPeopleSearchResults = createSelector(
-  (state) => state.ui.peopleSearch,
-  (peopleSearch) => Object.values(peopleSearch.data)
+  /**
+   * Even though the state doesn't change, the line below
+   * is still required for createSelector to work
+   */
+  (state) => state,
+  (state) => Object.values(state.ui.peopleSearch.data)
 );
 
 /**
@@ -198,6 +210,7 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
         useEndpoint: true,
         onSuccess: slice.actions.peopleAdded.type,
         onStart: slice.actions.peopleReqStarted.type,
+        onError: slice.actions.peopleReqFailed.type,
       })
     );
 };
@@ -205,7 +218,7 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
 /**
  * Fetches the user's image based on their username.
  * The fetch is done here and not through the middleware "api.js" due to
- * concurrency issues. If the list of people contain more than 500 people, this
+ * concurrency issues. If the list of people contains more than 500 people, this
  * will cause an error as there's a maximum limit of 500 callbacks. Therefore,
  * the fetch is used here in order to use Bluebird which helps control the
  * concurrency of each fetch to prevent the 'excessive number of callbacks' error
@@ -214,7 +227,7 @@ export const searchForPeople = (searchParams) => (dispatch, getState) => {
  * @param {Array} listOfPeople The list of people to retrieve the image of
  */
 export const fetchPeoplesImage = (listOfPeople) => (dispatch, getState) => {
-  // Object of people who's image has already been requested
+  // Object of people whose image has already been requested
   const peopleWithRequest = getPeopleWithImageRequested(getState());
 
   // Saves the name of every person to prevent a re-fetch from occuring
@@ -226,6 +239,7 @@ export const fetchPeoplesImage = (listOfPeople) => (dispatch, getState) => {
   const peoplesImages = Promise.map(
     listOfPeople,
     async (person) => {
+      // Checks to make sure a request for the person's image hasn't already been made
       if (!peopleWithRequest[person]) {
         // Does the request for the person's image
         return await axios({
@@ -246,7 +260,7 @@ export const fetchPeoplesImage = (listOfPeople) => (dispatch, getState) => {
       }
     },
     // Creates a limit of 350 pending requests at a time
-    { concurrency: 350 }
+    { concurrency: 300 }
   );
 
   // Saves the list of user images and sets the search loading to false
@@ -256,18 +270,11 @@ export const fetchPeoplesImage = (listOfPeople) => (dispatch, getState) => {
 };
 
 /**
- * Resets the people search results
- */
-export const resetSearchList = (dispatch, getState) => {
-  dispatch({ type: slice.actions.peopleSearchReset.type });
-};
-
-/**
  * Resets all the state's data
  */
-export const ui_PeopleSearchResetState = (dispatch, getState) => {
-  dispatch({ type: slice.actions.resetState.type, payload: null });
-};
+export const ui_PeopleSearchResetState = createAction(
+  slice.actions.resetState.type
+);
 
 /*********************************** HELPER FUNCTIONS ***********************************/
 /**

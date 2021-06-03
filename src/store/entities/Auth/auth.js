@@ -1,10 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAction } from "@reduxjs/toolkit";
 import { apiRequested } from "../../middleware/api";
-import {
-  getExpoToken,
-  getExpoTokenAlreadySent,
-  getListOfExpoTokens,
-} from "./authSelectors";
+import { getExpoToken, getListOfExpoTokens } from "./authSelectors";
 import { getUserInfo } from "../profile";
 
 /*********************************** SLICE ***********************************/
@@ -18,8 +14,8 @@ const slice = createSlice({
     },
     expoToken: {
       data: null,
-      savedToServer: false,
       listOfServerIDs: [],
+      deletedFromServer: null,
     },
     api: "https://360apitrain.gordon.edu",
     website: "https://360.gordon.edu",
@@ -62,19 +58,25 @@ const slice = createSlice({
     // Adds the user expo token
     expoTokenAdded: (state, action) => {
       state.expoToken.data = action.payload.expoToken;
-      state.expoToken.savedToServer = false;
     },
-
-    expoTokenSendSuccess: (state, action) => {
-      state.expoToken.savedToServer = true;
-    },
-    expoTokenSendFailed: (state, action) => {
-      state.expoToken.savedToServer = false;
-    },
+    // Adds the user's list of tokens
     expoTokenIDsAdded: (state, action) => {
       state.expoToken.listOfServerIDs = action.payload[0].map(
         (user) => user.connection_id
       );
+    },
+    // Handles the response of an expo token deletion attempt from the server
+    expoTokenDeletedFromServer: (state, action) => {
+      // The action's payload is either true or false
+      if (action.payload === true) {
+        state.expoToken.deletedFromServer = true;
+      } else {
+        state.expoToken.deletedFromServer = false;
+      }
+    },
+    // Resets expo token's deleted from server property
+    expoTokenDeleteReset: (state, action) => {
+      state.expoToken.deletedFromServer = null;
     },
 
     /**
@@ -89,7 +91,6 @@ const slice = createSlice({
       };
       state.expoToken = {
         data: null,
-        savedToServer: false,
         listOfServerIDs: [],
       };
     },
@@ -105,47 +106,44 @@ export default slice.reducer;
  * @param {String} username The user's username
  * @param {String} password The user's password
  */
-export const fetchToken = (username = "", password = "") => (
-  dispatch,
-  getState
-) => {
-  dispatch(
-    apiRequested({
-      url: "/token",
-      method: "post",
-      data: `username=${
-        // If the username contains '@gordon.edu', the address is removed since
-        // '@gordon.edu' is not needed for authentication
-        username.endsWith("@gordon.edu") ? username.split("@")[0] : username
-      }&password=${password}&grant_type=password`,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      onSuccess: slice.actions.tokenAdded.type,
-      onStart: slice.actions.tokenReqStarted.type,
-      onEnd: slice.actions.tokenReqEnded.type,
-      onError: slice.actions.tokenReqFailed.type,
-    })
-  );
-};
+export const fetchToken =
+  (username = "", password = "") =>
+  (dispatch, getState) => {
+    dispatch(
+      apiRequested({
+        url: "/token",
+        method: "post",
+        data: `username=${
+          // If the username contains '@gordon.edu', the address is removed since
+          // '@gordon.edu' is not needed for authentication
+          username.endsWith("@gordon.edu") ? username.split("@")[0] : username
+        }&password=${password}&grant_type=password`,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        onSuccess: slice.actions.tokenAdded.type,
+        onStart: slice.actions.tokenReqStarted.type,
+        onEnd: slice.actions.tokenReqEnded.type,
+        onError: slice.actions.tokenReqFailed.type,
+      })
+    );
+  };
 
 /**
  * Sends the Expo token to the server
  */
 export const sendExpoTokenToServer = (dispatch, getState) => {
-  // The Expo Token to send to the server
-  const expoTokenAlreadySent = getExpoTokenAlreadySent(getState());
   // The curerntly saved Expo Token
   const savedExpoToken = getExpoToken(getState());
   // The main user's list of Expo tokens saved on the server
   const listOfExpoTokens = getListOfExpoTokens(getState());
 
   /**
-   * Sends the Expo token to the server if the token hasn't already been sent
-   * and if the token isn't included in the list of the user's Expo tokens on the server
+   * Sends the Expo token to the server if the token isn't included
+   * in the list of the user's Expo tokens on the server
    */
-  if (!expoTokenAlreadySent && !listOfExpoTokens.includes(savedExpoToken)) {
+  if (!listOfExpoTokens.includes(savedExpoToken)) {
     // Sends the request
     dispatch(
       apiRequested({
@@ -153,8 +151,6 @@ export const sendExpoTokenToServer = (dispatch, getState) => {
         method: "post",
         data: JSON.stringify(savedExpoToken),
         useEndpoint: true,
-        onSuccess: slice.actions.expoTokenSendSuccess.type,
-        onError: slice.actions.expoTokenSendFailed.type,
       })
     );
   }
@@ -162,6 +158,36 @@ export const sendExpoTokenToServer = (dispatch, getState) => {
   // Gets the list of the user's Expo tokens
   dispatch(fetchListOfExpoTokens);
 };
+
+/**
+ * Deletes the Expo token from the server
+ */
+export const deleteExpoTokenFromServer = (dispatch, getState) => {
+  // The curerntly saved Expo Token
+  const savedExpoToken = getExpoToken(getState());
+
+  // Sends the request to delete the Expo token
+  dispatch(
+    apiRequested({
+      url: "/dm/deleteUserConnectionIds",
+      method: "put",
+      data: JSON.stringify(savedExpoToken),
+      useEndpoint: true,
+      onSuccess: slice.actions.expoTokenDeletedFromServer.type,
+      onError: slice.actions.expoTokenDeletedFromServer.type,
+    })
+  );
+
+  // Gets the list of the user's Expo tokens
+  dispatch(fetchListOfExpoTokens);
+};
+
+/**
+ * Resets the expo token deleted from the server property
+ */
+export const resetExpoTokenDeletion = createAction(
+  slice.actions.expoTokenDeleteReset.type
+);
 
 /**
  * Gets the Expo token connection IDs of the user

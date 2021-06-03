@@ -17,7 +17,7 @@ import {
 import {
   getChatOpenedAndVisible,
   getSelectedRoomID,
-} from "./src/store/ui/chat";
+} from "./src/store/ui/Chat/chatSelectors";
 import * as Notifications from "expo-notifications";
 /**
  * The function below, "getFullMessageFromServer" is imported into this moodule
@@ -55,24 +55,24 @@ export const Screen = (props) => {
     registerForPushNotificationsAsync(dispatch);
 
     // Notification Received Listener
-    notificationReceivedListener.current = Notifications.addNotificationReceivedListener(
-      (notification) =>
+    notificationReceivedListener.current =
+      Notifications.addNotificationReceivedListener((notification) =>
         notificationReceivedHandler(
           notification,
           getFullMessageFromServer,
           dispatch
         )
-    );
+      );
     // Notification Response Listener
-    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) =>
+    notificationResponseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) =>
         notificationResponseHandler(
           response.notification,
           getFullMessageFromServer,
           dispatch,
           navigation
         )
-    );
+      );
 
     /**
      * App State Listener
@@ -146,7 +146,7 @@ export const Screen = (props) => {
           /**
            * Navigation gestures are disabled since there's no callback
            * for when this occurs and therefore creates a bug where important
-           * logic might run whenever the user changes screens
+           * logic doesn't occur when the user changes the screen with a gesture
            */
           screenOptions={{ headerShown: false, gestureEnabled: false }}
         >

@@ -2,7 +2,7 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform, Linking, Alert } from "react-native";
 import { setExpoToken } from "../../store/entities/Auth/auth";
-import { setRoomID, setShouldNavigateToChat } from "../../store/ui/chat";
+import { setRoomID, setShouldNavigateToChat } from "../../store/ui/Chat/chat";
 import { ScreenNames } from "../../../ScreenNames";
 
 // Notification Category Identifier
@@ -112,9 +112,8 @@ export const registerForPushNotificationsAsync = async (dispatch) => {
   // Checks to make sure that a physical device is being used since
   // push notifications don't work on emulators and simulators
   if (Constants.isDevice) {
-    const {
-      status: existingStatus,
-    } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
     /**

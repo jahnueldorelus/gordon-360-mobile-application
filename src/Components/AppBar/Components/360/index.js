@@ -12,6 +12,7 @@ export const Appbar360 = (props) => {
     <View style={styles.appBarContainer}>
       <View style={styles.navigationContainer}>
         <TouchableOpacity
+          activeOpacity={0.75}
           onPress={() => {
             navigation.openDrawer();
           }}

@@ -1,28 +1,22 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Linking,
-  Text,
-  StyleSheet,
-  Image,
-} from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Icon } from "react-native-elements";
 import { Dimensions } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { getRoomImage, setRoomImage } from "../../../../../../store/ui/chat";
+import { getNewRoomImage } from "../../../../../../store/ui/Chat/chatSelectors";
+import { setNewRoomImage } from "../../../../../../store/ui/Chat/chat";
 
 export const RoomImagePicker = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
   // The room's image
-  const roomImage = useSelector(getRoomImage);
+  const roomImage = useSelector(getNewRoomImage);
 
   useEffect(() => {
     // Deletes the temporary room image if there are no selected users
     if (props.selectedUsersListLength === 0) {
-      dispatch(setRoomImage(null));
+      dispatch(setNewRoomImage(null));
     }
   }, [props.selectedUsersListLength]);
 
@@ -32,6 +26,7 @@ export const RoomImagePicker = (props) => {
       {!roomImage ? (
         // If the user hasn't selected an image for the new room
         <TouchableOpacity
+          activeOpacity={0.75}
           onPress={async () => {
             await ImagePicker.getCameraPermissionsAsync().then(
               async (permission) => {
@@ -44,7 +39,7 @@ export const RoomImagePicker = (props) => {
                   });
                   // If an image is selected, the image is saved
                   if (!image.cancelled) {
-                    dispatch(setRoomImage(image.base64));
+                    dispatch(setNewRoomImage(image.base64));
                   }
                 }
                 // If permission is denied
@@ -75,6 +70,7 @@ export const RoomImagePicker = (props) => {
           />
           <View style={styles.mainIconsContainer}>
             <TouchableOpacity
+              activeOpacity={0.75}
               style={[styles.imageIconContainer, { marginBottom: 15 }]}
               onPress={async () => {
                 const image = await ImagePicker.launchImageLibraryAsync({
@@ -84,7 +80,7 @@ export const RoomImagePicker = (props) => {
                 });
                 // If an image is selected
                 if (!image.cancelled) {
-                  dispatch(setRoomImage(image.base64));
+                  dispatch(setNewRoomImage(image.base64));
                 }
               }}
             >
@@ -98,8 +94,9 @@ export const RoomImagePicker = (props) => {
               <Text style={styles.imageIconText}>Replace</Text>
             </TouchableOpacity>
             <TouchableOpacity
+              activeOpacity={0.75}
               style={styles.imageIconContainer}
-              onPress={() => dispatch(setRoomImage(null))}
+              onPress={() => dispatch(setNewRoomImage(null))}
             >
               <Icon
                 containerStyle={styles.imageIcon}

@@ -207,6 +207,7 @@ export const Schedule = () => {
               <View key={index} style={styles.calDayContainer}>
                 <Text style={styles.calDayText}>{day.day}</Text>
                 <TouchableOpacity
+                  activeOpacity={0.75}
                   style={[
                     styles.calDayButton,
                     {

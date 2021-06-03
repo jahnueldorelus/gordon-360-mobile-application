@@ -77,6 +77,7 @@ export const Status360 = (props) => {
         </View>
       </View>
       <TouchableOpacity
+        activeOpacity={0.75}
         onPress={() => dispatch(fetchGordon360SiteStatus)}
         style={props.styles.itemButton}
       >

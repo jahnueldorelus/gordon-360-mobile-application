@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { TextInput, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
-import { getUseHapticsForTexting } from "../../../../../../../store/entities/Settings/settingsSelectors";
+import { getUseHapticsForTexting } from "../../../../../../../../../store/entities/Settings/settingsSelectors";
 import { useSelector } from "react-redux";
+import { Dimensions } from "react-native";
 
 /**
  * Renders the composer (aka textfield) in the InputToolbar. Also handles,
@@ -27,6 +28,25 @@ const Composer = (props) => {
   const actionsVisible = useRef(props.ActionHandler.showActions);
   // Determines if haptics are enabled
   const hapticsEnabled = useSelector(getUseHapticsForTexting);
+  /**
+   * The maximum content size for the text input. This allows for the
+   * text input to always remain on the screen without it overflowing
+   * off the screen when there's a lot of text
+   */
+  const maxContentSize =
+    // The device's height
+    Dimensions.get("window").height -
+    // The Appbar's height
+    props.headerHeight -
+    // The keyboard's height
+    200 -
+    /**
+     * The vertical padding of the input toolbar. This is related to
+     * the bug located in documentation called "Text_Input". A little more
+     * than the original padding is subtracted in order to have a better
+     * visual of the top of the text input component
+     */
+    33;
 
   /**
    * Properly displays any selected images and videos in the InputToolbar.
@@ -88,14 +108,17 @@ const Composer = (props) => {
          * in the useEffect() above and for GiftedChat to re-render
          * and correctly measure the height of the InputToolBar.
          */
+        contentSize.height =
+          contentSize.height > maxContentSize
+            ? maxContentSize
+            : contentSize.height;
         setInputSize(contentSize);
-
         props.onInputSizeChanged(contentSize);
       }}
       onChangeText={(text) => {
         props.onTextChanged(text);
         // Does Haptic feedback if enabled
-        if (hapticsEnabled) Haptics.selectionAsync();
+        if (hapticsEnabled) Haptics.impactAsync();
       }}
       style={styles.input}
       autoFocus={props.textInputAutoFocus}

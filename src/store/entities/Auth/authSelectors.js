@@ -33,11 +33,11 @@ export const getExpoToken = createSelector(
 );
 
 /**
- * Returns the user's Expo token saved to server property
+ * Returns the value of if an Expo token was deleted from the server
  */
-export const getExpoTokenAlreadySent = createSelector(
+export const getExpoTokenDeleted = createSelector(
   (state) => state.entities.auth,
-  (auth) => auth.expoToken.savedToServer
+  (auth) => auth.expoToken.deletedFromServer
 );
 
 /**

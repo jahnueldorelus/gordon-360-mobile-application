@@ -54,11 +54,13 @@ const slice = createSlice({
         selected: null,
         sectionName: "Major",
         data: [],
+        icon: "book-reader",
       },
       minor: {
         selected: null,
         sectionName: "Minor",
         data: [],
+        icon: "book-open",
       },
       class: {
         selected: null,
@@ -73,19 +75,22 @@ const slice = createSlice({
           "Graduate Conferred",
           "Unassigned",
         ],
+        icon: "id-badge",
       },
     },
     home: {
-      city: { selected: null, sectionName: "City" },
+      city: { selected: null, sectionName: "City", icon: "city" },
       state: {
         selected: null,
         sectionName: "State",
         data: [],
+        icon: "map-signs",
       },
       country: {
         selected: null,
         sectionName: "Country",
         data: [],
+        icon: "globe-americas",
       },
     },
     office: {
@@ -93,11 +98,13 @@ const slice = createSlice({
         selected: null,
         sectionName: "Department",
         data: [],
+        icon: "building",
       },
       dormitory: {
         selected: null,
         sectionName: "Dormitory",
         data: [],
+        icon: "bed",
       },
     },
   },
@@ -355,15 +362,13 @@ export const setSelectedFilterIndex = (index) => (dispatch, getState) => {
  * Sets the selected filter's section.
  * @param {string} sectionName The name of the section of the filter
  */
-export const setSelectedFilterSectionName = (sectionName) => (
-  dispatch,
-  getState
-) => {
-  dispatch({
-    type: slice.actions.setSelectedFilterSectionName.type,
-    payload: sectionName,
-  });
-};
+export const setSelectedFilterSectionName =
+  (sectionName) => (dispatch, getState) => {
+    dispatch({
+      type: slice.actions.setSelectedFilterSectionName.type,
+      payload: sectionName,
+    });
+  };
 
 /**
  * Sets the selected item for a filter section
@@ -371,31 +376,26 @@ export const setSelectedFilterSectionName = (sectionName) => (
  * @param {string} sectionName The name of the section of the filter
  * @param {string} selected The selected item of the filter's section
  */
-export const setSelectedFilterSectionItem = (
-  filterName,
-  sectionName,
-  selected
-) => (dispatch, getState) => {
-  dispatch({
-    type: slice.actions.setFilterSectionSelectedItem.type,
-    payload: { filterName, sectionName, selected },
-  });
-};
+export const setSelectedFilterSectionItem =
+  (filterName, sectionName, selected) => (dispatch, getState) => {
+    dispatch({
+      type: slice.actions.setFilterSectionSelectedItem.type,
+      payload: { filterName, sectionName, selected },
+    });
+  };
 
 /**
  * Resets the selected item for a filter section
  * @param {string} filterName The name of the filter
  * @param {string} sectionName The name of the section of the filter
  */
-export const resetSelectedFilterSectionItem = (filterName, sectionName) => (
-  dispatch,
-  getState
-) => {
-  dispatch({
-    type: slice.actions.resetFilterSectionSelected.type,
-    payload: { filterName, sectionName },
-  });
-};
+export const resetSelectedFilterSectionItem =
+  (filterName, sectionName) => (dispatch, getState) => {
+    dispatch({
+      type: slice.actions.resetFilterSectionSelected.type,
+      payload: { filterName, sectionName },
+    });
+  };
 
 /**
  * Resets all filters

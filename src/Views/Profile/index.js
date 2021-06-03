@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, RefreshControl, ScrollView } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  StyleSheet,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
 import { ProfileInfo } from "./Components/ProfileInfo";
 import { AccountInfo } from "./Components/AccountInfo";
 import { Involvements } from "./Components/Involvements";
@@ -22,6 +28,7 @@ import {
   getReqUserProfileStatus,
   getReqUserScheduleStatus,
 } from "../../store/entities/profile";
+import { getDeviceOrientation } from "../../store/ui/app";
 
 export const Profile = () => {
   // Redux Dispatch
@@ -47,7 +54,8 @@ export const Profile = () => {
   const isReqProfilePending = useSelector(getReqUserProfileStatus);
   // User's schedule request pending status
   const isReqSchedulePending = useSelector(getReqUserScheduleStatus);
-
+  // The device's orientation
+  const screenOrientation = useSelector(getDeviceOrientation);
   // Determines if the user's data is still in the middle of being requested
   const [dataLoading, setDataLoading] = useState(false);
 
@@ -101,17 +109,25 @@ export const Profile = () => {
   }, [userInfo]);
 
   return (
-    <View style={styles.mainContaner}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={dataLoading}
-            onRefresh={() => {
-              getAllUserInfo();
-            }}
-          />
-        }
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={dataLoading}
+          onRefresh={() => {
+            getAllUserInfo();
+          }}
+        />
+      }
+      style={styles.mainContaner}
+    >
+      <SafeAreaView
+        style={[
+          styles.mainContaner,
+          {
+            paddingHorizontal: screenOrientation === "landscape" ? "10%" : 0,
+          },
+        ]}
       >
         <View style={styles.infoContainerTop}>
           <ProfileInfo />
@@ -128,8 +144,8 @@ export const Profile = () => {
         <View style={styles.infoContainerBottom}>
           <Involvements />
         </View>
-      </ScrollView>
-    </View>
+      </SafeAreaView>
+    </ScrollView>
   );
 };
 

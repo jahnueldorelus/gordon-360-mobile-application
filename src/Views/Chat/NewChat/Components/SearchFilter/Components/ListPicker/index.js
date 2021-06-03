@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Modal,
   SafeAreaView,
@@ -34,6 +34,41 @@ export const ListPickerModal = (props) => {
   // The selected item of the selected section in the selected filter
   const sectionSelectedItem = useSelector(getSelectedFilterSectionItem);
 
+  /**
+   * Renders an item of the list of users for the selected room
+   * Do not move the code belowo into the Flatlist. With it being separate
+   * and the use of useCallback, a performance boost is created
+   */
+  const renderItem = useCallback(
+    ({ item, index }) => {
+      return (
+        <View key={index}>
+          <TouchableHighlight
+            underlayColor="none"
+            style={[
+              styles.listItemContainer,
+              {
+                // Removes the bottom border from the last item in the list
+                borderBottomWidth: sectionData.length - 1 === index ? 0 : 1,
+              },
+            ]}
+            onPress={() => {
+              // Sets the selected filter's selected section selected item
+              dispatch(
+                setSelectedFilterSectionItem(filterName, sectionName, item)
+              );
+              // Exits out the filter section picker modal
+              props.setListPickerVisible(false);
+            }}
+          >
+            <Text style={styles.listItemText}>{item}</Text>
+          </TouchableHighlight>
+        </View>
+      );
+    },
+    [sectionData]
+  );
+
   return (
     <Modal
       visible={props.listPickerVisible}
@@ -42,8 +77,8 @@ export const ListPickerModal = (props) => {
       onRequestClose={() => props.setListPickerVisible(false)}
       onDismiss={() => props.setListPickerVisible(false)}
     >
-      <View style={styles.mainContainer}>
-        <SafeAreaView style={styles.safeAreaView}>
+      <SafeAreaView style={styles.safeAreaView}>
+        <View style={styles.mainContainer}>
           <View style={styles.headerMainContainer}>
             <View style={styles.headerTitleContainer}>
               <Text style={styles.headerTitleText}>
@@ -75,46 +110,17 @@ export const ListPickerModal = (props) => {
             data={sectionData}
             keyExtractor={(item, index) => index.toString()}
             showsVerticalScrollIndicators
-            renderItem={({ item, index }) => {
-              return (
-                <View key={index}>
-                  <TouchableHighlight
-                    underlayColor="none"
-                    style={[
-                      styles.listItemContainer,
-                      {
-                        borderBottomWidth:
-                          sectionData.length - 1 === index ? 0 : 1,
-                      },
-                    ]}
-                    onPress={() => {
-                      // Sets the selected filter's selected section selected item
-                      dispatch(
-                        setSelectedFilterSectionItem(
-                          filterName,
-                          sectionName,
-                          item
-                        )
-                      );
-                      // Exits out the filter section picker modal
-                      props.setListPickerVisible(false);
-                    }}
-                  >
-                    <Text style={styles.listItemText}>{item}</Text>
-                  </TouchableHighlight>
-                </View>
-              );
-            }}
+            renderItem={renderItem}
           />
-        </SafeAreaView>
-      </View>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, backgroundColor: "black" },
-  safeAreaView: { flex: 1, backgroundColor: "white" },
+  safeAreaView: { flex: 1, backgroundColor: "black" },
+  mainContainer: { flex: 1, backgroundColor: "white" },
   headerMainContainer: {
     padding: 20,
     backgroundColor: "#224d85",

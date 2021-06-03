@@ -12,6 +12,8 @@ import { loadImages } from "./src/Services/Messages/index";
 import { NetworkProvider } from "react-native-offline";
 import { Screen } from "./screen";
 import { ScreenNames } from "./ScreenNames";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { setDeviceOrientation } from "./src/store/ui/app";
 
 export const Start = () => {
   // Redux Dispatch
@@ -25,6 +27,44 @@ export const Start = () => {
   // The main user's Expo token
   const expoToken = useSelector(getExpoToken);
 
+  /**
+   * Sets the device's screen orientation
+   */
+  useEffect(() => {
+    // Screen orientation listener
+    const orientationListener = ScreenOrientation.addOrientationChangeListener(
+      (screen) => {
+        dispatch(
+          setDeviceOrientation(
+            screen.orientationInfo.orientation ===
+              ScreenOrientation.Orientation.PORTRAIT_UP ||
+              screen.orientationInfo.orientation ===
+                ScreenOrientation.Orientation.PORTRAIT_DOWN
+              ? "portrait"
+              : "landscape"
+          )
+        );
+      }
+    );
+
+    // Set's the device's orientation
+    const getOrientation = async () => {
+      const orientation = await ScreenOrientation.getOrientationAsync();
+      dispatch(
+        setDeviceOrientation(
+          orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
+            orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
+            ? "portrait"
+            : "landscape"
+        )
+      );
+    };
+
+    getOrientation();
+
+    return () => orientationListener.remove();
+  }, []);
+
   useEffect(() => {
     /**
      * If the user is logged in and they have their Expo token,
@@ -35,15 +75,21 @@ export const Start = () => {
     }
     // If the user is logged in, all of their data is fetched
     if (authToken) {
+      // User's data is fetched
       fetchAppDataAfterLogIn(dispatch);
+      /**
+       * User's account info is saved to be used for an error that may
+       * occur since Sentry is initialized in App.js and cannot access Redux
+       */
     }
   }, [authToken]);
 
   useEffect(() => {
     /**
      * Loads all images into the state to be used in message chats
+     * if the user is authenticated
      */
-    loadImages(dispatch);
+    if (authToken) loadImages(dispatch);
   }, []);
 
   // Returns a screen based upon the current route

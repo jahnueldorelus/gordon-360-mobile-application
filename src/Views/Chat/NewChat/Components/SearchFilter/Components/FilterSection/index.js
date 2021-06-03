@@ -28,7 +28,12 @@ export const FilterSection = (props) => {
         },
       ]}
     >
-      <Icon name="clipboard" type="font-awesome-5" color="#224d85" size={20} />
+      <Icon
+        name={props.icon ? props.icon : "clipboard"}
+        type="font-awesome-5"
+        color="#224d85"
+        size={20}
+      />
       <Text style={styles.filterContentSectionTitle}>{props.sectionName}:</Text>
       {/* Deterimines the filter section will be plain text or a touchable component */}
       {props.data ? (
@@ -47,6 +52,7 @@ export const FilterSection = (props) => {
             props.setFocusedTextInput({
               selected: props.itemSelected,
               sectionName: props.sectionName,
+              sectionIcon: props.icon,
             });
           }}
         >

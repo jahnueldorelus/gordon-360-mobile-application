@@ -36,6 +36,7 @@ const Actions = (props) => (
   >
     {/***** IMAGE PICKER *****/}
     <TouchableOpacity
+      activeOpacity={0.75}
       onPress={() => {
         ImagePicker.getCameraPermissionsAsync().then(async (permission) => {
           // If the permission is granted, the user's photo library is opened
@@ -85,19 +86,6 @@ const Actions = (props) => (
         name="insert-photo"
         size={40}
         color="#028af8"
-      />
-    </TouchableOpacity>
-
-    {/***** VIDEO PICKER *****/}
-    <TouchableOpacity
-      disabled={true} /* Remove disabled when a video picker is available */
-    >
-      <Icon
-        containerStyle={styles.videoButton}
-        type="material"
-        name="movie"
-        size={40}
-        color="grey" // Change back to "#028af8" when a video picker is available
       />
     </TouchableOpacity>
   </View>

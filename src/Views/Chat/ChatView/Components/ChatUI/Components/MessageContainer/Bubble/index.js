@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { Bubble } from "react-native-gifted-chat";
+import { getNameFromUsername } from "../../../../../../../../Services/Messages/index";
 
 /**
  * Renders the text message Bubble in the MessageContainer
@@ -105,16 +106,28 @@ function nameAtTopOfGroupedUserTexts(
             prevDate.getDate() === currentDate.getDate()
           )
         ) {
-          return <Text style={textStyle}>{currentMessage.user.name}</Text>;
+          return (
+            <Text style={textStyle}>
+              {getNameFromUsername(currentMessage.user.name)}
+            </Text>
+          );
         }
       }
       // If the previousMessage is a system message, then the user of the currentMessage is shown
       else if (previousMessage && previousMessage.system) {
-        return <Text style={textStyle}>{currentMessage.user.name}</Text>;
+        return (
+          <Text style={textStyle}>
+            {getNameFromUsername(currentMessage.user.name)}
+          </Text>
+        );
       }
       // If there's no previous message (the current message is the first in the chat), the user is shown
       else if (JSON.stringify(previousMessage) === JSON.stringify({})) {
-        return <Text style={textStyle}>{currentMessage.user.name}</Text>;
+        return (
+          <Text style={textStyle}>
+            {getNameFromUsername(currentMessage.user.name)}
+          </Text>
+        );
       }
     }
   }

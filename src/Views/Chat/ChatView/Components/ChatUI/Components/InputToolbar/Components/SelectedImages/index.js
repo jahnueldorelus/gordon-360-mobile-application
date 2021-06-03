@@ -99,6 +99,7 @@ const SelectedImages = (props) => {
         if (imageStyle.width && imageStyle.height) {
           return (
             <TouchableOpacity
+              activeOpacity={0.75}
               key={index}
               onPress={() => {
                 // Saves the image to be shown

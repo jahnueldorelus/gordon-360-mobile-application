@@ -1,13 +1,14 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { getRoomName, setRoomName } from "../../../../../../store/ui/chat";
+import { getNewRoomName } from "../../../../../../store/ui/Chat/chatSelectors";
+import { setNewRoomName } from "../../../../../../store/ui/Chat/chat";
 
 export const GroupNameInput = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
   // Room name
-  const roomName = useSelector(getRoomName);
+  const roomName = useSelector(getNewRoomName);
 
   // If the amount of users selected is greater than 1 (aka a group)
   if (props.selectedUsersListLength > 1)
@@ -20,7 +21,7 @@ export const GroupNameInput = (props) => {
           value={roomName}
           selectTextOnFocus={true}
           returnKeyType="done"
-          onChangeText={(name) => dispatch(setRoomName(name.trimStart()))}
+          onChangeText={(name) => dispatch(setNewRoomName(name.trimStart()))}
           style={styles.textInput}
         />
       </View>

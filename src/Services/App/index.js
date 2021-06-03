@@ -10,7 +10,7 @@ import {
   ent_ProfileFetchAllData,
   ent_ProfileFetchAllDataAfterLogIn,
 } from "../../store/entities/profile";
-import { ui_ChatResetState } from "../../store/ui/chat";
+import { ui_ChatResetState } from "../../store/ui/Chat/chat";
 import { ui_PeopleSearchResetState } from "../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../store/ui/peopleSearchFilter";
 import { deleteSavedImages } from "../../Services/Messages/index";
@@ -20,8 +20,8 @@ import { persistor } from "../../store/configuration/configureStore";
 /**
  * Fetches all data used by the application from the server
  * @param {Function} dispatch Redux dispatch
- * @param {Function} callbackFunc A callback function that runs after
- *                                all data has been deleted
+ * @param {Function} callbackFunc A callback function that runs after the user's
+ *                                data has begun the process of retrieval
  */
 export const fetchAllAppData = (dispatch, callbackFunc) => {
   dispatch(ent_SettingsFetchAllData);
@@ -36,8 +36,8 @@ export const fetchAllAppData = (dispatch, callbackFunc) => {
  * Therefore, some data will only be fetched when the user enters the screen
  * that requires it.
  * @param {Function} dispatch Redux dispatch
- * @param {Function} callbackFunc A callback function that runs after
- *                                all data has been deleted
+ * @param {Function} callbackFunc A callback function that runs after the user's
+ *                                data has begun the process of retrieval
  */
 export const fetchAppDataAfterLogIn = (dispatch, callbackFunc) => {
   dispatch(ent_SettingsFetchAllData);
@@ -51,25 +51,29 @@ export const fetchAppDataAfterLogIn = (dispatch, callbackFunc) => {
  * Deletes all data saved in the Redux state (except for authorization)
  * and in storage.
  * @param {Function} dispatch Redux dispatch
+ * @param {boolean} saveCurrentState Determines if the state should be saved
+ *                                   after deleting data. This would allow
+ *                                   for specific states to remain saved such
+ *                                   as the user's authentication.
  * @param {Function} callbackFunc A callback function that runs after
- *                                all data has been deleted
+ *                                data has been deleted
  */
-export const resetApp = (dispatch, callbackFunc) => {
-  dispatch(ent_ChatResetState);
+export const resetApp = (dispatch, saveCurrentState, callbackFunc) => {
+  dispatch(ent_ChatResetState());
   dispatch(ent_SettingsResetState);
   dispatch(ent_ProfileResetExceptUserProfile);
   dispatch(ui_ChatResetState);
-  dispatch(ui_PeopleSearchResetState);
+  dispatch(ui_PeopleSearchResetState());
   dispatch(ui_PeopleSearchFilterResetState);
 
   // Deletes all chat images saved to the device
   deleteSavedImages();
   // Resets storage
   AsyncStorage.clear();
-  // Resets redux perist
+  // Resets redux persist
   persistor.purge();
-  // Saves the state immediately to save the user's authentication
-  persistor.flush();
+  // Saves the state to redux persist immediately
+  if (saveCurrentState) persistor.flush();
   // Calls callback function if available
   if (callbackFunc) callbackFunc();
 };
@@ -79,23 +83,23 @@ export const resetApp = (dispatch, callbackFunc) => {
  * Deletes all data saved in the Redux state and in storage.
  * @param {Function} dispatch Redux dispatch
  * @param {Function} callbackFunc A callback function that runs after
- *                                all data has been deleted
+ *                                data has been deleted
  */
 export const signOutApp = (dispatch, callbackFunc) => {
   // Resets Redux State
   dispatch(ent_AuthResetState);
-  dispatch(ent_ChatResetState);
+  dispatch(ent_ChatResetState());
   dispatch(ent_SettingsResetState);
   dispatch(ent_ProfileResetState);
   dispatch(ui_ChatResetState);
-  dispatch(ui_PeopleSearchResetState);
+  dispatch(ui_PeopleSearchResetState());
   dispatch(ui_PeopleSearchFilterResetState);
 
   // Deletes all chat images saved to the device
   deleteSavedImages();
   // Resets storage
   AsyncStorage.clear();
-  // Resets redux perist
+  // Resets redux persist
   persistor.purge();
   // Calls callback function if available
   if (callbackFunc) callbackFunc();

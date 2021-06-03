@@ -3,7 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch } from "react-redux";
-import { setRoomImage, setRoomName } from "../../../../../../store/ui/chat";
+import {
+  setNewRoomImage,
+  setNewRoomName,
+} from "../../../../../../store/ui/Chat/chat";
 
 export const Header = (props) => {
   // Redux Dispatch
@@ -19,11 +22,12 @@ export const Header = (props) => {
     >
       <View style={styles.mainContainer}>
         <TouchableOpacity
+          activeOpacity={0.75}
           onPress={() => {
             // Deletes the room image if existent
-            dispatch(setRoomImage(null));
+            dispatch(setNewRoomImage(null));
             // Deletes the room name if existent
-            dispatch(setRoomName(""));
+            dispatch(setNewRoomName(""));
             // Closes this modal
             props.setVisible(false);
           }}

@@ -34,6 +34,7 @@ export const CameraPermissionsDeviceSettings = (props) => {
             </View>
             <View style={styles.modalContainerActions}>
               <TouchableOpacity
+                activeOpacity={0.75}
                 style={[styles.modalButtonCancel, styles.modalButton]}
                 onPress={() => {
                   props.setVisible(false);
@@ -46,6 +47,7 @@ export const CameraPermissionsDeviceSettings = (props) => {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                activeOpacity={0.75}
                 style={[styles.modalButtonSettings, styles.modalButton]}
                 onPress={() => {
                   Linking.openSettings();

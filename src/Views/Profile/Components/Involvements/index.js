@@ -44,7 +44,7 @@ export const Involvements = () => {
                   }}
                   style={styles.involvInfoImage}
                 />
-                <View>
+                <View style={styles.involvInfoTextContainer}>
                   <Text style={[styles.listItemName, { textAlign: "right" }]}>
                     {involvement.ActivityTypeDescription.trim()}
                   </Text>
@@ -112,4 +112,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "white",
   },
+  involvInfoTextContainer: { alignSelf: "flex-end", flex: 1 },
 });

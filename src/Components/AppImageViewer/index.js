@@ -77,37 +77,23 @@ export const AppImageViewer = (props) => {
     >
       <View style={styles.container}>
         {/* ****************************** HEADER ******************************* */}
-        <SafeAreaView style={styles.safeAreaView}>
-          <View
-            style={{
-              backgroundColor: "#014983",
-              paddingHorizontal: "5%",
-              paddingVertical: 10,
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <TouchableOpacity onPress={() => props.setVisible(false)}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={styles.buttonContainer}>
+          <SafeAreaView style={styles.safeAreaButtonContainer}>
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => props.setVisible(false)}
+            >
+              <View style={styles.closeButton}>
                 <Icon
                   name="chevron-left"
                   type="font-awesome-5"
                   size={25}
                   color="white"
                 />
-                <Text
-                  style={{
-                    marginLeft: 10,
-                    textAlign: "center",
-                    fontSize: 20,
-                    color: "white",
-                  }}
-                >
-                  Close
-                </Text>
+                <Text style={styles.closeButtonText}>Close</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => shareImage()}>
+            <TouchableOpacity activeOpacity={0.75} onPress={() => shareImage()}>
               <Icon
                 name="share-square"
                 solid={true}
@@ -116,11 +102,11 @@ export const AppImageViewer = (props) => {
                 color="white"
               />
             </TouchableOpacity>
-          </View>
+          </SafeAreaView>
+        </View>
+        <SafeAreaView style={styles.safeAreaView}>
           {/* ****************************** IMAGE ******************************* */}
-          <View
-            style={{ flex: 1, backgroundColor: "black", overflow: "hidden" }}
-          >
+          <View style={styles.imageView}>
             <Image style={styles.image} source={{ uri: imageURI }} />
           </View>
         </SafeAreaView>
@@ -131,7 +117,29 @@ export const AppImageViewer = (props) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  safeAreaButtonContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  buttonContainer: {
+    backgroundColor: "#014983",
+    paddingHorizontal: "5%",
+    paddingVertical: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomColor: "black",
+    borderBottomWidth: 1,
+  },
+  closeButton: { flexDirection: "row", alignItems: "center" },
+  closeButtonText: {
+    marginLeft: 10,
+    textAlign: "center",
+    fontSize: 20,
+    color: "white",
+  },
   safeAreaView: { flex: 1, backgroundColor: "black" },
+  imageView: { flex: 1, backgroundColor: "black", overflow: "hidden" },
   image: { flex: 1, resizeMode: "contain" },
 });
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Animated, Easing } from "react-native";
 import PropTypes from "prop-types";
+import { Dimensions } from "react-native";
 
 export const LoadingScreen = (props) => {
   // The image scale value
@@ -9,8 +10,9 @@ export const LoadingScreen = (props) => {
   const initialLoadingTextOpacity = 0.7;
 
   // The animated scale value of the image
-  const animatedImageScale = useRef(new Animated.Value(initialImageScale))
-    .current;
+  const animatedImageScale = useRef(
+    new Animated.Value(initialImageScale)
+  ).current;
   // The animated opacity value of the loading text
   const animatedLoadingTextOpacity = useRef(
     new Animated.Value(initialLoadingTextOpacity)
@@ -92,7 +94,14 @@ const styles = StyleSheet.create({
   loadingImageText: {
     padding: 30,
     marginTop: 20,
-    fontSize: 30,
+    fontSize:
+      /**
+       * Attempts to set a font size according to the device's dimensions.
+       * The minimum font size allowed is 30
+       */
+      Dimensions.get("window").width * 0.05 > 30
+        ? Dimensions.get("window").width * 0.05
+        : 30,
     color: "#014983",
     fontWeight: "bold",
     textAlign: "center",

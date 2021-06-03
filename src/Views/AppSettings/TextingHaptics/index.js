@@ -60,7 +60,7 @@ export const TextingHaptics = (props) => {
           onValueChange={() => {
             dispatch(setHapticsForTexting(!hapticsEnabled));
             // Sets the Haptics Type for when the user is texting
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           }}
           disabled={!supportHaptics()}
           value={hapticsEnabled}
@@ -75,7 +75,8 @@ export const TextingHaptics = (props) => {
       {supportHaptics() ? (
         <Text style={props.styles.listItemText}>
           Haptics is the quick vibration you feel from your device after typing
-          or deleting a character with your keyboard.
+          or deleting a character with your keyboard. If your device doesn't
+          have vibration, haptics may not work even when enabled.
         </Text>
       ) : (
         <Text style={props.styles.listItemText}>

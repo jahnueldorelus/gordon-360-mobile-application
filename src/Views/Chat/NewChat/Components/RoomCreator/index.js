@@ -1,26 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
-  SafeAreaView,
   View,
   StyleSheet,
   Dimensions,
   Alert,
+  ScrollView,
 } from "react-native";
 import {
   getNewRoomImage,
   getNewRoomName,
 } from "../../../../../store/ui/Chat/chatSelectors";
-import {
-  setNewRoomImage,
-  setNewRoomName,
-  setRoomID,
-} from "../../../../../store/ui/Chat/chat";
-import {
-  ui_PeopleSearchResetState,
-  getSearchResultImages,
-} from "../../../../../store/ui/peopleSearch";
-import { ui_PeopleSearchFilterResetState } from "../../../../../store/ui/peopleSearchFilter";
+import { setRoomID } from "../../../../../store/ui/Chat/chat";
+import { getSearchResultImages } from "../../../../../store/ui/peopleSearch";
 import {
   createNewRoom,
   resetNewRoomCreated,
@@ -36,7 +28,6 @@ import { useDispatch, useSelector } from "react-redux";
 import ChatUI from "../../../ChatView/Components/ChatUI/index";
 import { getUserInfo } from "../../../../../store/entities/profile";
 import { RoomImagePicker } from "./RoomImagePicker/index";
-import { useNavigation } from "@react-navigation/native";
 import { Header } from "./Header/index.js";
 import { GroupNameInput } from "./GroupNameInput/index";
 import { CameraPermissionsDeviceSettings } from "../../../../../Components/CameraPermissionsDeviceSettings/index";
@@ -45,13 +36,15 @@ import { getNewMessageID } from "../../../../../Services/Messages/index";
 import * as FileSystem from "expo-file-system";
 import { AppImageViewer } from "../../../../../Components/AppImageViewer/";
 import moment from "moment";
-import { getDeviceOrientation } from "../../../../../store/ui/app";
+import {
+  getDeviceOrientation,
+  getKeyboardHeight,
+} from "../../../../../store/ui/app";
+import { getBottomSpace } from "react-native-iphone-x-helper";
 
 export const RoomCreator = (props) => {
   // Redux Dispatch
   const dispatch = useDispatch();
-  // React Native Navigation
-  const navigation = useNavigation();
   // The current text inside the input toolbar
   const [messageText, setMessageText] = useState(null);
   // A reference to the current text inside the input toolbar
@@ -60,10 +53,16 @@ export const RoomCreator = (props) => {
   const roomName = useSelector(getNewRoomName);
   // The room's image
   const roomImage = useSelector(getNewRoomImage);
-  // Image to show in the image viewer
-  const [imageToView, setImageToView] = useState(roomImage);
   // The list of images the user has selected
-  const [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
+  const [selectedImages, setSelectedImages] = useState([]);
+  /**
+   * The height difference between the start of the device's screen
+   * and the top of the modal. This is for iOS devices where the modal
+   * doesn't cover the entire screen
+   */
+  const [extraModalHeight, setExtraModalHeight] = useState(0);
+  // The height of the modal's content apart from GiftedChat
+  const [contentHeight, setContentHeight] = useState(0);
   // Determines if a new room was created
   const newRoomCreated = useSelector(getNewRoomCreated);
   // The ID of the new room created
@@ -74,6 +73,8 @@ export const RoomCreator = (props) => {
   const searchResultImages = useSelector(getSearchResultImages);
   // The device's orientation
   const screenOrientation = useSelector(getDeviceOrientation);
+  // The keyboard's height
+  const keyboardHeight = useSelector(getKeyboardHeight);
 
   // Determines if modal show displays asking the user to enable camera permissions in settings
   const [showCamPermissSettings, setShowCamPermissSettings] = useState(false);
@@ -108,28 +109,12 @@ export const RoomCreator = (props) => {
       dispatch(setRoomID(newRoomCreatedID));
       // Sends the message to the server
       sendMessageToServer(previousMessage.current);
-      // Delets the previous message
+      // Deletes the previous message
       previousMessage.current = null;
-      // Deletes the user selected room image
-      dispatch(setNewRoomImage(null));
-      // Deletes the user selected room name
-      dispatch(setNewRoomName(""));
       // Sets the value of new chat being created back to false
       dispatch(resetNewRoomCreated());
-      // Exists out the new chat modal
-      props.data.setNewChatModalVisible(false);
-      // Deletes the last searched text
-      props.data.setLastSearchedText(null);
-      // Deletes selected users
-      props.data.setSelectedUsers({});
-      // Deletes people search results
-      dispatch(ui_PeopleSearchResetState());
-      // Deletes people search filters
-      dispatch(ui_PeopleSearchFilterResetState);
-      // Closes the modal to display the chat of the new room
-      props.data.setVisible(false);
-      // Navigates to the chat screen
-      navigation.navigate("Chat");
+      // Exists out all create new chat modals and navigates to the chat screen
+      props.data.exitModalAndGoToChat();
     }
     // Creating a new room failed
     else if (createRoomLoadingRef.current && !newRoomCreated) {
@@ -144,23 +129,29 @@ export const RoomCreator = (props) => {
   }, [newRoomCreated, createRoomLoading]);
 
   useEffect(() => {
-    // If there are no selected users, the modal is exited
-    if (props.data.selectedUsersList.length === 0) props.data.setVisible(false);
-  }, [props.data.selectedUsersList]);
+    // If the modal is visible
+    if (props.data.visible) {
+      // If there are no selected users, the modal is exited
+      if (props.data.selectedUsersList.length === 0)
+        props.data.setVisible(false);
 
-  /**
-   * If an image is set to be shown, the image viewer will open. Otherwise,
-   * the image viewer will be closed (if opened) and the image to be shown
-   * will be reset
-   */
-  useEffect(() => {
-    if (imageToView) {
-      setShowImageViewer(true);
-    } else {
-      setShowImageViewer(false);
-      setImageToView(null);
+      /**
+       * If the duplicated room ID exists, then an alert is shown
+       * to the user showing that a duplicate room exists
+       */
+      if (props.data.chatExists()) {
+        Alert.alert("Existent Chat", props.data.duplicateChatMessage(false), [
+          {
+            text: "Go Back",
+            onPress: () => {
+              // Exists out the modal
+              props.data.setVisible(false);
+            },
+          },
+        ]);
+      }
     }
-  }, [imageToView]);
+  }, [props.data.selectedUsersList]);
 
   /**
    * Sends the message to the server
@@ -174,7 +165,7 @@ export const RoomCreator = (props) => {
     let messageDate = moment(newRoomCreatedLastUpdated);
 
     // Gets the images associated with the room
-    const parsedImages = JSON.parse(selectedImages).map(async (image) => {
+    const parsedImages = selectedImages.map(async (image) => {
       // Creates a new date for the message based upon index to seperate each image by time
       messageDate.add(1, "milliseconds");
 
@@ -254,7 +245,7 @@ export const RoomCreator = (props) => {
    */
   const createRoom = async (messageObj) => {
     // Reformats the message object for the back-end to parse correctly
-    const message = parseChatObject(messageObj[0]);
+    const message = parseChatObject(messageObj);
 
     // Saves the message's text to a reference since GiftedChat automatically erases it
     previousMessage.current = message;
@@ -301,24 +292,52 @@ export const RoomCreator = (props) => {
       onRequestClose={() => props.data.setVisible(false)}
       onDismiss={() => props.data.setVisible(false)}
     >
-      <SafeAreaView style={styles.mainContainerSafeArea}>
-        <View style={styles.mainContainerView}>
-          {!createRoomLoading ? (
-            // If a room is not in the process of being created
+      <View
+        onLayout={(e) => {
+          setExtraModalHeight(
+            Dimensions.get("window").height - e.nativeEvent.layout.height
+          );
+        }}
+        style={styles.mainContainerView}
+      >
+        {!createRoomLoading ? (
+          // If a room is not in the process of being created
+          <View
+            style={[
+              styles.roomCreationView,
+              {
+                // Determines if the view should appear in portrait or landscape mode
+                flexDirection:
+                  screenOrientation === "landscape" ? "row" : "column",
+              },
+            ]}
+          >
             <View
+              onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
               style={[
-                styles.roomCreationView,
+                styles.roomCreationViewInfo,
                 {
-                  // Determines if the view should appear in portrait or landscape mode
-                  flexDirection:
-                    screenOrientation === "landscape" ? "row" : "column",
+                  // Sets the maximum width in landscape mode to half of the screen
+                  maxWidth:
+                    screenOrientation === "landscape"
+                      ? Dimensions.get("window").width / 2
+                      : Dimensions.get("window").width,
+                  // Sets the maximum height of the view
+                  maxHeight:
+                    screenOrientation === "landscape" && keyboardHeight > 0
+                      ? // If in landscape mode and the keyboard is visible
+                        Dimensions.get("window").height -
+                        keyboardHeight +
+                        getBottomSpace()
+                      : // If the keyboard isn't visible and is in landscape or portrait mode
+                        "auto",
                 },
               ]}
             >
-              <View style={styles.roomCreationViewInfo}>
-                {/* Header */}
-                <Header setVisible={props.data.setVisible} />
+              {/* Header */}
+              <Header setVisible={props.data.setVisible} />
 
+              <ScrollView keyboardShouldPersistTaps="always">
                 {/* Group Name Input */}
                 <GroupNameInput
                   selectedUsersListLength={props.data.selectedUsersList.length}
@@ -329,42 +348,50 @@ export const RoomCreator = (props) => {
                   setShowCamPermissSettings={setShowCamPermissSettings}
                   selectedUsersListLength={props.data.selectedUsersList.length}
                   setVisible={props.data.setVisible}
+                  setShowImageViewer={setShowImageViewer}
                 />
 
                 {/* Selected Users */}
                 {props.data.selectedUsers}
-              </View>
-
-              {/* GiftedChat */}
-              <ChatUI
-                onSend={createRoom}
-                messages={[]}
-                selectedRoom={{}}
-                text={messageText}
-                setText={setMessageText}
-                selectedImages={selectedImages}
-                setSelectedImages={setSelectedImages}
-              />
+              </ScrollView>
             </View>
-          ) : (
-            // If a room is in the process of being created, a loading screen is shown
-            <LoadingScreen loadingText="Creating New Chat" />
-          )}
 
-          {/* Camera Permissions */}
-          <CameraPermissionsDeviceSettings
-            visible={showCamPermissSettings}
-            setVisible={setShowCamPermissSettings}
-          />
+            {/* GiftedChat */}
+            <ChatUI
+              onSend={createRoom}
+              messages={[]}
+              selectedRoom={{}}
+              text={messageText}
+              setText={setMessageText}
+              selectedImages={selectedImages}
+              setSelectedImages={setSelectedImages}
+              appbarHeight={
+                screenOrientation === "landscape"
+                  ? 0
+                  : contentHeight + extraModalHeight
+              }
+              fullMaxHeight={true}
+              addToolbarBottomPadding={true}
+            />
+          </View>
+        ) : (
+          // If a room is in the process of being created, a loading screen is shown
+          <LoadingScreen loadingText="Creating New Chat" />
+        )}
 
-          {/* Image Viewer */}
-          <AppImageViewer
-            image={imageToView}
-            visible={showImageViewer}
-            setVisible={setShowImageViewer}
-          />
-        </View>
-      </SafeAreaView>
+        {/* Camera Permissions */}
+        <CameraPermissionsDeviceSettings
+          visible={showCamPermissSettings}
+          setVisible={setShowCamPermissSettings}
+        />
+
+        {/* Image Viewer */}
+        <AppImageViewer
+          image={roomImage}
+          visible={showImageViewer}
+          setVisible={setShowImageViewer}
+        />
+      </View>
     </Modal>
   );
 };
@@ -381,7 +408,6 @@ const styles = StyleSheet.create({
   },
   roomCreationView: { flex: 1, backgroundColor: "white" },
   roomCreationViewInfo: {
-    flex: 1,
     borderRightColor: "black",
     borderRightWidth: 1,
   },

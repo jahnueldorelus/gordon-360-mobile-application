@@ -11,6 +11,8 @@ const slice = createSlice({
     shouldNavigateToChat: false,
     chatImages: {},
     shouldLoadFullChat: false,
+    textInputContentSize: null,
+    initialInputContentHeight: null,
   },
   reducers: {
     /**
@@ -52,6 +54,18 @@ const slice = createSlice({
     },
 
     /**
+     * TEXT INPUT REDUCER
+     */
+    // Sets the text input's content size
+    setTextInputContentSize: (state, action) => {
+      state.textInputContentSize = action.payload;
+    },
+    // Resets all the state's data
+    setInitialTextInputContentHeight: (state, action) => {
+      state.initialInputContentHeight = action.payload;
+    },
+
+    /**
      * STATE RESET REDUCER
      */
     // Resets all the state's data
@@ -63,6 +77,8 @@ const slice = createSlice({
       state.shouldNavigateToChat = false;
       state.chatImages = {};
       state.shouldLoadFullChat = true;
+      state.textInputContentSize = null;
+      state.initialInputContentHeight = null;
     },
   },
 });
@@ -71,6 +87,20 @@ const slice = createSlice({
 export default slice.reducer;
 
 /*********************************** ACTION CREATORS ***********************************/
+/**
+ * Sets the text input content size
+ */
+export const setTextInputContentSize = createAction(
+  slice.actions.setTextInputContentSize.type
+);
+
+/**
+ * Sets the initial text input content height
+ */
+export const setInitialInputContentHeight = createAction(
+  slice.actions.setInitialTextInputContentHeight.type
+);
+
 /**
  * Sets the user selected room ID
  */

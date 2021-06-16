@@ -65,7 +65,7 @@ export const TextingHaptics = (props) => {
           disabled={!supportHaptics()}
           value={hapticsEnabled}
           trackColor={getTrackColor()}
-          thumbColor={hapticsEnabled ? "#0275f8" : "white"}
+          thumbColor={hapticsEnabled ? "#014983" : "white"}
           ios_backgroundColor={getTrackColor(true)}
         />
       </View>

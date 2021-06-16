@@ -20,6 +20,7 @@ import { Start } from "./start";
 import { ErrorBoundary } from "react-error-boundary";
 import { setJSExceptionHandler } from "react-native-exception-handler";
 import * as Sentry from "sentry-expo";
+import { resetUI } from "./src/Services/App";
 
 export default function App() {
   /**
@@ -108,6 +109,11 @@ export default function App() {
       <ScrollView
         style={styles.errorScrollView}
         contentContainerStyle={styles.errorScrollViewContentContainer}
+        /**
+         * Scroll indicator prevents glitch with scrollbar appearing
+         * in the middle of the screen
+         */
+        scrollIndicatorInsets={{ right: 1 }}
       >
         <View style={styles.errorScrollViewContainer}>
           <Icon
@@ -124,7 +130,12 @@ export default function App() {
           </Text>
           <TouchableOpacity
             activeOpacity={0.75}
-            onPress={resetErrorBoundary}
+            onPress={() => {
+              // Resets the UI state
+              resetUI(store.dispatch);
+              // Restarts the app
+              resetErrorBoundary();
+            }}
             style={styles.errorButton}
           >
             <Text style={styles.errorButtonText}>Restart App</Text>

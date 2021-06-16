@@ -1,24 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
-import { TextInput, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Platform, TextInput, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
 import { getUseHapticsForTexting } from "../../../../../../../../../store/entities/Settings/settingsSelectors";
-import { useSelector } from "react-redux";
-import { Dimensions } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { setTextInputContentSize } from "../../../../../../../../../store/ui/Chat/chat";
+import { getTextInputContentSize } from "../../../../../../../../../store/ui/Chat/chatSelectors";
 
 /**
- * Renders the composer (aka textfield) in the InputToolbar. Also handles,
- * the size of the InputToolbar, by getting GiftedChat to re-render the UI.
- *  See documentation bug warning, "GiftedChat_InputToolbar_Rerender"
+ * Renders the composer (aka textfield) in the InputToolbar
  * @param {JSON} props Props passed from parent
  */
-export const renderComposer = (props) => {
-  return <Composer {...props} />;
-};
-
-const Composer = (props) => {
+export const Composer = (props) => {
+  // Redux Dispatch
+  const dispatch = useDispatch();
   // The content size of the textfield in the InputToolbar
-  const [inputSize, setInputSize] = useState(null);
+  const inputSize = useSelector(getTextInputContentSize);
   /**
    * Used to determine if GiftedChat has already re-rendered itself to
    * create spacing for images and videos in the InputToolbar
@@ -28,25 +24,6 @@ const Composer = (props) => {
   const actionsVisible = useRef(props.ActionHandler.showActions);
   // Determines if haptics are enabled
   const hapticsEnabled = useSelector(getUseHapticsForTexting);
-  /**
-   * The maximum content size for the text input. This allows for the
-   * text input to always remain on the screen without it overflowing
-   * off the screen when there's a lot of text
-   */
-  const maxContentSize =
-    // The device's height
-    Dimensions.get("window").height -
-    // The Appbar's height
-    props.headerHeight -
-    // The keyboard's height
-    200 -
-    /**
-     * The vertical padding of the input toolbar. This is related to
-     * the bug located in documentation called "Text_Input". A little more
-     * than the original padding is subtracted in order to have a better
-     * visual of the top of the text input component
-     */
-    33;
 
   /**
    * Properly displays any selected images and videos in the InputToolbar.
@@ -54,7 +31,7 @@ const Composer = (props) => {
    */
   useEffect(() => {
     // The list of user selected image(s)
-    let images = JSON.parse(props.ImageHandler.selectedImages);
+    let images = props.ImageHandler.selectedImages;
 
     /**
      * If there are selected images and the proper measurements by GiftedChat has not
@@ -68,7 +45,7 @@ const Composer = (props) => {
       inputSize
     ) {
       giftedChatInputHeightSet.current = true;
-      props.onInputSizeChanged(inputSize); // Doesn't change anything but causes GiftedChat to re-render
+      dispatch(setTextInputContentSize(inputSize));
     } else if (
       images &&
       images.length === 0 &&
@@ -80,52 +57,60 @@ const Composer = (props) => {
        * images
        */
       giftedChatInputHeightSet.current = false;
-      props.onInputSizeChanged(inputSize); // Doesn't change anything but causes GiftedChat to re-render
+      dispatch(setTextInputContentSize(inputSize));
     }
 
     // If the visibility of the action buttons change
     if (actionsVisible.current !== props.ActionHandler.showActions) {
       actionsVisible.current = props.ActionHandler.showActions;
-      props.onInputSizeChanged(inputSize); // Doesn't change anything but causes GiftedChat to re-render
+      dispatch(setTextInputContentSize(inputSize));
     }
   }, [props.ImageHandler.selectedImages, props.ActionHandler.showActions]);
 
   return (
     <TextInput
-      testID={props.placeholder}
       accessible
-      accessibilityLabel={props.placeholder}
-      placeholder={props.placeholder}
-      placeholderTextColor={props.placeholderTextColor}
+      placeholder={"Type a message..."}
       multiline
-      editable={!props.disableComposer}
-      onContentSizeChange={(e) => {
-        const { contentSize } = e.nativeEvent;
-        contentSize.height = Math.ceil(contentSize.height);
-        contentSize.width = Math.ceil(contentSize.width);
+      value={props.text}
+      onFocus={() => {
         /**
-         * Sets the input size of the text input so that it may be used
-         * in the useEffect() above and for GiftedChat to re-render
-         * and correctly measure the height of the InputToolBar.
+         * Once the text input is focused, the parent scrollview is
+         * scrolled to the end to show the focused text input
          */
-        contentSize.height =
-          contentSize.height > maxContentSize
-            ? maxContentSize
-            : contentSize.height;
-        setInputSize(contentSize);
-        props.onInputSizeChanged(contentSize);
+        props.composerScrollRef.current.scrollToEnd();
+        // Scrolls to the bottom of the user's messages
+        props.giftedChatRef.current.scrollToBottom();
+      }}
+      onContentSizeChange={(e) => {
+        const { height, width } = e.nativeEvent.contentSize;
+        // The new content size
+        const newContentSize = {
+          height: Math.ceil(height),
+          width: Math.ceil(width),
+        };
+
+        // Saves the content size to redux's state
+        dispatch(setTextInputContentSize(newContentSize));
       }}
       onChangeText={(text) => {
         props.onTextChanged(text);
         // Does Haptic feedback if enabled
         if (hapticsEnabled) Haptics.impactAsync();
+        /**
+         * Once the text input changes, the parent scrollview is
+         * scrolled to the end to show the focused text input
+         */
+        props.composerScrollRef.current.scrollToEnd({ animate: true });
       }}
-      style={styles.input}
-      autoFocus={props.textInputAutoFocus}
+      style={[
+        styles.input,
+        // Sets the maximum height of the composer
+        { maxHeight: props.inputToolbarMaxHeight - 22 },
+      ]}
       enablesReturnKeyAutomatically
       underlineColorAndroid="transparent"
-      keyboardAppearance={props.keyboardAppearance}
-      {...props.textInputProps}
+      keyboardAppearance="default"
     />
   );
 };
@@ -137,8 +122,6 @@ const styles = StyleSheet.create({
      * default font-size
      */
     fontSize: Platform.OS === "android" ? 16 : 17,
-    // Padding top is removed. See documentation bug, "iOS_Text_Input"
-    paddingTop: 0,
     justifyContent: "flex-end",
   },
 });

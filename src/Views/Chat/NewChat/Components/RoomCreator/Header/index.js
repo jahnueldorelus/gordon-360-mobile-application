@@ -1,15 +1,18 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  StyleSheet,
+} from "react-native";
 import { Icon } from "react-native-elements";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch } from "react-redux";
-import {
-  setNewRoomImage,
-  setNewRoomName,
-} from "../../../../../../store/ui/Chat/chat";
+import { setKeyboardHeight } from "../../../../../../store/ui/app";
 
 export const Header = (props) => {
-  // Redux Dispatch
+  // Redux dispatch
   const dispatch = useDispatch();
 
   return (
@@ -20,31 +23,34 @@ export const Header = (props) => {
       end={{ x: 1, y: 0 }}
       style={styles.gradient}
     >
-      <View style={styles.mainContainer}>
-        <TouchableOpacity
-          activeOpacity={0.75}
-          onPress={() => {
-            // Deletes the room image if existent
-            dispatch(setNewRoomImage(null));
-            // Deletes the room name if existent
-            dispatch(setNewRoomName(""));
-            // Closes this modal
-            props.setVisible(false);
-          }}
-          style={styles.button}
-        >
-          <View style={styles.buttonContainer}>
-            <Icon
-              name={"chevron-left"}
-              type="font-awesome-5"
-              color="white"
-              size={22}
-              containerStyle={styles.buttonIcon}
-            />
-            <Text style={styles.buttonText}>People Search</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView>
+        <View style={styles.mainContainer}>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => {
+              /**
+               * Sets the keyboard height to 0 as it's dismissed
+               * when the modal closes
+               */
+              dispatch(setKeyboardHeight(0));
+              // Closes this modal
+              props.setVisible(false);
+            }}
+            style={styles.button}
+          >
+            <View style={styles.buttonContainer}>
+              <Icon
+                name={"chevron-left"}
+                type="font-awesome-5"
+                color="white"
+                size={22}
+                containerStyle={styles.buttonIcon}
+              />
+              <Text style={styles.buttonText}>People Search</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </LinearGradient>
   );
 };

@@ -13,6 +13,7 @@ import {
 import { ui_ChatResetState } from "../../store/ui/Chat/chat";
 import { ui_PeopleSearchResetState } from "../../store/ui/peopleSearch";
 import { ui_PeopleSearchFilterResetState } from "../../store/ui/peopleSearchFilter";
+import { ui_AppResetState } from "../../store/ui/app";
 import { deleteSavedImages } from "../../Services/Messages/index";
 import AsyncStorage from "@react-native-community/async-storage";
 import { persistor } from "../../store/configuration/configureStore";
@@ -64,7 +65,8 @@ export const resetApp = (dispatch, saveCurrentState, callbackFunc) => {
   dispatch(ent_ProfileResetExceptUserProfile);
   dispatch(ui_ChatResetState);
   dispatch(ui_PeopleSearchResetState());
-  dispatch(ui_PeopleSearchFilterResetState);
+  dispatch(ui_PeopleSearchFilterResetState());
+  dispatch(ui_AppResetState);
 
   // Deletes all chat images saved to the device
   deleteSavedImages();
@@ -74,6 +76,21 @@ export const resetApp = (dispatch, saveCurrentState, callbackFunc) => {
   persistor.purge();
   // Saves the state to redux persist immediately
   if (saveCurrentState) persistor.flush();
+  // Calls callback function if available
+  if (callbackFunc) callbackFunc();
+};
+
+/**
+ * Resets all UI data.
+ * @param {Function} dispatch Redux dispatch
+ * @param {Function} callbackFunc A callback function that runs after
+ *                                data has been deleted
+ */
+export const resetUI = (dispatch, callbackFunc) => {
+  dispatch(ui_ChatResetState);
+  dispatch(ui_PeopleSearchResetState());
+  dispatch(ui_PeopleSearchFilterResetState());
+  dispatch(ui_AppResetState);
   // Calls callback function if available
   if (callbackFunc) callbackFunc();
 };
@@ -93,7 +110,8 @@ export const signOutApp = (dispatch, callbackFunc) => {
   dispatch(ent_ProfileResetState);
   dispatch(ui_ChatResetState);
   dispatch(ui_PeopleSearchResetState());
-  dispatch(ui_PeopleSearchFilterResetState);
+  dispatch(ui_PeopleSearchFilterResetState());
+  dispatch(ui_AppResetState);
 
   // Deletes all chat images saved to the device
   deleteSavedImages();

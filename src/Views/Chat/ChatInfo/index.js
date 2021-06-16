@@ -152,7 +152,13 @@ export const ChatInfo = (props) => {
               </TouchableOpacity>
             </SafeAreaView>
           </View>
-          <ScrollView>
+          <ScrollView
+          /**
+           * Scroll indicator prevents glitch with scrollbar appearing
+           * in the middle of the screen
+           */
+            scrollIndicatorInsets={{ right: 1 }}
+          >
             {/* USERS */}
             <View style={styles.usersContainer}>
               <SafeAreaView>

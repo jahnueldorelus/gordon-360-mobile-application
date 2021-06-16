@@ -4,33 +4,16 @@ import * as ImagePicker from "expo-image-picker";
 import { Icon } from "react-native-elements";
 
 /**
- * Returns the action buttons and passes in different handlers as props
- * @param {object} props The original props that GiftedChat created
- * @param {object} ImageHandler An Image handler that handles the user selected images
- * @param {object} CameraPermissionsHandler Modal handler that handles the visibility
- *                                    of the camera permissions
- */
-export function renderActions(props, ImageHandler, CameraPermissionsHandler) {
-  return (
-    <Actions
-      ImageHandler={ImageHandler}
-      CameraPermissionsHandler={CameraPermissionsHandler}
-    />
-  );
-}
-
-/**
  * Renders the Action buttons in the InputToolbar
  * @param {JSON} props Props passed from parent
  */
-const Actions = (props) => (
+export const Actions = (props) => (
   <View
     style={[
       styles.container,
       {
         marginBottom: 8,
-        marginTop:
-          JSON.parse(props.ImageHandler.selectedImages).length > 0 ? 8 : -3,
+        marginTop: props.ImageHandler.selectedImages.length > 0 ? 8 : -3,
       },
     ]}
   >
@@ -48,21 +31,12 @@ const Actions = (props) => (
             });
             // If an image is selected
             if (!image.cancelled) {
-              let newSelectedImages = JSON.parse(
-                props.ImageHandler.selectedImages
-              );
-              // Saves the image converted to base64
-              // newSelectedImages.push(`data:image/gif;base64,${image.base64}`);
-
-              // Saves the image's local path
+              // Creates a copy of the original list of selected images
+              let newSelectedImages = [...props.ImageHandler.selectedImages];
+              // Saves the image's local path to the new list of selected images
               newSelectedImages.push(image.uri);
-              /**
-               * The images are set in a JSON object in order for useEffect() in
-               * components to recognize the list of images have changed
-               */
-              props.ImageHandler.setSelectedImages(
-                JSON.stringify(newSelectedImages)
-              );
+              // Saves the new list of selected images
+              props.ImageHandler.setSelectedImages(newSelectedImages);
             }
           }
           // If permission is denied

@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  StyleSheet,
-  RefreshControl,
-  ScrollView,
-} from "react-native";
+import { View, StyleSheet, RefreshControl, ScrollView } from "react-native";
 import { ProfileInfo } from "./Components/ProfileInfo";
 import { AccountInfo } from "./Components/AccountInfo";
 import { Involvements } from "./Components/Involvements";
@@ -110,6 +104,11 @@ export const Profile = () => {
 
   return (
     <ScrollView
+      /**
+       * Scroll indicator prevents glitch with scrollbar appearing
+       * in the middle of the screen
+       */
+      scrollIndicatorInsets={{ right: 1 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
@@ -121,7 +120,7 @@ export const Profile = () => {
       }
       style={styles.mainContaner}
     >
-      <SafeAreaView
+      <View
         style={[
           styles.mainContaner,
           {
@@ -144,7 +143,7 @@ export const Profile = () => {
         <View style={styles.infoContainerBottom}>
           <Involvements />
         </View>
-      </SafeAreaView>
+      </View>
     </ScrollView>
   );
 };

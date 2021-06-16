@@ -8,6 +8,7 @@ import { Profile } from "./src/Views/Profile";
 import { Gordon360 } from "./src/Views/Gordon360";
 import { ChatView } from "./src/Views/Chat/ChatView";
 import { RoomsList } from "./src/Views/Rooms";
+import { About } from "./src/Views/About";
 import {
   registerForPushNotificationsAsync,
   notificationResponseHandler,
@@ -191,6 +192,16 @@ export const Screen = (props) => {
   };
 
   // Login Screen
+  const AboutPage = () => {
+    return (
+      <View style={styles.screenView}>
+        <AppBar />
+        <About />
+      </View>
+    );
+  };
+
+  // Login Screen
   const LoginPage = () => {
     return (
       <View style={styles.screenView}>
@@ -204,6 +215,7 @@ export const Screen = (props) => {
   else if (props.screenName === ScreenNames.messages) return Messages(props);
   else if (props.screenName === ScreenNames.profile) return ProfilePage();
   else if (props.screenName === ScreenNames.settings) return Settings();
+  else if (props.screenName === ScreenNames.about) return AboutPage();
   else if (props.screenName === ScreenNames.login) return LoginPage();
 };
 

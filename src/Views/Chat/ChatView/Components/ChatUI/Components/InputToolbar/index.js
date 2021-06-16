@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,12 +6,27 @@ import {
   TouchableOpacity,
   ScrollView,
   Keyboard,
-  Animated,
+  SafeAreaView,
 } from "react-native";
+import { Composer } from "./Components/Composer";
+import { ComposerSend } from "./Components/ComposerSend";
+import { Actions } from "./Components/Actions";
 import SelectedImages from "./Components/SelectedImages";
 import { Icon } from "react-native-elements";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { Dimensions } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getTextInputContentSize,
+  getInitialInputContentHeight,
+} from "../../../../../../../store/ui/Chat/chatSelectors";
+import { setInitialInputContentHeight } from "../../../../../../../store/ui/Chat/chat";
+import {
+  getDeviceOrientation,
+  getKeyboardHeight,
+  setKeyboardHeight,
+  getAppbarHeight,
+} from "../../../../../../../store/ui/app";
 
 /**
  * Returns the input toolbar and passes in different handlers as props
@@ -19,12 +34,14 @@ import { Dimensions } from "react-native";
  * @param {object} ImageHandler An Image handler that handles the user selected images
  * @param {object} ImageToViewHandler Image viewer handler that handles what image should display
  * @param {object} ActionHandler Handles the visibility of the action buttons in the input toolbar
+ * @param {object} CameraPermissionsHandler Modal handler that handles the visibility of the camera permissions
  */
 export const renderInputToolbar = (
   props,
   ImageHandler,
   ImageToViewHandler,
-  ActionHandler
+  ActionHandler,
+  CameraPermissionsHandler
 ) => {
   /**
    * The name of the props here is what the Composer component uses
@@ -38,229 +55,297 @@ export const renderInputToolbar = (
       ImageHandler={ImageHandler}
       ImageToViewHandler={ImageToViewHandler}
       ActionHandler={ActionHandler}
+      CameraPermissionsHandler={CameraPermissionsHandler}
     />
   );
 };
 
-/**
- * This component is a class instead of a functional hook. Please
- * refer to documentation bug, "InputToolbar_Class" for more info.
- */
-class InputToolbar extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      // Determines if the actions should display
-      showActions: false,
-      // The keyboard's height
-      keyboardHeight: 0,
-      /**
-       * Only used to re-render the component. The value
-       * assigned doesn't change anything in this component
-       */
-      scrollToEnd: true,
-      // Determines if the scroll view should scrolling
-      allowInputScrolling: false,
-    };
-    this.renderActions = this.renderActions.bind(this);
-    this.renderComposer = this.renderComposer.bind(this);
-    this.renderSend = this.renderSend.bind(this);
-    this.renderImages = this.renderImages.bind(this);
-    this.keyboardWillHide = this.keyboardWillHide.bind(this);
-    this.keyboardWillShow = this.keyboardWillShow.bind(this);
-    this.inputToolbarMaxHeight = this.inputToolbarMaxHeight.bind(this);
-    // Reference to the device's keyboard's height
-    this.keyboardHeightRef = new Animated.Value(0);
-    // Reference to the input toolbar's scrollview
-    this.scrollRef = React.createRef();
-  }
+const InputToolbar = (props) => {
+  // Redux dispatch
+  const dispatch = useDispatch();
+  // Text input content size
+  const inputContentSize = useSelector(getTextInputContentSize);
+  // Text input initial size
+  const initialInputContentHeight = useSelector(getInitialInputContentHeight);
+  // The height of the input toolbar
+  const [inputToolbarHeight, setinputToolbarHeight] = useState(66);
+  // The maximum height of the input toolbar
+  const [inputToolbarMaxHeight, setInputToolbarMaxHeight] = useState(0);
+  // The keyboard's height
+  const keyboardHeight = useSelector(getKeyboardHeight);
+  // Reference to the input toolbar's scrollview
+  const scrollRef = useRef(null);
+  // The device's orientation
+  const screenOrientation = useSelector(getDeviceOrientation);
+  // The appbar's height
+  let appbarHeight = useSelector(getAppbarHeight);
+  /**
+   * Replaces the appbar height from the state with height received from
+   * props if available
+   */
+  if (typeof props.appbarHeight === "number") appbarHeight = props.appbarHeight;
+  // The spacing height of the user's selected images
+  const selectedImagesHeight = 161;
 
-  // Creates the action buttons in the InputToolbar
-  renderActions = () => {
-    return this.props.renderActions(this.props);
-  };
+  /**
+   * Sets the maximum input toolbar height
+   */
+  useEffect(() => {
+    // The maximum space available for the input toolbar
+    const spaceAvailable =
+      Dimensions.get("window").height -
+      appbarHeight -
+      keyboardHeight +
+      getBottomSpace();
 
-  // Creates the message send button in the InputToolbar
-  renderSend = () => {
-    return this.props.renderSend(this.props);
-  };
-
-  // Creates the textfield in the InputToolbar
-  renderComposer = () => {
-    return this.props.renderComposer(this.props);
-  };
-
-  // Creates the user selected images in the InputToolbar
-  renderImages = () => {
-    return (
-      <SelectedImages
-        ImageHandler={this.props.ImageHandler}
-        ImageToViewHandler={this.props.ImageToViewHandler}
-        showActions={this.props.ActionHandler.showActions}
-      />
-    );
-  };
-
-  // When the component mounts
-  componentDidMount() {
-    // Sets keyboard listeners for gifted chat's text input
-    Keyboard.addListener("keyboardWillShow", this.keyboardWillShow);
-    Keyboard.addListener("keyboardWillHide", this.keyboardWillHide);
-  }
-
-  // When the component will unmount
-  componentWillUnmount() {
-    // Removes keyboard listeners for gifted chat's text input
-    Keyboard.removeListener("keyboardWillShow", this.keyboardWillShow);
-    Keyboard.removeListener("keyboardWillHide", this.keyboardWillHide);
-  }
-
-  // When the component updates
-  componentDidUpdate(prevProps) {
-    this.scrollRef.current.scrollToEnd({ animated: true });
+    // Half the height of the device (depends on device orientation)
+    const halfOfDeviceHeight = Dimensions.get("window").height / 2;
 
     /**
-     * If the input toolbar height changed due to the text input changing,
-     * the scrollview is scrolled to it's end to always show the user's text input
+     * Calculates the maximum input height. If the keyboard is visible,
+     * the maximum input toolbar height is the space available for the input
+     * toolbar. Otherwise, the input toolbar can only have a maximum height of
+     * half of the device's height (allow the user to see their messages).
+     * However, if the input toolbar is allowed to take the full space available,
+     * it will instead of half of the device's height in order to
      */
-    // if (prevProps.text !== this.props.text) {
-    //   // Checks that the reference to the scrollview exists
-    //   if (this.scrollRef.current) {
-    //     // Scrolls to the end of the scrollview
-    //     this.scrollRef.current.scrollToEnd({ animated: true });
-    //     // Sets the state in order to have the component re-render
-    //     // this.setState({ scrollToEnd: !this.state.scrollToEnd });
-    //   }
-    // }
-  }
+    const maxInputHeight =
+      keyboardHeight > 0 || props.fullMaxHeight
+        ? spaceAvailable
+        : halfOfDeviceHeight;
+
+    // Sets the new input toolbar's maximum height
+    setInputToolbarMaxHeight(maxInputHeight);
+  }, [screenOrientation, keyboardHeight, appbarHeight]);
+
+  /**
+   * Sets the initial text input content height
+   */
+  useEffect(() => {
+    /**
+     * A check is made for both the height and width of the input
+     * content size. Due to the text input rendering many times,
+     * the true initial content height is available upon the first
+     * instance where both the height and width are available
+     */
+    if (
+      inputContentSize &&
+      inputContentSize.height &&
+      inputContentSize.width &&
+      !initialInputContentHeight
+    ) {
+      dispatch(setInitialInputContentHeight(inputContentSize.height));
+    }
+  }, [inputContentSize]);
+
+  /**
+   * Whenever the content size of the input or the device orientation
+   * changes, the scrollview is scrolled all the way to the bottom
+   * to always have the text input visible on the screen.
+   */
+  useEffect(() => {
+    scrollRef.current.scrollToEnd();
+  }, [screenOrientation, inputContentSize, keyboardHeight, appbarHeight]);
+
+  /**
+   * Keyboard Listeners
+   */
+  useEffect(() => {
+    // Sets keyboard listeners for gifted chat's text input
+    if (Platform.OS === "ios") {
+      Keyboard.addListener("keyboardWillShow", keyboardWillAndDidShow);
+      Keyboard.addListener("keyboardWillHide", keyboardWillAndDidHide);
+    } else if (Platform.OS === "android") {
+      Keyboard.addListener("keyboardDidShow", keyboardWillAndDidShow);
+      Keyboard.addListener("keyboardDidHide", keyboardWillAndDidHide);
+    }
+
+    // Removes keyboard listeners for gifted chat's text input
+    return () => {
+      if (Platform.OS === "ios") {
+        Keyboard.removeListener("keyboardWillShow", keyboardWillAndDidShow);
+        Keyboard.removeListener("keyboardWillHide", keyboardWillAndDidHide);
+      } else if (Platform.OS === "android") {
+        Keyboard.removeListener("keyboardDidShow", keyboardWillAndDidShow);
+        Keyboard.removeListener("keyboardDidHide", keyboardWillAndDidHide);
+      }
+    };
+  }, []);
+
+  /**
+   * Whenever the screen orientation, input content size, or the amount of
+   * selected images changes or the actions button is toggled, the minimum
+   * input toolbar height is recalculated
+   */
+  useEffect(() => {
+    setinputToolbarHeight(getInputToolbarHeight());
+  }, [
+    screenOrientation,
+    inputContentSize,
+    props.ImageHandler.selectedImages,
+    props.ActionHandler.showActions,
+  ]);
+
+  /**
+   * Whenever the the amount of selected images changes or the
+   * actions button is toggled to be visible, the input toolbar
+   * is scrolled to the top
+   */
+  useEffect(() => {
+    scrollRef.current.scrollTo({
+      x: 0,
+      y: 0,
+      animated: true,
+    });
+  }, [props.ImageHandler.selectedImages, props.ActionHandler.showActions]);
 
   /**
    * Keyboard event callback for when the keyboard shows
    * @param {*} event The Keyboard event
    */
-  keyboardWillShow = (event) => {
-    Animated.timing(this.keyboardHeightRef, {
-      duration: event.duration,
-      /**
-       * The value is multiplied by negative 1 so when translating
-       * the text input, it will move up due to it having the position
-       * 'absolute' with a bottom of '0'
-       */
-      toValue: -1 * event.endCoordinates.height + getBottomSpace(),
-      useNativeDriver: true,
-    }).start();
-
-    // Saves the keyboard's height to the state
-    this.setState({
-      keyboardHeight: event.endCoordinates.height + getBottomSpace(),
-    });
+  const keyboardWillAndDidShow = (event) => {
+    // Saves the keyboard's height to redux's state
+    dispatch(setKeyboardHeight(event.endCoordinates.height + getBottomSpace()));
   };
 
   /**
    * Keyboard event callback for when the keyboard hides
    * @param {*} event The Keyboard event
    */
-  keyboardWillHide = (event) => {
-    Animated.timing(this.keyboardHeightRef, {
-      duration: event.duration,
-      /**
-       * The value is multiplied by negative 1 so when translating
-       * the text input, it will move up due to it having the position
-       * 'absolute' with a bottom of '0'
-       */
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
-
-    // Saves the keyboard's height to the state
-    this.setState({
-      keyboardHeight: 0,
-    });
+  const keyboardWillAndDidHide = (event) => {
+    // Saves the keyboard's height to redux's state
+    dispatch(setKeyboardHeight(0));
   };
 
   /**
-   * Determines the maximum height of the input toolbar
-   * @returns {number} The maximum height of the input toolbar
+   * Configures the height of the input toolbar.
+   * Do not delete or change the values below unless you change its
+   * corresponding values in its respective components.
    */
-  inputToolbarMaxHeight = () =>
-    Dimensions.get("window").height -
-    this.props.headerHeight -
-    this.state.keyboardHeight -
-    getBottomSpace();
+  const getInputToolbarHeight = () => {
+    /**
+     * Minimum height is 66. This height is required for the input toolbar to display
+     * correctly without a spacing bug between the input toolbar and keyboard
+     */
+    let height = 66;
 
-  render() {
-    console.log("Rendered");
-    return (
-      <Animated.View
+    /**
+     * If there are selected images, an added spacing of 161 is required to
+     * display the images without a spacing bug between the input toolbar and keyboard.
+     * The spacing required is 161 because each image has a height of 150 including
+     * 11 for spacing.
+     */
+    if (props.ImageHandler.selectedImages.length > 0)
+      height += selectedImagesHeight;
+
+    /**
+     * If the action buttons will be displayed, an added spacing of 45 is required to
+     * display the buttons without a spacing bug between the input toolbar and keyboard.
+     * The spacing required is 45 because each button has a height of 40 including 5
+     * for spacing
+     */
+    if (props.ActionHandler.showActions) height += 45;
+
+    // Adds the content size of the text input if available
+    if (props.text && inputContentSize && initialInputContentHeight) {
+      if (inputContentSize.height > initialInputContentHeight * 2)
+        height +=
+          inputContentSize.height -
+          // Removes extra spacing that different between Android and iOS
+          (Platform.OS === "ios"
+            ? 2 * initialInputContentHeight
+            : initialInputContentHeight);
+    }
+    return height;
+  };
+
+  return (
+    <View
+      style={{
+        backgroundColor: "white",
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        height:
+          keyboardHeight > 0
+            ? inputToolbarHeight
+            : inputToolbarHeight + getBottomSpace(),
+        marginBottom:
+          Platform.OS === "ios"
+            ? /**
+               * iOS devices require for the input toolbar to be pushed up
+               * or else the keyboard will cover over it when it's visible
+               */
+              keyboardHeight > 0
+              ? keyboardHeight - getBottomSpace()
+              : 0
+            : // Android automatically pushes up the text input so not margin is needed
+              0,
+        maxHeight: inputToolbarMaxHeight,
+      }}
+    >
+      <ScrollView
+        /**
+         * Scroll indicator prevents glitch with scrollbar appearing
+         * in the middle of the screen
+         */
+        scrollIndicatorInsets={{ right: 1 }}
+        ref={scrollRef}
+        keyboardShouldPersistTaps="always"
+        onScrollBeginDrag={() => Keyboard.dismiss()}
         style={{
-          // backgroundColor: "red",
-          position: "absolute",
-          maxHeight: this.inputToolbarMaxHeight(),
-          width: "100%",
-          bottom:
-            0 +
-            /**
-             * For devices that has a bottom space, the bottom is added
-             * by 11 as that's the value used to se the padding vertical in the
-             * animated view. This relates to the bug in the documentation,
-             * "Text_Input"
-             */
-            (getBottomSpace() > 0 ? 11 : 0),
-          // maxHeight: Dimensions.get("window").height - this.props.headerHeight,
-          transform: [{ translateY: this.keyboardHeightRef }],
+          flex: 1,
+          maxHeight: Math.min(
+            inputToolbarHeight + getBottomSpace(),
+            inputToolbarMaxHeight
+          ),
+        }}
+        contentContainerStyle={{
+          justifyContent: "flex-end",
+          paddingBottom:
+            keyboardHeight === 0 && props.addToolbarBottomPadding
+              ? getBottomSpace()
+              : 0,
         }}
       >
-        <ScrollView
-          ref={this.scrollRef}
-          keyboardShouldPersistTaps="always"
-          onScrollBeginDrag={() => Keyboard.dismiss()}
+        <SafeAreaView
           style={{
-            // height: "100%",
-            width: "100%",
-            // flex: 1,
-            // position: "absolute",
-            // bottom: this.state.keyboardHeight,
+            flex: 1,
           }}
         >
-          <Animated.View
-            style={[
-              styles.container,
-              {
-                /**
-                 * Do not delete the vertical padding or minimum height. This fills the gap
-                 * between the Input Toolbar and the keyboard that appears on the screen.
-                 * See documentation for bug "Text_Input"
-                 */
-                minHeight: this.props.minInputToolbarHeight,
-                paddingVertical: 11,
-                // position: "absolute",
-                // bottom: 0,
-                // left: 0,
-                // right: 0,
-                // transform: [{ translateY: this.keyboardHeightRef }],
-              },
-            ]}
+          <View
+            style={{
+              paddingVertical: 11,
+            }}
           >
             {/* Displays user selected images if there are any */}
-            {this.renderImages()}
+            <SelectedImages
+              ImageHandler={props.ImageHandler}
+              ImageToViewHandler={props.ImageToViewHandler}
+              showActions={props.ActionHandler.showActions}
+            />
 
             {/* Displays the action buttons available */}
-            {this.props.ActionHandler.showActions && this.renderActions()}
+            {props.ActionHandler.showActions && (
+              <Actions
+                ImageHandler={props.ImageHandler}
+                CameraPermissionsHandler={props.CameraPermissionsHandler}
+              />
+            )}
 
             {/* Displays the input toolbar */}
             <View style={[styles.primary]}>
               <TouchableOpacity
                 activeOpacity={0.75}
                 onPress={() =>
-                  this.props.ActionHandler.setShowActions(
-                    !this.props.ActionHandler.showActions
+                  props.ActionHandler.setShowActions(
+                    !props.ActionHandler.showActions
                   )
                 }
                 style={[
                   {
                     transform: [
                       {
-                        rotate: this.props.ActionHandler.showActions
+                        rotate: props.ActionHandler.showActions
                           ? "45deg"
                           : "0deg",
                       },
@@ -278,42 +363,36 @@ class InputToolbar extends Component {
                   color="#5eb6fe"
                 />
               </TouchableOpacity>
-              <View
-                style={[
-                  styles.composerContainer,
-                  {
-                    /**
-                     * THE HEIGHT IS IMPORTANT FOR PREVENTING A TEXT INPUT BUG.
-                     * SEE DOCUMENTATION FOR BUG "Text_Input"
-                     */
-                    height:
-                      Platform.OS === "android"
-                        ? this.props.composerHeight + 3
-                        : this.props.composerHeight + 10,
-                  },
-                ]}
-              >
-                <View style={styles.composer}>{this.renderComposer()}</View>
-                <View style={styles.sendButton}>{this.renderSend()}</View>
+              <View style={styles.composerContainer}>
+                {/* Creates the textfield in the InputToolbar */}
+                <View style={styles.composer}>
+                  <Composer
+                    {...props}
+                    inputToolbarMaxHeight={inputToolbarMaxHeight}
+                    composerScrollRef={scrollRef}
+                    giftedChatRef={props.giftedChatRef}
+                  />
+                </View>
+                {/* Creates the message send button in the InputToolbar */}
+                <View style={styles.sendButton}>
+                  <ComposerSend {...props} />
+                </View>
               </View>
             </View>
-          </Animated.View>
-        </ScrollView>
-      </Animated.View>
-    );
-  }
-}
+          </View>
+        </SafeAreaView>
+      </ScrollView>
+    </View>
+  );
+};
 
 // The style of this component
 const styles = StyleSheet.create({
-  container: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "grey",
-    backgroundColor: "yellow",
-  },
   primary: {
     flexDirection: "row",
-    paddingRight: "4%",
+    paddingRight: "2%",
+    alignContent: "center",
+    justifyContent: "center",
   },
   composerContainer: {
     backgroundColor: "#EDF1F7",
@@ -327,10 +406,11 @@ const styles = StyleSheet.create({
   composer: {
     flex: 1,
     paddingLeft: 15,
-    paddingRight: 10,
     alignSelf: "center",
   },
-  sendButton: { alignSelf: "flex-end", marginBottom: 3 },
+  sendButton: {
+    alignSelf: "flex-end",
+  },
   actionIconButton: {
     alignSelf: "flex-end",
   },

@@ -195,151 +195,10 @@
 ## 🐛&nbsp;⚠️&nbsp;&nbsp;&nbsp;Known Bugs and Warnings
 
 <table>
-<!------------------------------------------------ Table Headers ------------------------------------------------>
-  <tr style="text-align: left; -webkit-text-stroke: 1px black; font-size: 20px">
-    <th style="color: #ECC100">#</th>
-    <th style="color: #ECC100">Code Reference</th>
-    <th style="color: #FF6454">Description</th>
-    <th style="color: #31A6FF">Solution</th>
-    <th style="color: #ECC100">Files Impacted</th>
-  </tr>
-
-  <!---------------------------------------------------- # 1 ---------------------------------------------------->
+  <!-------------------------------------------------- # 1 -------------------------------------------------->
   <tr align="left" valign="top" style="border-bottom: 1px solid grey">
     <td style="color: #FFE266"> 
       1
-    </td>
-    <td style="color: #FFE266"> 
-      iOS_Text_Input
-    </td>
-    <td style="color: #FC9186"> 
-      This bug only occurs on iOS. The TextInput component inside of the InputToolbar has an issue with the textfield growing along with text. In other words, if there are multiple lines in the textfield, the textfield should be big enough to where all lines of text are visible. On iOS, if you’re backspacing a line, right before the line is fully erased, the height of the text field becomes smaller as if the full line was deleted. This causes for the last line that’s still there to either disappear from the view, or have only the top half of the letters visible. This is due to the onContentSizeChange (which handles the change of width and height of the textfield) firing incorrectly.
-    </td>
-    <td style="color: #82C9FF"> 
-      There were 2 things that caused this issue. The first cause was the font size. The font size is originally 14. Upon changing to 16, this caused for the onContentSizeChange event listener to misfire. The second cause of this misfire was padding. In the textfield itself, there was a paddingTop set. Once this paddingTop was set to 0, onContentSizeChange fired correctly.
-    </td>
-    <td style="color: #FFE266"> 
-      <ol>
-        <li> src/Views/Chat/Chats/Components/InputToolbar/Components/Composer/index.js </li>
-      </ol>
-    </td>
-  </tr>
-
-  <!-------------------------------------------------- # 2 -------------------------------------------------->
-  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
-    <td style="color: #FFE266"> 
-      2
-    </td>
-    <td style="color: #FFE266"> 
-      Text_Input
-    </td>
-    <td style="color: #FC9186"> 
-     Upon typing multiple lines inside the textfield located in the input toolbar inside a chat, a spacing between the keyboard and the input toolbar will appear. It's impact is not great but causes a UI disturbance and removes space available to the input toolbar to grow.
-    </td>
-    <td style="color: #82C9FF"> 
-      This is due to the input toolbar not having a correct minimum height. GiftedChat requires a minimum height for the input toolbar. When the minimum height given is lower than the actual height of the input toolbar, GiftedChat fails to calculate the correct spacing allocated for the input toolbar. As long as the correct height of the input is given (by calculating the height of each component and their respective spacing), the input toolbar is displayed correctly without spacing appearing between the input toolbar and keyboard.
-    </td>
-    <td style="color: #FFE266">
-      <ol>
-      <li> src/Views/Chat/Chats/index.js </li>
-      </ol>
-    </td>
-  </tr>
-
-  <!-------------------------------------------------- # 3 -------------------------------------------------->
-  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
-    <td style="color: #FFE266"> 
-      3
-    </td>
-    <td style="color: #FFE266"> 
-      Animated_Native_Driver
-    </td>
-    <td style="color: #FC9186"> 
-      This warning occurs on both iOS and Android. This warning is due to a component inside of GiftedChat that uses Lightbox (a component from node modules). Inside the code for Lightbox, there's a call made incorrectly with React Native's Animated component. Due to this, a warning appears every time a "Reload" (not refresh) of the application is done.
-    </td>
-    <td style="color: #82C9FF"> 
-      Unfortunately, since this error is in node modules, any time that an "npm install" occurs, you will have to patch the same file again. More information can be found <a href="https://github.com/oblador/react-native-lightbox/issues/129">here</a>. There are two ways to fix this. If you've installed all the dependencies above, you can automatically solve this issue with the command: <strong>"npx patch-package react-native-lightbox"</strong>. To fix this warning manually (must have installed dependencies using NPM and not Yarn), follow the steps below.
-      <ol>
-        <br/>
-        <li> Open the file <span style="color: #AEDCFF"><i>node_modules/react-native-lightbox/LightboxOverlay.js</i></span></li>
-        <br/>
-        <li> Look inside the constructor for the words "<span style="color: #AEDCFF"><i>onPanResponderMove</i></span>"</li>
-        <br/>
-        <li> The original code is around the lines 99-102: <br/>
-          <code>
-            onPanResponderMove: Animated.event([
-              null,
-              { dy: this.state.pan }
-            ]),
-            </code>
-        </li>
-        <br/>
-        <li> Add <br/><code>{ useNativeDriver: false, }</code><br/> to the code after the end of the list bracket "<code>]</code>".</li>
-        <br/>
-        <li> After adding the code above, the resulting code should look like this: <br/>
-          <code>
-            onPanResponderMove: Animated.event([
-              null,
-              { dy: this.state.pan }
-            ],{
-              useNativeDriver: false,
-            }),
-          </code>
-        </li>
-      </ol>
-    </td>
-    <td style="color: #FFE266">
-      <ol>
-      <li> node_modules/react-native-lightbox/LightboxOverlay.js </li>
-      </ol>
-    </td>
-  </tr>
-
-  <!-------------------------------------------------- # 4 -------------------------------------------------->
-  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
-    <td style="color: #FFE266"> 
-      4
-    </td>
-    <td style="color: #FFE266"> 
-      GiftedChat_InputToolbar_Rerender
-    </td>
-    <td style="color: #FC9186"> 
-      This is a warning for any changes made to the input toolbar. Upon displaying each component in the input toolbar, GiftedChat automatically calculates the height of the input toolbar to display it correctly and prevent the keyboard from covering over it. If you add or a remove a component in the input toolbar that results in a change of its height, GiftedChat's initial calculations of the height will no longer work. This will cause a bug where the input toolbar will be incorrectly placed on the screen. In most cases, you will see the input toolbar displayed and trail off the bottom of the screen. You will also see the keyboard (when invoked) appear above the input toolbar making it impossible to see what you're typing.
-    </td>
-    <td style="color: #82C9FF"> 
-    GiftedChat has to be prompted to re-render itself. After extensively looking at GiftedChat's source code, there's not a simple function that can be called. Adding or removing a component from the input toolbar after it has already been displayed will not trigger GiftedChat to re-render. The only things that will trigger GiftedChat to re-render (that's in OUR CONTROL to invoke) is the visibility of the keyboard and the change of the content size of the textfield in the input toolbar. As it would be a terrible UI idea to invoke the keyboard and remove it in order to re-render GiftedChat, we use the content size of the textfield instead.<br/><br/>This is done by always having a reference to the content size of the textfield (or known as the component "<span style="color: #AEDCFF"><strong>Composer</strong></span>"). Upon changing the height of the input toolbar (by adding or removing a component), we pass the content size of the textfield to GiftedChat. Even though we're passing the same content size that GiftedChat already calculated, passing in a content size causes GiftedChat to re-render. Unfortunately, this requires for props to be passed all the way to the <span style="color: #AEDCFF"><strong>Composer</strong></span> component to have the logic present for the Composer to determine if it should invoke GiftedChat to re-render.<br/><br/>Therefore, while it's highly unusual, using the textfield is the only way to ensure that all components in the input toolbar are displayed correctly.<br/><br/>When developing, in order to add the logic of having the Composer component trigger GiftedChat to re-render, you must do 3 important things.<br/><ol><li>Whatever you compare to have GiftedChat re-render the input toolbar, make sure that it's <span style="color: #AEDCFF"><strong>passed through props to the "Composer" component</strong></span>.</li><li><span style="color: #AEDCFF"><strong>Use a ref</strong></span> to hold the initial value of your prop in order to do a logical comparison for changes in the useEffect hook.<br/><span style="color: #AEDCFF"><strong>REMEMBER to update the ref</strong></span> to hold the new prop value after doing your comparison so that it always has the correct value passed in.</li><li>Make sure to <span style="color: #AEDCFF"><strong>add logic for your prop inside of React.memo</strong></span>! This is important as React.memo handles the re-rendering of the Composer component (it prevents unnecessary re-renders). If you forget to add the logic for your prop to React.memo, the Composer component will never recognize any changes to your prop.</li></ol>
-    </td>
-    <td style="color: #FFE266">
-      <ol>
-      <li> src/Views/Chat/Chats/Components/InputToolbar/Components/Composer/index.js </li>
-      </ol>
-    </td>
-  </tr>
-
-  <!-------------------------------------------------- # 5 -------------------------------------------------->
-  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
-    <td style="color: #FFE266"> 
-      5
-    </td>
-    <td style="color: #FFE266"> 
-      InputToolbar_Class
-    </td>
-    <td style="color: #FC9186"> 
-      This is a warning to avoid changing the InputToolBar component to a functional hook component. Due to GiftedChat only using class components, if you create the input toolbar using a functional hook, a bug may occur where the keyboard (when invoked) will cover over the input toolbar making it invisible. The reason for this occuring is not known.
-    </td>
-    <td style="color: #82C9FF"> 
-    Simply leave the InputToolbar as a class component. While you may make all components used by InputToolbar functional hooks, the InputToolbar component itself must remain as a class.
-    </td>
-    <td style="color: #FFE266">
-      <ol>
-      <li> src/Views/Chat/Chats/Components/InputToolbar/index.js </li>
-      </ol>
-    </td>
-  </tr>
-  <!-------------------------------------------------- # 6 -------------------------------------------------->
-  <tr align="left" valign="top" style="border-bottom: 1px solid grey">
-    <td style="color: #FFE266"> 
-      6
     </td>
     <td style="color: #FFE266"> 
     NO CODE REFERENCE
@@ -348,12 +207,9 @@
       This is a BIG WARNING when updating Expo's CLI. If you update Expo's CLI using `npm -g install expo-cli` or `yarn add expo-cli `, this can cause serious glitches with the app as the CLI has updated but the rest of Expo's dependencies hasn't. Even if the glitches may not happen right away, you may experience things such as random network requests going missing. LITERALLY. You would invoke a network request and you will never get a response back. You won't get an error either to indicate that the network request timed out. 
     </td>
     <td style="color: #82C9FF"> 
-    In order to prevent glitches from happening, make sure to upgrade Expo after upgrading the 
+    In order to prevent glitches from happening, make sure to upgrade Expo after upgrading the CLI by following the guide above.
     </td>
     <td style="color: #FFE266">
-      <ol>
-      <li> src/Views/Chat/Chats/Components/InputToolbar/index.js </li>
-      </ol>
     </td>
   </tr>
 </table>
@@ -441,3 +297,114 @@
     - <strong>value:</strong> The value of the quick reply message <br/>
     - <strong>messageId:</strong> The ID of the quick reply message <br/>
   - <strong>keepIt:</strong> Not known - To be determined. <br/>
+
+<br/><br/>
+
+## &nbsp;📱&nbsp;&nbsp;&nbsp;App Screenshots
+
+<table>
+  <tr>
+    <th>Screen Name</th>
+    <th>Description</th>
+    <th>Image</th>
+  </tr>
+  <!-- Login -->
+  <tr style="text-align:center;">
+    <td>Login</td>
+    <td>Where a user logs in using their Gordon account. </td>
+    <td>
+      <img src="./AppScreenshots/login.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Gordon 360 -->
+  <tr style="text-align:center;">
+    <td>Gordon 360</td>
+    <td>Where a user can access Gordon 360 as its web environment is integrated into the app. </td>
+    <td>
+      <img src="./AppScreenshots/gordon-360.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Rooms -->
+  <tr style="text-align:center;">
+    <td>Rooms</td>
+    <td>Where a user can access all of the chats they are a part of. </td>
+    <td>
+      <img src="./AppScreenshots/rooms.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Chat -->
+  <tr style="text-align:center;">
+    <td>Chat</td>
+    <td>Where a user can conversate with others in a chat. </td>
+    <td>
+      <img src="./AppScreenshots/chat.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Chat Details -->
+  <tr style="text-align:center;">
+    <td>Chat Details</td>
+    <td>Where a user can view the images and the other users in a chat. </td>
+    <td>
+      <img src="./AppScreenshots/chat-details.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- New Chat Search -->
+  <tr style="text-align:center;">
+    <td>Create New Chat Search</td>
+    <td>Where a user can search and select others in the Gordon community to start a new chat. </td>
+    <td style="display:flex; flex-direction: row;">
+      <img src="./AppScreenshots/new-chat-search-one.png" style="width:200px;" />
+      <img src="./AppScreenshots/new-chat-search-two.png" style="width:200px; margin-left: 2rem;" /> 
+      <img src="./AppScreenshots/new-chat-search-three.png" style="width:200px; margin-left: 2rem;" /> 
+    </td>
+  </tr>
+  <!-- New Chat Room Creator -->
+  <tr style="text-align:center;">
+    <td>Create New Chat Room </td>
+    <td>Where a user can add a chat room image and send the chat's first text message. 
+        They may also add a custom chat name if the chat is a group. </td>
+    <td>
+      <img src="./AppScreenshots/new-chat-room-creator.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- About -->
+  <tr style="text-align:center;">
+    <td>About</td>
+    <td>Where a user can see the app's description and the teams that engineered and developed the application. </td>
+    <td>
+      <img src="./AppScreenshots/about.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Profile -->
+  <tr style="text-align:center;">
+    <td>Profile</td>
+    <td>Where a user can view their personal information. </td>
+    <td>
+      <img src="./AppScreenshots/profile.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Settings -->
+  <tr style="text-align:center;">
+    <td>Settings</td>
+    <td>Where a user can make changes to the application such as signing out. </td>
+    <td>
+      <img src="./AppScreenshots/settings.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Image Viewer -->
+  <tr style="text-align:center;">
+    <td>Image Viewer</td>
+    <td>Where a user can view an image and share it. </td>
+    <td>
+      <img src="./AppScreenshots/image-viewer.png" style="width:200px;" />
+    </td>
+  </tr>
+  <!-- Camera Permissions -->
+  <tr style="text-align:center;">
+    <td>Camera Permissions</td>
+    <td>Where a user can give the app camera permissions. </td>
+    <td>
+      <img src="./AppScreenshots/camera-permissions.png" style="width:200px;" />
+    </td>
+  </tr>
+</table>

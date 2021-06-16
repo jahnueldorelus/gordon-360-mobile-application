@@ -80,6 +80,11 @@ export const Login = () => {
             contentContainerStyle={styles.loginScrollView}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            /**
+             * Scroll indicator prevents glitch with scrollbar appearing
+             * in the middle of the screen
+             */
+            scrollIndicatorInsets={{ right: 1 }}
           >
             <SafeAreaView style={styles.login}>
               <View

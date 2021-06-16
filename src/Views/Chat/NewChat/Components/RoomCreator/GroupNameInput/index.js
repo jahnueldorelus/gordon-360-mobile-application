@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TextInput } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { getNewRoomName } from "../../../../../../store/ui/Chat/chatSelectors";
 import { setNewRoomName } from "../../../../../../store/ui/Chat/chat";
@@ -13,18 +13,20 @@ export const GroupNameInput = (props) => {
   // If the amount of users selected is greater than 1 (aka a group)
   if (props.selectedUsersListLength > 1)
     return (
-      <View style={styles.groupContainer}>
-        <Text style={styles.groupTitle}>Group Name:</Text>
-        <TextInput
-          placeholder="Type a name..."
-          placeholderTextColor="#rgba(1, 73, 131, 0.4)"
-          value={roomName}
-          selectTextOnFocus={true}
-          returnKeyType="done"
-          onChangeText={(name) => dispatch(setNewRoomName(name.trimStart()))}
-          style={styles.textInput}
-        />
-      </View>
+      <SafeAreaView>
+        <View style={styles.groupContainer}>
+          <Text style={styles.groupTitle}>Group Name:</Text>
+          <TextInput
+            placeholder="Type a name..."
+            placeholderTextColor="#rgba(1, 73, 131, 0.4)"
+            value={roomName}
+            selectTextOnFocus={true}
+            returnKeyType="done"
+            onChangeText={(name) => dispatch(setNewRoomName(name.trimStart()))}
+            style={styles.textInput}
+          />
+        </View>
+      </SafeAreaView>
     );
   // Since there's only 1 selected user, creating a group name isn't allowed
   else return <></>;

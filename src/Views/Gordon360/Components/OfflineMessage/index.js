@@ -8,7 +8,13 @@ export const OfflineMessage = (props) => {
   return (
     <CustomModal
       content={
-        <ScrollView>
+        <ScrollView
+        /**
+         * Scroll indicator prevents glitch with scrollbar appearing
+         * in the middle of the screen
+         */
+          scrollIndicatorInsets={{ right: 1 }}
+        >
           <SafeAreaView style={styles.screenView}>
             <View style={styles.modalView}>
               <View

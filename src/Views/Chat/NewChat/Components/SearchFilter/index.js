@@ -115,6 +115,8 @@ export const SearchFilter = (props) => {
             <TouchableOpacity
               style={styles.navigationButton}
               onPress={() => {
+                // Closes out the focused text input if it's visible
+                setFocusedTextInput({});
                 // Closes out the modal
                 props.setVisible(!props.visible);
               }}
@@ -146,7 +148,19 @@ export const SearchFilter = (props) => {
                * the focused text input is visible
                */
               focusedTextInputAvailable && (
-                <View style={styles.filterContentBlocker} />
+                <View
+                  style={[
+                    styles.filterContentBlocker,
+                    /**
+                     * The width is created here so that if the device's
+                     * orientation changes, the width and height will update
+                     */
+                    {
+                      width: Dimensions.get("window").width,
+                      height: Dimensions.get("window").height,
+                    },
+                  ]}
+                />
               )
             }
           </View>
@@ -179,11 +193,6 @@ const styles = StyleSheet.create({
   filterContentBlocker: {
     position: "absolute",
     backgroundColor: "rgba(0,0,0,0.6)",
-    bottom: 0,
-    right: 0,
-    left: 0,
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
   },
   navigationBar: {
     paddingHorizontal: "3%",

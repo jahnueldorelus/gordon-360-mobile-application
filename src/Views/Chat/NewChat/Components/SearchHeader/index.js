@@ -102,7 +102,7 @@ export const SearchHeader = (props) => {
             props.data.setSelectedUsers({});
             setSearchedText("");
             props.data.setLastSearchedText("");
-            dispatch(ui_PeopleSearchFilterResetState);
+            dispatch(ui_PeopleSearchFilterResetState());
             dispatch(ui_PeopleSearchResetState());
             // Ensures the filters are closed
             props.data.setFilterVisible(false);

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
-  Dimensions,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { getPeopleSearchResults } from "../../../store/ui/peopleSearch";
@@ -18,8 +17,22 @@ import { RoomCreator } from "./Components/RoomCreator/index";
 import { useSelector } from "react-redux";
 import { getUserRooms } from "../../../store/entities/chat";
 import { getDeviceOrientation } from "../../../store/ui/app";
+import {
+  setRoomID,
+  setNewRoomImage,
+  setNewRoomName,
+} from "../../../store/ui/Chat/chat";
+import { ui_PeopleSearchFilterResetState } from "../../../store/ui/peopleSearchFilter";
+import { ui_PeopleSearchResetState } from "../../../store/ui/peopleSearch";
+import { getUserInfo } from "../../../store/entities/profile";
+import { useDispatch } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
 
 export const NewChat = (props) => {
+  // Redux dispatch
+  const dispatch = useDispatch();
+  // App navigation
+  const navigation = useNavigation();
   // The user's previous search text
   const [lastSearchedText, setLastSearchedText] = useState("");
   // Object of selected users
@@ -36,6 +49,8 @@ export const NewChat = (props) => {
   const userRooms = useSelector(getUserRooms);
   // The device's orientation
   const screenOrientation = useSelector(getDeviceOrientation);
+  // The user's profile info
+  const userProfile = useSelector(getUserInfo);
 
   /**
    * Sorts the user objects alphabetically.
@@ -127,49 +142,47 @@ export const NewChat = (props) => {
 
   /**
    * Determines if a chat with the selected users already exist
-   * @returns {boolean} Determines if a chat already exists
+   * to prevent duplicate chats
+   * @returns {number} If a chat exists, the room ID is returned. Otherwise 0 is returned
    */
-  const doesChatExist = () => {
+  const chatExists = () => {
     // Determines if the chat exists
-    const chatAlreadyExists = false;
+    let duplicateRoomID = null;
 
     // Parses through the user's list of chats
     userRooms.every((room) => {
-      // If a chat already exists, the list of the user's chats stops iterating
-      if (chatAlreadyExists) return false;
-      // console.log(room);
+      /**
+       * If a chat has the same length as the selected users.
+       * The room's users is subtracted by 1 to remove the main user
+       */
+      if (room.users.length - 1 === selectedUsersList.length) {
+        // List of each user's username in the chat
+        const roomUsers = room.users
+          .map((user) => user.username)
+          .filter((user) => user !== userProfile.AD_Username);
 
-      // If a chat has the same length as the selected users
-      if (room.users.length === selectedUsersList.length) {
-        // Determines if every user in the chat is in the list of selected users
-        let allUsersPresent = true;
-
-        // List of usernames of each user in the chat
-        const roomUsers = room.users.map((user) => user.username);
         // List of usernames of each user in the selected users list
         const selectedUsersNames = selectedUsersList.map(
           (user) => user.AD_Username
         );
 
-        // console.log({ room: roomUsers, selected: selectedUsers });
-        // Checks to see if each user in the list is located in the list of selected users
-        roomUsers.every((user) => {
-          // If a user in a chat isn't present in the list of selected users
-          if (!selectedUsersNames.includes(user)) {
-            // Sets that not all users in the chat are present in the list of selected users
-            allUsersPresent = false;
-            // Stops the iteration of the list of users in the chat
-            return false;
-          }
-        });
+        // Determines if every user in the chat is in the list of selected users
+        const allUsersPresent = roomUsers.every((user) =>
+          selectedUsersNames.includes(user)
+        );
 
-        // If all the users are present, then the chat already exists
-        if (allUsersPresent) chatAlreadyExists = true;
+        /**
+         * If all the users are present, then the chat already exists
+         * and the duplicate room ID is saved
+         */
+        if (allUsersPresent) duplicateRoomID = room.id;
       }
+
+      // Iterates to the next item if a duplicate chat wasn't found
+      return duplicateRoomID ? false : true;
     });
 
-    // console.log("Chat already exists:", chatAlreadyExists);
-    return chatAlreadyExists;
+    return duplicateRoomID;
   };
 
   // Returns the JSX of the selected users
@@ -183,6 +196,49 @@ export const NewChat = (props) => {
       }}
     />
   );
+
+  /**
+   * Exists out the modal and navigates to the
+   * chat screen while resetting necessary values
+   */
+  const exitModalAndGoToChat = () => {
+    // Deletes the user selected room image
+    dispatch(setNewRoomImage(null));
+    // Deletes the user selected room name
+    dispatch(setNewRoomName(""));
+    // Exists out of the room message modal
+    setRoomMessageVisible(false);
+    // Deletes the last searched text
+    setLastSearchedText(null);
+    // Deletes people search results
+    dispatch(ui_PeopleSearchResetState());
+    // Deletes people search filters
+    dispatch(ui_PeopleSearchFilterResetState());
+    // Deletes selected users
+    setSelectedUsers({});
+    // Exists out the new chat modal
+    props.setVisible(false);
+    // Navigates to the chat screen
+    navigation.navigate("Chat");
+  };
+
+  /**
+   * Gets the alert message to display if a duplicate chat exists
+   * @param {boolean} canGoToChat Determines if the user can go to the existing chat
+   */
+  const duplicateChatMessage = (canGoToChat) => {
+    return (
+      "A chat already exists with the" +
+      " " +
+      (selectedUsersList.length === 1 ? "user" : "users") +
+      " " +
+      "you've selected. Please" +
+      (selectedUsersList.length === 1 ? "" : " remove or") +
+      " " +
+      "add more users to create a new chat." +
+      (canGoToChat ? "\n\nWould you like to go the existing chat?" : "")
+    );
+  };
 
   return (
     <Modal
@@ -211,6 +267,8 @@ export const NewChat = (props) => {
         <View style={styles.resultsView}>
           {getSelectedUsers()}
 
+          {selectedUsersList.length > 0 && <View style={styles.bottomBorder} />}
+
           <SearchResults
             data={{
               lastSearchedText,
@@ -229,19 +287,34 @@ export const NewChat = (props) => {
               <TouchableOpacity
                 activeOpacity={0.75}
                 onPress={() => {
-                  if (doesChatExist()) {
-                    Alert.alert(
-                      "Existent Chat",
-                      "A chat already exists with the users you've selected. Please remove or add more users to create a new chat.",
-                      [
-                        {
-                          text: "Okay",
-                          onPress: () => {}, // Does nothing
-                          style: "cancel",
+                  // Gets the ID of the duplicated room
+                  const duplicateRoomID = chatExists();
+                  /**
+                   * If the duplicated room ID exists, then an alert is shown
+                   * to the user showing that a duplicate room exists
+                   */
+                  if (duplicateRoomID) {
+                    Alert.alert("Existent Chat", duplicateChatMessage(true), [
+                      {
+                        text: "Go to Chat",
+                        onPress: () => {
+                          // Sets the duplicate room ID as the selected room ID
+                          dispatch(setRoomID(duplicateRoomID));
+                          // Exists the modal and goes to the chat screen
+                          exitModalAndGoToChat();
                         },
-                      ]
-                    );
+                      },
+                      {
+                        text: "Cancel",
+                        onPress: () => {}, // Does nothing
+                        style: "cancel",
+                      },
+                    ]);
                   } else {
+                    /**
+                     * Since no duplicate room exists, the user can
+                     * continue creating a new room
+                     */
                     setRoomMessageVisible(true);
                   }
                 }}
@@ -282,9 +355,8 @@ export const NewChat = (props) => {
             setVisible: setRoomMessageVisible,
             selectedUsers: getSelectedUsers(),
             selectedUsersList,
-            setNewChatModalVisible: props.setVisible,
-            setSelectedUsers,
-            setLastSearchedText,
+            chatExists,
+            duplicateChatMessage,
           }}
         />
       </SafeAreaView>
@@ -314,5 +386,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     flexDirection: "row",
     alignItems: "center",
+  },
+  bottomBorder: {
+    borderColor: "#0a5289",
+    borderBottomWidth: 1,
+    width: "100%",
+    alignSelf: "center",
   },
 });

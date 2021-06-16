@@ -41,6 +41,9 @@ const imageWidthHeightSize =
     ? Dimensions.get("window").width * 0.08
     : 50;
 
+// The maximum image dimensions size
+const maxWidthHeightSize = 70;
+
 const styles = StyleSheet.create({
   imageContainer: {
     borderColor: "#014983",
@@ -51,11 +54,15 @@ const styles = StyleSheet.create({
   androidImage: {
     width: imageWidthHeightSize,
     height: imageWidthHeightSize,
+    maxWidth: maxWidthHeightSize,
+    maxHeight: maxWidthHeightSize,
   },
   iOSImage: {
     width: imageWidthHeightSize,
     height: imageWidthHeightSize,
     borderRadius: 50,
+    maxWidth: maxWidthHeightSize,
+    maxHeight: maxWidthHeightSize,
   },
 });
 

@@ -442,7 +442,14 @@ export const SearchResults = (props) => {
         );
       } else if (!lastSearchedText && selectedFilters.current.length > 0) {
         return (
-          <ScrollView contentContainerStyle={styles.emptyListScrollView}>
+          <ScrollView
+            contentContainerStyle={styles.emptyListScrollView}
+            /**
+             * Scroll indicator prevents glitch with scrollbar appearing
+             * in the middle of the screen
+             */
+            scrollIndicatorInsets={{ right: 1 }}
+          >
             <View style={styles.emptyListFilterView}>
               <Image
                 source={require("../../Images/empty-list.png")}

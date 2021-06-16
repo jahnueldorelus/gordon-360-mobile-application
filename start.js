@@ -102,6 +102,8 @@ export const Start = () => {
       return <Screen screenName={ScreenNames.profile} />;
     else if (route.name === ScreenNames.settings)
       return <Screen screenName={ScreenNames.settings} />;
+    else if (route.name === ScreenNames.about)
+      return <Screen screenName={ScreenNames.about} />;
     else if (route.name === ScreenNames.login)
       return <Screen screenName={ScreenNames.login} />;
   };
@@ -125,6 +127,7 @@ export const Start = () => {
           />
           <Drawer.Screen name={ScreenNames.messages} component={AppScreen} />
           <Drawer.Screen name={ScreenNames.profile} component={AppScreen} />
+          <Drawer.Screen name={ScreenNames.about} component={AppScreen} />
           <Drawer.Screen name={ScreenNames.settings} component={AppScreen} />
         </Drawer.Navigator>
       );

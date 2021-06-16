@@ -2,6 +2,22 @@ import { createSelector } from "reselect";
 
 /*********************************** SELECTORS ***********************************/
 /**
+ * Returns the text input's content size
+ */
+export const getTextInputContentSize = createSelector(
+  (state) => state.ui.chat,
+  (chat) => chat.textInputContentSize
+);
+
+/**
+ * Returns the initial text input's content height
+ */
+export const getInitialInputContentHeight = createSelector(
+  (state) => state.ui.chat,
+  (chat) => chat.initialInputContentHeight
+);
+
+/**
  * Returns the user's selected room ID
  */
 export const getSelectedRoomID = createSelector(

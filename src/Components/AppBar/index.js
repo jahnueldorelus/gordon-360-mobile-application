@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, StatusBar, SafeAreaView, Platform } from "react-native";
 import { StyleSheet } from "react-native";
 import { AppbarChat } from "./Components/Chat/index";
@@ -6,6 +6,7 @@ import { AppbarRoom } from "./Components/Room/index";
 import { Appbar360 } from "./Components/360/index";
 import { AppbarProfile } from "./Components/Profile";
 import { AppbarSettings } from "./Components/Settings";
+import { AppbarAbout } from "./Components/About";
 import { useRoute } from "@react-navigation/native";
 import { ScreenNames } from "../../../ScreenNames";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,6 +19,12 @@ export const AppBar = (props) => {
   const dispatch = useDispatch();
   // The device's orientation
   const screenOrientation = useSelector(getDeviceOrientation);
+
+  /**
+   * This fixes a bug on iPhone X devices where the status bar disappears
+   * after the device's orientation changes from landscape mode to portrait
+   */
+  useEffect(() => StatusBar.setHidden(false), [screenOrientation]);
 
   const styles = StyleSheet.create({
     appBar: {
@@ -52,6 +59,7 @@ export const AppBar = (props) => {
         {route.name === ScreenNames.gordon360 && <Appbar360 {...props} />}
         {route.name === ScreenNames.profile && <AppbarProfile />}
         {route.name === ScreenNames.settings && <AppbarSettings />}
+        {route.name === ScreenNames.about && <AppbarAbout />}
       </SafeAreaView>
     </View>
   );

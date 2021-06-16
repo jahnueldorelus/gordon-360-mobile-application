@@ -14,16 +14,15 @@ const SelectedImages = (props) => {
   // A list that contains the dimensions of each image
   const [imageDimensions, setImageDimensions] = useState([]);
   // The list of user selected images
-  const imageList = JSON.parse(props.ImageHandler.selectedImages);
+  const imageList = props.ImageHandler.selectedImages;
 
   /**
    * Variables used to determine if the scroll bar for the images should
    * scroll all the way to the end of the list. The scroll bar will automatically
    * scroll itself to the end of the list if a new image is added.
    */
-  const [scrollViewContentSizeWidth, setScrollViewContentSizeWidth] = useState(
-    null
-  );
+  const [scrollViewContentSizeWidth, setScrollViewContentSizeWidth] =
+    useState(null);
   const scrollRef = useRef();
   const oldScrollViewWidthRef = useRef(0);
 
@@ -70,11 +69,9 @@ const SelectedImages = (props) => {
     // Removes and saves the new list of user selected images
     let newSelectedImages = [...imageList];
     newSelectedImages.splice(imageIndex, 1);
-    /**
-     * The images are set in a JSON object in order for useEffect() in
-     * components to recognize the list of images have changed
-     */
-    props.ImageHandler.setSelectedImages(JSON.stringify(newSelectedImages));
+
+    // Sets the new selected images list
+    props.ImageHandler.setSelectedImages(newSelectedImages);
   };
 
   // The list of JSX for each user selected image

@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAction } from "@reduxjs/toolkit";
 import { createSelector } from "reselect";
 import { apiRequested } from "../middleware/api";
 
@@ -464,9 +464,9 @@ export const fetchFilterData = (dispatch, getState) => {
 /**
  * Resets all the state's data
  */
-export const ui_PeopleSearchFilterResetState = (dispatch, getState) => {
-  dispatch({ type: slice.actions.resetState.type, payload: null });
-};
+export const ui_PeopleSearchFilterResetState = createAction(
+  slice.actions.resetState.type
+);
 
 /*********************************** HELPER FUNCTIONS ***********************************/
 /**

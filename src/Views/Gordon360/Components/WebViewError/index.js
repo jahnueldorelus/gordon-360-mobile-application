@@ -5,7 +5,13 @@ import { Icon } from "react-native-elements";
 export const WebViewError = (props) => {
   return (
     <View style={styles.errorContainer}>
-      <ScrollView>
+      <ScrollView
+      /**
+       * Scroll indicator prevents glitch with scrollbar appearing
+       * in the middle of the screen
+       */
+        scrollIndicatorInsets={{ right: 1 }}
+      >
         <View style={styles.errorView}>
           <Icon
             containerStyle={styles.errorViewImage}

@@ -9,7 +9,6 @@ import {
   getUserRoomByID,
   getUserRoomsWithNewMessages,
 } from "../../../store/entities/chat";
-import { getAppbarHeight } from "../../../store/ui/app";
 import * as Notifications from "expo-notifications";
 import { useDispatch, useSelector } from "react-redux";
 import { LoadingScreen } from "../../../Components/LoadingScreen";
@@ -24,8 +23,6 @@ export const ChatView = () => {
   const currentRoom = useSelector(getUserRoomByID(roomID));
   // The selected room's messages
   const userMessages = useSelector(getUserMessagesByID(roomID));
-  // The appbar's height
-  const appbarHeight = useSelector(getAppbarHeight);
   // The user's list of rooms with new messages
   const roomsWithNewMessages = useSelector(getUserRoomsWithNewMessages);
   // Determines if the app should navigate directly to the chat screen
@@ -51,13 +48,7 @@ export const ChatView = () => {
 
   // If the user's messages and the current selected room are available
   if (userMessages && currentRoom)
-    return (
-      <ChatUI
-        messages={userMessages}
-        selectedRoom={currentRoom}
-        headerHeight={appbarHeight}
-      />
-    );
+    return <ChatUI messages={userMessages} selectedRoom={currentRoom} />;
   /**
    * If the chat's data isn't available and if the chat
    * was opened by a notification, a loader will display

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { Icon } from "react-native-elements";
 import { ResetApp } from "./ResetApp/index";
 import { Status360 } from "./Status360/index";
@@ -15,10 +15,17 @@ export const AppSettings = () => {
   const screenOrientation = useSelector(getDeviceOrientation);
 
   return (
-    <ScrollView style={styles.scrollView}>
-      <SafeAreaView
+    <ScrollView
+      style={styles.scrollView}
+      /**
+       * Scroll indicator prevents glitch with scrollbar appearing
+       * in the middle of the screen
+       */
+      scrollIndicatorInsets={{ right: 1 }}
+    >
+      <View
         style={[
-          styles.safeAreaView,
+          styles.mainContainer,
           {
             paddingHorizontal: screenOrientation === "landscape" ? "10%" : 0,
           },
@@ -45,14 +52,14 @@ export const AppSettings = () => {
           <ListDivider />
           <SignOut styles={listStyles} />
         </View>
-      </SafeAreaView>
+      </View>
     </ScrollView>
   );
 };
 
 // Styles for the component
 const styles = StyleSheet.create({
-  safeAreaView: { flex: 1 },
+  mainContainer: { flex: 1 },
   scrollView: { flex: 1, paddingHorizontal: "5%", backgroundColor: "white" },
   headerContainer: {
     marginVertical: 20,
@@ -132,7 +139,7 @@ const listStyles = StyleSheet.create({
     padding: 15,
     paddingBottom: 5,
     borderWidth: 1,
-    backgroundColor: "#013e83",
+    backgroundColor: "#013e70",
   },
   listItemTitle: {
     fontSize: 20,

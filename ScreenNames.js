@@ -7,4 +7,5 @@ export const ScreenNames = {
   login: "Login",
   rooms: "Rooms",
   chat: "Chat",
+  about: "About",
 };

@@ -29,7 +29,7 @@ export const Status360 = (props) => {
       style={[
         props.styles.itemContainer,
         {
-          backgroundColor: "#015483",
+          backgroundColor: "#014983",
         },
       ]}
     >
@@ -38,7 +38,7 @@ export const Status360 = (props) => {
           <Icon
             name="web"
             type="material-5"
-            color="#224d85"
+            color="#014983"
             size={40}
             containerStyle={props.styles.itemIcon}
           />

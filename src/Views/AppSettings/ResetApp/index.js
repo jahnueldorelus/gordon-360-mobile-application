@@ -16,7 +16,7 @@ export const ResetApp = (props) => {
       style={[
         props.styles.itemContainer,
         {
-          backgroundColor: "#015f83",
+          backgroundColor: "#015483",
         },
       ]}
     >
@@ -25,7 +25,7 @@ export const ResetApp = (props) => {
           <Icon
             name="undo-alt"
             type="font-awesome-5"
-            color="#015f83"
+            color="#015483"
             size={40}
             containerStyle={props.styles.itemIcon}
           />

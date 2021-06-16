@@ -67,8 +67,8 @@ export const AppbarChat = () => {
   const shouldNavigateToChat = useSelector(getShouldNavigateToChat);
   // Set timeout reference
   const timeoutRef = useRef(null);
-  // The square dimensions of each image.
-  const imageWidthHeightSize = Dimensions.get("window").width * 0.08;
+  // The square dimensions of each image
+  const [imageWidthHeightSize, setImageWidthHeightSize] = useState(0);
   // The maximum image square dimensions
   const minImageWidthHeightSize = 30;
   // The maximum image square dimensions
@@ -105,9 +105,12 @@ export const AppbarChat = () => {
     userSelectedRoomIDRef.current = userSelectedRoomID;
   }, [modalInfoVisible, userSelectedRoomID]);
 
-  // Sets the chat is visible and opened on first launch of this component
   useEffect(() => {
+    // Sets the chat is visible and opened on first launch of this component
     dispatch(setChatOpenedAndVisible(true));
+
+    // Calculates the dimensions of the room image
+    setImageWidthHeightSize(Dimensions.get("window").width * 0.04);
   }, []);
 
   /**
@@ -162,7 +165,7 @@ export const AppbarChat = () => {
               },
             ]
           );
-        }, 10000);
+        }, 5000);
       }
     }
   }, [shouldNavigateToChat, userMessages, userRoom]);

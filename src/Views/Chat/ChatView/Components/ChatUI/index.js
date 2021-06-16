@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, LayoutAnimation } from "react-native";
-import { getBottomSpace } from "react-native-iphone-x-helper";
+import React, { useState, useEffect, useRef } from "react";
+import { StyleSheet, View } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import PropTypes from "prop-types";
 import {
@@ -9,10 +8,8 @@ import {
 } from "../../../../../store/entities/chat";
 import { getSelectedRoomID } from "../../../../../store/ui/Chat/chatSelectors";
 import { AppImageViewer } from "../../../../../Components/AppImageViewer";
-import { renderActions } from "./Components/InputToolbar/Components/Actions";
 import { renderAvatar } from "./Components/MessageContainer/Avatar";
 import { renderBubble } from "./Components/MessageContainer/Bubble";
-import { renderComposer } from "./Components/InputToolbar/Components/Composer";
 /**
  * Uncomment if you'd like to add a custom view to each message.
  */
@@ -21,7 +18,6 @@ import { renderInputToolbar } from "./Components/InputToolbar";
 import { renderMessage } from "./Components/MessageContainer/Message";
 import { renderMessageImage } from "./Components/MessageContainer/MessageImage";
 import { renderMessageText } from "./Components/MessageContainer/MessageText";
-import { renderSend } from "./Components/InputToolbar/Components/Send";
 import { renderSystemMessage } from "./Components/MessageContainer/SystemMessage";
 import { CameraPermissionsDeviceSettings } from "../../../../../Components/CameraPermissionsDeviceSettings";
 import {
@@ -41,7 +37,7 @@ export default ChatUI = (props) => {
   // The current text inside the input toolbar
   const [text, setText] = useState("");
   // The list of images the user has selected
-  let [selectedImages, setSelectedImages] = useState(JSON.stringify([]));
+  let [selectedImages, setSelectedImages] = useState([]);
   // If there are props set for the selected images, they are used instead of the state
   if (props.selectedImages && props.setSelectedImages) {
     selectedImages = props.selectedImages;
@@ -59,6 +55,8 @@ export default ChatUI = (props) => {
   const userProfile = useSelector(getUserInfo);
   // The user's image
   const userImage = useSelector(getUserImage);
+  // Reference to GiftedChat
+  const giftedChatRef = useRef(null);
 
   /**
    *  GiftedChat's user format
@@ -68,12 +66,6 @@ export default ChatUI = (props) => {
     avatar: userImage,
     name: `${userProfile.FirstName} ${userProfile.LastName}`,
   };
-
-  /**
-   * Configures the animation for all components of GiftedChat so that
-   * animation is smooth for all transitions
-   */
-  LayoutAnimation.easeInEaseOut();
 
   /**
    * If an image is set to be shown, the image viewer will open. Otherwise,
@@ -89,11 +81,11 @@ export default ChatUI = (props) => {
     }
   }, [imageToView, showImageViewer]);
 
-  // Sends the user's message
-  const sendMessageAndImages = async (text) => {
-    // The message object
-    const message = text[0];
-
+  /**
+   * Sends the user's message
+   * @param {object} message The message object
+   */
+  const sendMessageAndImages = async (message) => {
     // Reformats the message object for the back-end to parse correctly
     const newMessage = parseChatObject(message);
 
@@ -101,7 +93,7 @@ export default ChatUI = (props) => {
     let messageDate = moment(newMessage.createdAt);
 
     // Gets the images associated with the room
-    const parsedImages = JSON.parse(selectedImages).map(async (image) => {
+    const parsedImages = selectedImages.map(async (image) => {
       // Creates a new date for the message based upon index to seperate each image by time
       messageDate.add(1, "milliseconds");
 
@@ -183,69 +175,68 @@ export default ChatUI = (props) => {
     }
 
     // Deletes the selected images
-    setSelectedImages(JSON.stringify([]));
+    setSelectedImages([]);
   };
 
   /**
-   * Configures the minimum height of the input toolbar.
-   * Do not delete or change the values below unless you change its
-   * corresponding values in its respective components.
-   * See documentation for bug "Text_Input"
+   * Returns the input toolbar that functions with GiftedChat
    */
-  const minInputToolbarHeight = () => {
-    /**
-     * Minimum height is 66. This height is required for the input toolbar to display
-     * correctly without a spacing bug between the input toolbar and keyboard
-     */
-    let minHeight = 66;
+  const getInputToolbar = () => {
+    // The props to pass to the input toolbar
+    const inputToolbarProps = {
+      onSend: props.onSend ? props.onSend : sendMessageAndImages,
+      user,
+      text: props.text ? props.text : text,
+      onTextChanged: props.setText ? props.setText : setText,
+      giftedChatRef,
+      appbarHeight:
+        typeof props.appbarHeight === "number" ? props.appbarHeight : null,
+      fullMaxHeight: props.fullMaxHeight,
+      addToolbarBottomPadding: props.addToolbarBottomPadding,
+    };
 
-    /**
-     * If there are selected images, an added spacing of 161 is required to
-     * display the images without a spacing bug between the input toolbar and keyboard.
-     * The spacing required is 161 because each image has a height of 150 including
-     * 11 for spacing.
-     */
-    if (JSON.parse(selectedImages).length > 0) minHeight += 161;
+    // Image Handler
+    const ImageHandler = { selectedImages, setSelectedImages };
+    // Image Viewer Handler
+    const ImageToViewHandler = {
+      setImage: setImageToView,
+      openImageViewer: () => setShowImageViewer(true),
+    };
+    // Action Handler
+    const ActionHandler = { showActions, setShowActions };
+    // Camera Permissions Handler
+    const CameraPermissionsHandler = {
+      visible: showCamPermissSettings,
+      setVisible: setShowCamPermissSettings,
+    };
 
-    /**
-     * If the action buttons will be displayed, an added spacing of 45 is required to
-     * display the buttons without a spacing bug between the input toolbar and keyboard.
-     * The spacing required is 45 because each button has a height of 40 including 5
-     * for spacing
-     */
-    if (showActions) minHeight += 45;
-
-    return minHeight;
+    // Returns the input toolbar
+    return renderInputToolbar(
+      inputToolbarProps,
+      ImageHandler,
+      ImageToViewHandler,
+      ActionHandler,
+      CameraPermissionsHandler
+    );
   };
 
   return (
     <View style={styles.mainContainer}>
       <GiftedChat
+        ref={giftedChatRef}
         {...props}
         alignTop
-        alwaysShowSend
-        bottomOffset={getBottomSpace()}
+        minInputToolbarHeight={0}
         isCustomViewBottom
+        isKeyboardInternallyHandled={false}
         messages={props.messages}
         messagesContainerStyle={styles.messagesContainer}
-        minInputToolbarHeight={minInputToolbarHeight()}
-        isKeyboardInternallyHandled={false}
-        onInputTextChanged={props.setText ? props.setText : setText}
-        onSend={props.onSend ? props.onSend : sendMessageAndImages}
         parsePatterns={(linkStyle) => [
           {
             pattern: /#(\w+)/,
             style: linkStyle,
           },
         ]}
-        renderActions={(props) => {
-          const ImageHandler = { selectedImages, setSelectedImages };
-          const CameraPermissionsHandler = {
-            visible: showCamPermissSettings,
-            setVisible: setShowCamPermissSettings,
-          };
-          return renderActions(props, ImageHandler, CameraPermissionsHandler);
-        }}
         renderAvatar={
           // The opposite user avatars will only display if the chat is a group
           props.selectedRoom.group ? (props) => renderAvatar(props) : null
@@ -253,28 +244,14 @@ export default ChatUI = (props) => {
         renderBubble={(props) =>
           renderBubble({ ...props, currentRoom: props.selectedRoom })
         }
-        renderComposer={renderComposer}
+        renderComposer={() => null}
         /**
          * Uncomment if you'd like to add a custom view to each message.
          * This view appears after a message's text and before the message's
          * status information (aka date, sent, delivered, etc.)
          */
         // renderCustomView={renderCustomView}
-        renderInputToolbar={(props) => {
-          const ImageHandler = { selectedImages, setSelectedImages };
-          const ImageToViewHandler = {
-            setImage: setImageToView,
-            openImageViewer: () => setShowImageViewer(true),
-          };
-          const ActionHandler = { showActions, setShowActions };
-
-          return renderInputToolbar(
-            props,
-            ImageHandler,
-            ImageToViewHandler,
-            ActionHandler
-          );
-        }}
+        renderInputToolbar={() => null}
         renderMessage={renderMessage}
         renderMessageImage={(props) => {
           const ImageToViewHandler = {
@@ -285,7 +262,7 @@ export default ChatUI = (props) => {
           return renderMessageImage(props, ImageToViewHandler);
         }}
         renderMessageText={renderMessageText}
-        renderSend={renderSend}
+        renderSend={() => null}
         renderSystemMessage={renderSystemMessage}
         scrollToBottom
         // showUserAvatar
@@ -298,6 +275,9 @@ export default ChatUI = (props) => {
         // loadEarlier={true}
         // isLoadingEarlier={false}
       />
+
+      {/* The Input Toolbar */}
+      {getInputToolbar()}
 
       {/* Camera Permissions */}
       <CameraPermissionsDeviceSettings
@@ -328,7 +308,9 @@ ChatUI.propTypes = {
   selectedRoom: PropTypes.object.isRequired,
   text: PropTypes.string,
   setText: PropTypes.func,
-  selectedImages: PropTypes.string,
+  selectedImages: PropTypes.array,
   setSelectedImages: PropTypes.func,
-  headerHeight: PropTypes.number.isRequired,
+  appbarHeight: PropTypes.number,
+  fullMaxHeight: PropTypes.bool,
+  addToolbarBottomPadding: PropTypes.bool,
 };

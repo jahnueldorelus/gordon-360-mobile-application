@@ -38,7 +38,7 @@ export const StatusServer = (props) => {
           <Icon
             name="server"
             type="font-awesome-5"
-            color="#354f86"
+            color="#014983"
             size={40}
             containerStyle={props.styles.itemIcon}
           />

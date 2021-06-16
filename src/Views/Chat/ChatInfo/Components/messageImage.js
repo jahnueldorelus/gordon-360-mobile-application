@@ -53,11 +53,12 @@ export const MessageImage = (props) => {
 const styles = StyleSheet.create({
   imagesContainerImage: {
     margin: 10,
-    borderColor: "#3C6AA8",
     overflow: "hidden",
   },
   image: {
     borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#3C6AA8",
   },
   imageText: {
     color: "#01335c",

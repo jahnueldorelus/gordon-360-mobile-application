@@ -5,57 +5,6 @@
   <img alt="Supports Expo Android" longdesc="Supports Expo Android" src="https://img.shields.io/badge/Android-4630EB.svg?style=flat-square&logo=ANDROID&labelColor=A4C639&logoColor=fff" />
 </p>
 
-## 👷&nbsp;&nbsp;&nbsp;Purpose
-
-- Chris Carlson who’s our customer is the Dean of Student Success. He oversees operations and resources that would promote a student’s involvement and success while attending Gordon College. While there are many information-based Gordon websites currently accessible to students, it's a known fact that a student's primary resource for information is their smartphone. Mobile apps power our daily lives. Gordon 360 is one of Gordon’s web platforms that was made by students, for students. It's a central place for students to view personal information, join new clubs, and find activities throughout campus. Our goal is to use this platform to allow students and faculty to connect as we've become more socially distant due to Covid-19. As Gordon 360's environment exists solely on the web, there are many limitations put into place for mobile devices. We intend to create a mobile application that would help individuals stay in touch while incorporating Gordon 360's current web ecosystem.
-
-## 📜&nbsp;&nbsp;&nbsp;Design Document
-
-- https://docs.google.com/document/d/19ZKxjMTd3x-V4B5TIUYO3TishPf5Bvb245_4jhe7xGs/edit?usp=sharing
-
-<br/>
-
-## 📜&nbsp;&nbsp;&nbsp;User Stories
-
-- https://drive.google.com/file/d/192zBSbFHV8dkPMFZv7GNuCI4L0jPgu6s/view?usp=sharing
-
-<br/>
-
-## 📜&nbsp;&nbsp;&nbsp;Tools Proposal
-
-- https://docs.google.com/document/d/11XzF7SbY94uw0OCi_q1oCgfPXNCJib9uiFnjfBa6mM4/edit?usp=sharing
-
-<br/>
-
-## 👥&nbsp;&nbsp;&nbsp;Lofi User Study
-
-- https://drive.google.com/file/d/12QNG491fKHFfJucT3vYGnumR7fiu1lyG/view?usp=sharing
-
-<br/>
-
-## 📱&nbsp;&nbsp;&nbsp;Adobe XD Sketch
-
-- https://xd.adobe.com/view/73f200d1-a075-4d62-9ddf-e2480d14bb2d-26a1/
-
-<br/>
-
-## 🤔&nbsp;&nbsp;&nbsp;Problem Statement
-
-- https://docs.google.com/presentation/d/1KAvq2Z2kaWoHd6xHDp5utLFS6qgmR5O2uCL2YME8aqc/edit?usp=sharing
-
-<br/>
-
-## &nbsp;&nbsp;&nbsp;Final Presentation Slides
-
-- https://docs.google.com/presentation/d/1Y_X6unoZz11H5mlaSbJKe4WA6ddGGzveeY4cRbUIoYk/edit?usp=sharing
-
-<br/>
-
-## 💿&nbsp;&nbsp;&nbsp;API - How the back-end is setup
-
-- https://github.com/gordon-cs/gordon-360-api
-
-<br/>
 
 ## ![icons8-redux](https://user-images.githubusercontent.com/47061482/112046016-e2c9f500-8b21-11eb-96e8-413f4d4e1cdb.png)&nbsp;&nbsp;&nbsp;Redux
 
